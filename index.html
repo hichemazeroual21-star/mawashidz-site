@@ -109,6 +109,47 @@ url('data:image/jpeg;base64,/9j/2wBDAAQDAwQDAwQEAwQFBAQFBgoHBgYGBg0JCggKDw0QEA8N
 .editorial-policy{margin-top:18px;padding:16px 18px;border:1px solid var(--line);border-radius:16px;background:#fffefb;color:var(--muted);line-height:1.8}
 @media (prefers-color-scheme: dark){.editorial-policy{background:#2A312C;border-color:#3A443C;color:#C9D2CC}}
 
+
+/* Prominent news access */
+.news-launch{position:fixed;left:18px;bottom:18px;z-index:9999;display:flex;align-items:center;gap:9px;padding:13px 17px;border-radius:999px;background:#9c7b32;color:#fff;font-weight:900;box-shadow:0 12px 30px #0005;border:1px solid #d8bc73;text-decoration:none}
+.news-launch::before{content:"📰";font-size:1.15rem}
+.news-launch:hover{transform:translateY(-2px)}
+.hero .btn.news-btn{background:#f2ede0;color:#234b3a;border:1px solid #f2ede0}
+@media(max-width:620px){.news-launch{left:12px;bottom:12px;padding:12px 14px}.hero .actions{gap:10px}.hero .btn{width:100%;text-align:center}}
+
+
+.demo-zone{background:linear-gradient(180deg,#f4efe5 0%,#eef4ef 100%)}
+.demo-alert{display:flex;gap:12px;align-items:flex-start;background:#fff7dd;border:1px solid #dec879;border-radius:18px;padding:16px 18px;margin-bottom:22px;line-height:1.8}
+.demo-alert strong{color:#6e5721}
+.demo-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.demo-profile,.demo-animal{background:#fffefb;border:1px solid var(--line);border-radius:24px;padding:22px;box-shadow:0 14px 42px #2f5f470d}
+.demo-top{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}
+.demo-avatar{width:74px;height:74px;border-radius:20px;display:grid;place-items:center;background:linear-gradient(145deg,#e6efe8,#d7e7dc);color:var(--green);font-weight:950;font-size:1.5rem}
+.demo-badge{display:inline-flex;align-items:center;gap:7px;background:#fff0bf;color:#765c17;border:1px solid #e3ce82;padding:7px 10px;border-radius:999px;font-size:.82rem;font-weight:950}
+.demo-data{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:18px 0}
+.demo-data div{background:#f5f7f4;border:1px solid #e4e9e5;border-radius:14px;padding:12px}
+.demo-data span{display:block;color:var(--muted);font-size:.83rem;margin-bottom:4px}
+.demo-score{display:flex;justify-content:space-between;gap:12px;align-items:center;background:#eaf4ed;border-radius:14px;padding:13px 15px;color:#285f45;font-weight:900}
+.demo-qr-wrap{display:flex;gap:18px;align-items:center;flex-wrap:wrap;margin-top:16px}
+.demo-qr{width:128px;height:128px;border:10px solid #214d39;border-radius:8px;background:
+linear-gradient(90deg,#214d39 12%,transparent 12% 24%,#214d39 24% 38%,transparent 38% 52%,#214d39 52% 67%,transparent 67% 79%,#214d39 79%),
+linear-gradient(#214d39 12%,transparent 12% 24%,#214d39 24% 38%,transparent 38% 52%,#214d39 52% 67%,transparent 67% 79%,#214d39 79%);
+background-size:18px 18px;cursor:pointer}
+.demo-animal-card{border-top:1px solid var(--line);margin-top:18px;padding-top:18px}
+.demo-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+.demo-btn{border:0;cursor:pointer}
+.demo-modal{position:fixed;inset:0;background:#07150fcc;display:none;align-items:center;justify-content:center;padding:18px;z-index:100}
+.demo-modal.open{display:flex}
+.demo-modal-card{width:min(680px,100%);max-height:90vh;overflow:auto;background:#fffefb;border-radius:26px;padding:24px;color:var(--ink)}
+.demo-modal-head{display:flex;justify-content:space-between;gap:15px;align-items:center}
+.demo-close{border:0;background:#edf2ee;border-radius:12px;padding:10px 13px;font-weight:900;cursor:pointer}
+@media(max-width:850px){.demo-grid{grid-template-columns:1fr}.demo-data{grid-template-columns:1fr}}
+@media (prefers-color-scheme: dark){
+.demo-zone{background:#222822}.demo-alert{background:#3a3424;border-color:#6f6035;color:#eee4c6}
+.demo-profile,.demo-animal,.demo-modal-card{background:#2A312C;border-color:#3A443C;color:#E8E8E8}
+.demo-data div{background:#313932;border-color:#465047}.demo-score{background:#304237;color:#d8eadf}
+}
+
 </style>
 </head>
 <body>
@@ -116,15 +157,16 @@ url('data:image/jpeg;base64,/9j/2wBDAAQDAwQDAwQEAwQFBAQFBgoHBgYGBg0JCggKDw0QEA8N
 <a href="#" class="brand">
 <div class="logo"><svg viewBox="0 0 64 64" fill="none"><path d="M9 50C21 38 31 38 43 50" stroke="#f4efe4" stroke-width="4" stroke-linecap="round"/><path d="M27 49V16" stroke="#e5c46b" stroke-width="4" stroke-linecap="round"/><path d="M27 24C19 24 15 20 14 14C22 14 26 18 27 24Z" fill="#e5c46b"/><path d="M27 32C36 32 41 27 42 20C33 20 29 25 27 32Z" fill="#e5c46b"/><circle cx="45" cy="15" r="4" fill="#f4efe4"/></svg></div>
 <span>MawashiDZ</span></a>
-<div class="links"><a href="#services">الخدمات</a><a href="#nature">الجزائر</a><a href="#trust">الثقة</a><a href="#news">الأخبار</a><a href="#join">التسجيل</a></div>
+<div class="links"><a href="#services">الخدمات</a><a href="#nature">الجزائر</a><a href="#trust">الثقة</a><a href="#demo">نموذج تجريبي</a><a href="#news">الأخبار</a><a href="#join">التسجيل</a></div>
 <div class="langs"><button class="on" data-lang="ar">ع</button><button data-lang="fr">FR</button><button data-lang="en">EN</button><button data-lang="de">DE</button></div>
 </div></nav>
+<a class="news-launch" href="#news" aria-label="الانتقال إلى الأخبار">الأخبار الآن</a>
 
 <header class="hero"><div class="container hero-inner">
 <span class="badge">🇩🇿 منصة جزائرية من الدوار إلى العالم</span>
 <h1>نظام ذكي للمواشي، <span>مبني على الثقة</span></h1>
 <p>يبيع الموال من مزرعته دون إرهاق القطيع، ويصل إلى العلف والبيطري والمشتري من مكان واحد، مع توثيق واضح يفرّق بين المربي الحقيقي والتاجر والحساب الوهمي.</p>
-<div class="actions"><a href="#join" class="btn primary">انضم إلى النسخة الأولى</a><a href="#trust" class="btn ghost">كيف نحارب الغش؟</a></div>
+<div class="actions"><a href="#join" class="btn primary">انضم إلى النسخة الأولى</a><a href="#news" class="btn news-btn">آخر الأخبار</a><a href="#trust" class="btn ghost">كيف نحارب الغش؟</a></div>
 <div class="trustbar"><span>هوية موثقة</span><span>QR ذكي</span><span>سجل ملكية</span><span>بلاغات ومراجعة بشرية</span></div>
 </div></header>
 
@@ -176,6 +218,82 @@ url('data:image/jpeg;base64,/9j/2wBDAAQDAwQDAwQEAwQFBAQFBgoHBgYGBg0JCggKDw0QEA8N
 <div class="roles"><div class="role">موال</div><div class="role">بيطري</div><div class="role">مورد أعلاف</div><div class="role">مشتري</div><div class="role">سفير ميداني</div></div>
 </div></section>
 
+
+
+<section id="demo" class="demo-zone"><div class="container">
+<div class="head">
+<h2>شاهد كيف تعمل المنصة</h2>
+<p>نموذج توضيحي يبيّن طريقة عرض الموال والحيوان والـQR والتقييم قبل الإطلاق الحقيقي.</p>
+</div>
+
+<div class="demo-alert">
+<div>ℹ️</div>
+<div><strong>بيانات تجريبية فقط:</strong> الاسم، رقم العضوية، الحيوان، السعر والتقييمات في هذا القسم أمثلة توضيحية وليست إعلانات بيع حقيقية ولا تمثل أشخاصاً حقيقيين.</div>
+</div>
+
+<div class="demo-grid">
+<article class="demo-profile">
+<div class="demo-top">
+<div style="display:flex;gap:14px;align-items:center">
+<div class="demo-avatar">م ع</div>
+<div><span class="demo-badge">نموذج تجريبي</span><h3 style="margin:9px 0 3px">محمد العيد — اسم افتراضي</h3><small>موال منتج · سطيف</small></div>
+</div>
+<div style="font-size:1.25rem;font-weight:950">4.8 ★</div>
+</div>
+
+<div class="demo-data">
+<div><span>رقم العضوية</span><b>MZD-DEMO-001</b></div>
+<div><span>مستوى التحقق</span><b>موثق تجريبياً</b></div>
+<div><span>عدد الحيوانات</span><b>42 رأساً</b></div>
+<div><span>آخر متابعة</span><b>منذ 12 يوماً</b></div>
+</div>
+<div class="demo-score"><span>مؤشر الثقة التجريبي</span><strong>92/100</strong></div>
+<p class="note">يرتفع المؤشر الحقيقي لاحقاً حسب توثيق الهوية، المتابعة البيطرية، وضوح الصفة، التقييمات والصفقات المؤكدة.</p>
+</article>
+
+<article class="demo-animal">
+<div class="demo-top">
+<div><span class="demo-badge">خروف تجريبي — غير معروض للبيع</span><h3 style="margin:10px 0 4px">بطاقة الحيوان الرقمية</h3><small>المعرف: DZ-S19-DEMO-024</small></div>
+<div class="status">● موثق تجريبياً</div>
+</div>
+
+<div class="demo-qr-wrap">
+<div class="demo-qr" id="demoQr" title="اضغط لفتح بطاقة الحيوان التجريبية"></div>
+<div style="flex:1;min-width:210px">
+<p><b>العمر:</b> 18 شهراً — بيانات تجريبية</p>
+<p><b>الوزن:</b> 52 كغ — بيانات تجريبية</p>
+<p><b>آخر فحص:</b> 02 يوليو 2026</p>
+<p><b>المتابعة البيطرية:</b> مكتملة تجريبياً</p>
+</div>
+</div>
+
+<div class="demo-actions">
+<button class="btn primary demo-btn" id="openAnimalDemo" type="button">فتح بطاقة الخروف</button>
+<a class="btn secondary" href="#trust">كيف يعمل التوثيق؟</a>
+</div>
+</article>
+</div>
+</div></section>
+
+<div class="demo-modal" id="animalDemoModal" role="dialog" aria-modal="true" aria-label="بطاقة حيوان تجريبية">
+<div class="demo-modal-card">
+<div class="demo-modal-head"><div><span class="demo-badge">DEMO — ليس إعلاناً حقيقياً</span><h2>بطاقة DZ-S19-DEMO-024</h2></div><button class="demo-close" id="closeAnimalDemo">إغلاق ✕</button></div>
+<div class="demo-animal-card">
+<div class="demo-data">
+<div><span>المالك المسجل</span><b>محمد العيد — اسم افتراضي</b></div>
+<div><span>صفة المالك</span><b>موال منتج — تجريبي</b></div>
+<div><span>الولاية</span><b>سطيف</b></div>
+<div><span>حالة QR</span><b>صالح تجريبياً</b></div>
+<div><span>العمر</span><b>18 شهراً — تجريبي</b></div>
+<div><span>الوزن</span><b>52 كغ — تجريبي</b></div>
+<div><span>التلقيح</span><b>سجل تجريبي مكتمل</b></div>
+<div><span>آخر فحص بيطري</span><b>02 يوليو 2026</b></div>
+</div>
+<div class="demo-score"><span>مستوى توثيق الحيوان</span><strong>96/100</strong></div>
+<p class="note">في النسخة التشغيلية، يؤدي مسح QR المثبت على الحيوان إلى فتح صفحته العامة مباشرة على mawashidz.com، مع إخفاء البيانات الشخصية الحساسة.</p>
+</div>
+</div>
+</div>
 
 <section id="news" class="news-wrap"><div class="container">
 <div class="head">
@@ -366,4 +484,17 @@ document.addEventListener("DOMContentLoaded",()=>{
   setInterval(refreshNews,60000);
 });
 </script>
+
+<script>
+document.addEventListener('DOMContentLoaded',()=>{
+  const modal=document.getElementById('animalDemoModal');
+  const open=()=>modal?.classList.add('open');
+  const close=()=>modal?.classList.remove('open');
+  document.getElementById('openAnimalDemo')?.addEventListener('click',open);
+  document.getElementById('demoQr')?.addEventListener('click',open);
+  document.getElementById('closeAnimalDemo')?.addEventListener('click',close);
+  modal?.addEventListener('click',e=>{ if(e.target===modal) close(); });
+});
+</script>
+
 </body></html>
