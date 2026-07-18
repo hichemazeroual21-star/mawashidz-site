@@ -12,6 +12,7 @@ Official website package with multilingual interface, automatic dark mode, and t
 
 ## Supabase setup (مطلوب مرة واحدة)
 
-1. افتح Supabase Dashboard → SQL Editor وشغّل `supabase/setup.sql` كاملًا.
+1. إن كانت قاعدة البيانات موجودة مسبقًا (جداول `profiles` / `registrations` …)، شغّل أولًا `supabase/migrations/20260718220000_align_existing_schema.sql` — ترقية idempotent تضيف الأعمدة والدوال الناقصة فقط.
+2. وإلا (مشروع جديد)، أو بعد الترقية، شغّل `supabase/setup.sql` كاملًا.
 2. عرّب قالب «Confirm signup» في Auth → Emails (نموذج جاهز داخل نهاية ملف SQL).
 3. أضف نطاق الموقع في Auth → URL Configuration → Redirect URLs (لاسترجاع كلمة المرور).

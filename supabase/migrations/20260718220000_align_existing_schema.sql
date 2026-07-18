@@ -1,13 +1,21 @@
 -- ============================================================
--- MawashiDZ — ملف إعداد قاعدة بيانات Supabase (v1.7.1)
--- شغّل هذا الملف كاملًا من: Supabase Dashboard → SQL Editor → Run
--- الملف آمن لإعادة التشغيل (idempotent) ولا يحذف بيانات موجودة.
+-- MawashiDZ — ترقية idempotent للمخطط الحالي (v1.7.1)
+-- شغّل هذا الملف من: Supabase Dashboard → SQL Editor → Run
+--
+-- تم اكتشاف المخطط الحالي عبر REST API (2026-07-18):
+--   profiles:          id, full_name, phone, email, created_at
+--   registrations:     كامل + عمود status إضافي (يُترك كما هو)
+--   contact_messages:  كامل + عمود email إضافي (يُترك كما هو)
+--   feedback_tickets:  كامل
+--   breeders:          جدول قديم (id, full_name, phone, wilaya, commune, farm_name, created_at)
+--   member_id_counters: غير موجود
+--   الدوال allocate_member_id / resolve_login_identifier / handle_new_user: غير موجودة
+--
+-- لا يُعاد إنشاء أي جدول موجود. يُضاف فقط ما ينقص.
 -- ============================================================
 
 -- ------------------------------------------------------------
--- 1) أرقام العضوية التسلسلية الدائمة: MDZ-F-000001 ...
---    F=موال، V=بيطري، S=تاجر أعلاف، U=مشتري، W=مدير ولاية،
---    B=سفير، P=شريك
+-- 1) أرقام العضوية التسلسلية
 -- ------------------------------------------------------------
 create table if not exists public.member_id_counters (
   prefix text primary key,
@@ -15,7 +23,6 @@ create table if not exists public.member_id_counters (
 );
 
 alter table public.member_id_counters enable row level security;
--- لا سياسات عامة: الجدول يُعدَّل فقط عبر الدالة أدناه (security definer).
 
 create or replace function public.allocate_member_id(member_role text)
 returns text
@@ -51,29 +58,9 @@ $$;
 grant execute on function public.allocate_member_id(text) to anon, authenticated;
 
 -- ------------------------------------------------------------
--- 2) جدول الملفات الشخصية (يُنشأ تلقائيًا عند كل تسجيل Auth)
+-- 2) ترقية profiles — إضافة الأعمدة الناقصة فقط
+--    الموجود حاليًا: id, full_name, phone, email, created_at
 -- ------------------------------------------------------------
-create table if not exists public.profiles (
-  id uuid primary key references auth.users (id) on delete cascade,
-  member_id text unique,
-  registration_id text,
-  full_name text,
-  first_name text,
-  last_name text,
-  phone text,
-  email text,
-  role text,
-  wilaya text,
-  daira text,
-  commune text,
-  birth_date date,
-  invite_code text,
-  invited_by text,
-  status text not null default 'pending',
-  created_at timestamptz not null default now()
-);
-
--- ترقية profiles إن وُجد بنسخة قديمة (بدون member_id وغيرها)
 alter table public.profiles add column if not exists member_id text;
 alter table public.profiles add column if not exists registration_id text;
 alter table public.profiles add column if not exists first_name text;
@@ -98,7 +85,6 @@ create policy "profiles: self read"
   to authenticated
   using (id = (select auth.uid()));
 
--- إنشاء الملف الشخصي تلقائيًا من بيانات التسجيل (user_metadata)
 create or replace function public.handle_new_user()
 returns trigger
 language plpgsql
@@ -168,26 +154,8 @@ $$;
 grant execute on function public.resolve_login_identifier(text) to anon, authenticated;
 
 -- ------------------------------------------------------------
--- 4) طلبات التسجيل (النسخة الكاملة للمراجعة الإدارية)
+-- 4) registrations — الجدول موجود؛ تأكيد RLS والسياسة فقط
 -- ------------------------------------------------------------
-create table if not exists public.registrations (
-  id bigint generated always as identity primary key,
-  full_name text not null,
-  phone text not null,
-  email text,
-  whatsapp text,
-  wilaya text,
-  user_type text,
-  role text,
-  message text,
-  is_verified boolean not null default false,
-  privacy_accepted boolean not null default false,
-  founding_terms_accepted boolean not null default false,
-  created_at timestamptz not null default now(),
-  unique (email),
-  unique (phone)
-);
-
 alter table public.registrations enable row level security;
 
 drop policy if exists "registrations: public insert" on public.registrations;
@@ -197,22 +165,8 @@ create policy "registrations: public insert"
   with check (true);
 
 -- ------------------------------------------------------------
--- 5) رسائل التواصل وبلاغات الملاحظات
+-- 5) contact_messages — الجدول موجود؛ تأكيد RLS والسياسة فقط
 -- ------------------------------------------------------------
-create table if not exists public.contact_messages (
-  id bigint generated always as identity primary key,
-  ticket_id text unique,
-  full_name text,
-  phone text,
-  wilaya text,
-  daira text,
-  commune text,
-  request_type text,
-  message text,
-  status text not null default 'new',
-  created_at timestamptz not null default now()
-);
-
 alter table public.contact_messages enable row level security;
 
 drop policy if exists "contact: public insert" on public.contact_messages;
@@ -221,17 +175,9 @@ create policy "contact: public insert"
   to anon, authenticated
   with check (true);
 
-create table if not exists public.feedback_tickets (
-  id bigint generated always as identity primary key,
-  ticket_id text unique,
-  report_type text,
-  full_name text,
-  contact text,
-  details text,
-  status text not null default 'new',
-  created_at timestamptz not null default now()
-);
-
+-- ------------------------------------------------------------
+-- 6) feedback_tickets — الجدول موجود؛ تأكيد RLS والسياسة فقط
+-- ------------------------------------------------------------
 alter table public.feedback_tickets enable row level security;
 
 drop policy if exists "feedback: public insert" on public.feedback_tickets;
@@ -239,21 +185,3 @@ create policy "feedback: public insert"
   on public.feedback_tickets for insert
   to anon, authenticated
   with check (true);
-
--- ============================================================
--- خطوات يدوية متبقية داخل لوحة Supabase (لا يمكن تنفيذها بـ SQL):
---
--- أ) Auth → Emails → Confirm signup: استبدل القالب بقالب عربي، مثال:
---
---    Subject: أكد بريدك لتفعيل حسابك في MawashiDZ
---
---    <h2>مرحبًا {{ .Data.first_name }}،</h2>
---    <p>يسعدنا انضمامك إلى MawashiDZ بصفة: <b>{{ .Data.role_label }}</b>.</p>
---    <p>رقم عضويتك: <b>{{ .Data.member_id }}</b><br>
---       رقم متابعة الطلب: <b>{{ .Data.registration_id }}</b></p>
---    <p><a href="{{ .ConfirmationURL }}">اضغط هنا لتأكيد بريدك وتفعيل الدخول</a></p>
---    <p>احتفظ برقم الطلب للمتابعة. فريق MawashiDZ</p>
---
--- ب) Auth → URL Configuration: أضف https://mawashidz.com ضمن Redirect URLs
---    (مطلوب لرابط استرجاع كلمة المرور).
--- ============================================================
