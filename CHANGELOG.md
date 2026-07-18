@@ -1,0 +1,27 @@
+# Changelog
+
+## [1.8.0] — 2026-07-18 — Phase 0 Database Foundation
+
+### Added
+- Idempotent migration for **existing** databases: `supabase/migrations/20260718233000_phase0_existing_database.sql`
+- Separate bootstrap migration for **fresh** databases: `supabase/migrations/20260718233001_phase0_fresh_database.sql`
+- Rollback scripts under `supabase/rollbacks/`
+- Local test harness: `supabase/tests/run_phase0_tests.sh` (includes 100-way concurrency)
+- Docs: ADR 0001, database schema, roadmap, Phase 0 report
+
+### Fixed
+- Missing `profiles.member_id` and related columns (via `ADD COLUMN IF NOT EXISTS`, not table recreate)
+- Missing `allocate_member_id`, `resolve_login_identifier`, `handle_new_user`
+- Race-safe sequential member IDs under concurrent allocation
+
+### Security
+- Revoke PUBLIC execute on sensitive functions
+- RLS on `member_id_counters` with zero policies
+- Immutable `member_id` / `role` / `status` once set
+
+### Changed
+- `supabase/setup.sql` is now a Phase 0 router
+- Legacy migration `20260718220000_align_existing_schema.sql` marked deprecated
+
+## [1.7.x] — prior
+- Site structure fixes, Netlify news function, initial Supabase setup attempt
