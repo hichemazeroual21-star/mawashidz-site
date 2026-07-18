@@ -1,6 +1,7 @@
 -- ============================================================
 -- MawashiDZ — ترقية idempotent للمخطط الحالي (v1.7.1)
 -- شغّل هذا الملف من: Supabase Dashboard → SQL Editor → Run
+-- ثم شغّل: supabase/migrations/20260719000000_phase0_member_id_foundation.sql
 --
 -- تم اكتشاف المخطط الحالي عبر REST API (2026-07-18):
 --   profiles:          id, full_name, phone, email, created_at
