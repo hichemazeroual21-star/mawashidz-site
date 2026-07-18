@@ -1106,7 +1106,7 @@ footer{background:#0b100d}
     background-position:center 28%!important;
     min-height:calc(100svh - 72px)!important;
   }
-  .hero-card{padding-top:48vh!important;padding-bottom:46px!important}
+  .hero-card{padding-top:clamp(260px,45vh,400px)!important;padding-bottom:88px!important}
   .hero-card h1{text-shadow:0 2px 18px rgba(0,0,0,.42)}
   .hero p{text-shadow:0 1px 10px rgba(0,0,0,.55)}
   .site-version{font-size:.72rem!important;margin-top:18px!important;padding:0 12px}
@@ -1119,7 +1119,7 @@ footer{background:#0b100d}
 }
 @media(max-width:420px){
   .hero{background-position:center 22%!important;min-height:calc(100svh - 68px)!important}
-  .hero-card{padding-top:46vh!important;padding-bottom:38px!important}
+  .hero-card{padding-top:46vh!important;padding-bottom:88px!important}
 }
 /* تشطيب النسخة النهائية للهاتف والكمبيوتر */
 footer .foot{align-items:start}
@@ -1139,58 +1139,15 @@ footer .foot{align-items:start}
 }
 </style>
 
-<style id="mdz-v11-mobile-layout-fix">
-/* v11: image is embedded, the hero no longer collapses when index.html is opened directly. */
-.hero{
-  min-height:720px!important;
-  display:flex!important;
-  align-items:center!important;
-  background-position:center 42%!important;
-}
-.hero-card{padding:72px 0!important;max-width:690px!important}
-.stats{margin-top:0!important}
-.global-brand-strip{position:relative!important;z-index:8!important}
-@media(max-width:700px){
-  .top .nav{min-height:76px!important;display:grid!important;grid-template-columns:auto 1fr auto!important;gap:8px!important;align-items:center!important}
-  .top .brand{grid-column:2!important;min-width:0!important}
-  .top .actions{grid-column:1!important}
-  .top .menu-btn{grid-column:3!important}
-  .header-languages{
-    display:flex!important;position:absolute!important;top:100%!important;left:50%!important;
-    transform:translate(-50%,8px)!important;z-index:40!important;padding:4px!important;
-    border-radius:999px!important;background:rgba(8,18,13,.92)!important;
-    backdrop-filter:blur(12px)!important;
-  }
-  .header-languages button{min-width:38px!important;height:30px!important;font-size:.72rem!important}
-  .hero{
-    min-height:760px!important;align-items:flex-end!important;
-    background-position:center 35%!important;
-  }
-  .hero>.wrap{width:100%!important}
-  .hero-card{
-    padding:330px 0 38px!important;max-width:none!important;text-align:center!important;
-  }
-  .hero-card .eyebrow{font-size:.82rem!important}
-  .hero-card h1{font-size:clamp(2.45rem,12vw,3.55rem)!important;line-height:1.02!important;margin:15px 0!important}
-  .hero-card p{font-size:.93rem!important;line-height:1.72!important;max-width:520px!important;margin-inline:auto!important}
-  .hero-actions{gap:10px!important;margin-top:18px!important}
-  .hero-actions .btn{min-height:54px!important}
-  .global-brand-strip{margin-top:0!important}
-  .global-brand-inner{display:flex!important;justify-content:center!important;padding:10px 0!important}
-  .global-brand-inner>strong,.global-brand-inner>span,.global-brand-inner>.lang-switch{display:none!important}
-  .trust-strip .stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
-  .trust-strip .stat{min-height:102px!important;padding:14px 8px!important}
-  .founding-hero{padding-top:54px!important}
-}
-@media(max-width:390px){
-  .hero{min-height:730px!important;background-position:center 33%!important}
-  .hero-card{padding-top:305px!important}
-  .brand-copy small{display:none!important}
-  .header-languages button{min-width:34px!important}
-}
-</style>
-
-<style id="mdz-v12-polish">
+<style id="mdz-v20-clean-responsive">
+/* MawashiDZ v2.0 — consolidated responsive (replaces v11/v12/v13/v15) */
+:root{--mdz-header:#0b1711;--mdz-hline:rgba(255,255,255,.12)}
+.top{background:var(--mdz-header)!important;border-bottom:1px solid var(--mdz-hline)!important;box-shadow:0 8px 24px rgba(0,0,0,.16)!important;position:sticky!important;top:0!important;z-index:1000!important}
+.header-languages{background:rgba(255,255,255,.08)!important;border:1px solid rgba(255,255,255,.22)!important;border-radius:999px!important;padding:4px!important;gap:3px!important;display:flex!important}
+.header-languages button{color:rgba(255,255,255,.78)!important;border-radius:999px!important;font-weight:900!important}
+.header-languages button.active{background:#15724d!important;color:#fff!important;box-shadow:0 5px 13px rgba(0,0,0,.2)!important}
+.top .brand-copy>span{font-size:1.16rem;font-weight:950;color:#fff}
+.top .brand-tagline{color:rgba(255,255,255,.72);display:block}
 /* MawashiDZ v1.6.1 — final mobile/header and contrast polish */
 :root{
   --mdz-ink:#10251c;
@@ -1233,140 +1190,35 @@ footer .foot{align-items:start}
 /* Hide the duplicated language strip; languages live in the main header */
 .global-brand-strip{display:none!important}
 
-/* Header balance */
-.top{background:#101713!important;border-bottom:1px solid rgba(255,255,255,.12)!important;box-shadow:0 8px 26px rgba(0,0,0,.16)!important}
-.top .nav{align-items:center!important}
-.top .brand{margin-inline-end:auto!important}
-.top .brand-logo{width:58px!important;height:58px!important;flex:0 0 58px!important}
-.top .brand-copy>span{font-size:1.16rem!important;color:#fff!important}
-.top .brand-tagline{color:rgba(255,255,255,.72)!important;display:block!important}
-.header-languages{
-  background:rgba(255,255,255,.075)!important;
-  border:1px solid rgba(255,255,255,.18)!important;
-  border-radius:999px!important;padding:4px!important;gap:2px!important
-}
-.header-languages button{color:rgba(255,255,255,.78)!important;border-radius:999px!important;font-weight:900!important}
-.header-languages button.active{background:#15724d!important;color:#fff!important;box-shadow:0 5px 13px rgba(0,0,0,.2)!important}
-
+/* Market / pulse — mobile */
 @media(max-width:760px){
-  .top{position:sticky!important;top:0!important;z-index:1000!important}
-  .top .wrap.nav{
-    min-height:124px!important;
-    padding:12px 16px!important;
-    display:grid!important;
-    grid-template-columns:minmax(0,1fr) auto!important;
-    grid-template-rows:48px 52px!important;
-    column-gap:10px!important;row-gap:6px!important;
-    direction:rtl!important;
-  }
-  .top .brand{
-    grid-column:1!important;grid-row:1 / span 2!important;
-    justify-self:start!important;align-self:center!important;
-    flex-direction:row!important;gap:8px!important;width:min(100%,270px)!important;
-  }
-  .top .brand-logo{width:64px!important;height:64px!important;flex-basis:64px!important;order:0!important}
-  .top .brand-copy{display:grid!important;text-align:right!important;overflow:visible!important}
-  .top .brand-copy>span{font-size:1.06rem!important;white-space:nowrap!important}
-  .top .brand-tagline{font-size:.56rem!important;max-width:175px!important;white-space:normal!important;line-height:1.45!important}
-  .header-languages{
-    display:flex!important;grid-column:2!important;grid-row:1!important;
-    justify-self:end!important;align-self:start!important;margin:0!important;
-  }
-  .header-languages button{min-width:30px!important;height:30px!important;padding:0 5px!important;font-size:.66rem!important}
-  .top .actions{
-    grid-column:2!important;grid-row:2!important;justify-self:end!important;align-self:end!important;
-    display:flex!important;gap:7px!important;direction:ltr!important
-  }
-  .top .actions .btn.ghost{display:none!important}
-  .top .actions .btn.primary{min-height:46px!important;padding:0 15px!important;border-radius:15px!important;white-space:nowrap!important;font-size:.88rem!important}
-  .top .menu-btn{width:48px!important;height:48px!important;border-radius:15px!important;font-size:1.5rem!important}
-
-  .pulse{padding-top:58px!important;padding-bottom:72px!important}
-  .pulse .head{margin-bottom:26px!important}
-  .pulse .head h2{font-size:2rem!important;line-height:1.25!important}
-  .pulse .head p{font-size:1rem!important;margin-top:10px!important}
-  .pulse-grid{grid-template-columns:1fr!important;gap:14px!important}
-  .pulse-box{min-height:auto!important;padding:24px 20px!important;border-radius:22px!important}
-  .pulse-box b{font-size:1.22rem!important}
-  .pulse-box span{font-size:.98rem!important}
+  .pulse{padding-top:58px;padding-bottom:72px}
+  .pulse .head{margin-bottom:26px}
+  .pulse .head h2{font-size:2rem;line-height:1.25}
+  .pulse .head p{font-size:1rem;margin-top:10px}
+  .pulse-grid{grid-template-columns:1fr;gap:14px}
+  .pulse-box{min-height:auto;padding:24px 20px;border-radius:22px}
+  .pulse-box b{font-size:1.22rem}
+  .pulse-box span{font-size:.98rem}
 }
 
-@media(max-width:390px){
-  .top .wrap.nav{padding-inline:10px!important;grid-template-columns:minmax(0,1fr) auto!important}
-  .top .brand-logo{width:56px!important;height:56px!important;flex-basis:56px!important}
-  .top .brand-copy>span{font-size:.94rem!important}
-  .top .brand-tagline{max-width:145px!important;font-size:.51rem!important}
-  .header-languages button{min-width:27px!important;padding:0 4px!important}
-  .top .actions .btn.primary{padding:0 11px!important}
-  .top .menu-btn{width:44px!important;height:44px!important}
-}
-
-/* v13 — final upload header alignment */
+/* Header — mobile 3-col grid (menu | cta | brand) / languages row */
 @media(max-width:760px){
+  .top .desktop{display:none!important}
   .top .wrap.nav{
-    position:relative!important;
-    display:grid!important;
-    grid-template-columns:52px auto minmax(0,1fr)!important;
-    grid-template-rows:58px 42px!important;
-    direction:ltr!important;
-    column-gap:10px!important;
-    padding:10px 12px!important;
-  }
-  .top .menu-btn{
-    grid-column:1!important;grid-row:1!important;
-    justify-self:start!important;align-self:center!important;
-    margin:0!important;
-  }
-  .top .actions{
-    grid-column:2!important;grid-row:1!important;
-    justify-self:start!important;align-self:center!important;
-    direction:ltr!important;margin:0!important;
-  }
-  .top .brand{
-    grid-column:3!important;grid-row:1 / span 2!important;
-    justify-self:end!important;align-self:center!important;
-    direction:rtl!important;margin:0!important;
-  }
-  .header-languages{
-    grid-column:1 / span 2!important;grid-row:2!important;
-    justify-self:start!important;align-self:end!important;
-    position:static!important;transform:none!important;
-    margin:0!important;
-  }
-}
-@media(max-width:390px){
-  .top .wrap.nav{grid-template-columns:46px auto minmax(0,1fr)!important;padding-inline:8px!important;column-gap:7px!important}
-}
-</style>
-
-
-
-
-<style id="mdz-v15-deep-fix">
-/* MawashiDZ v1.6.3 — definitive responsive header and mobile polish */
-:root{--mdz-header:#0b1711;--mdz-line:rgba(255,255,255,.12)}
-.top{background:var(--mdz-header)!important;border-bottom:1px solid var(--mdz-line)!important;box-shadow:0 8px 24px rgba(0,0,0,.16)!important}
-.top .wrap.nav{overflow:visible!important}
-.top .brand,.top .actions,.top .menu-btn,.header-languages{min-width:0!important}
-.top .brand-copy>span{overflow:visible!important;text-overflow:clip!important}
-
-@media (max-width:760px){
-  .top{position:sticky!important;top:0!important;z-index:1000!important}
-  .top .wrap.nav{
-    box-sizing:border-box!important;
-    width:100%!important;max-width:none!important;
-    min-height:146px!important;
-    padding:10px 12px 12px!important;
+    box-sizing:border-box!important;width:100%!important;max-width:none!important;
+    min-height:126px!important;padding:10px 14px 10px!important;
     display:grid!important;
     grid-template-columns:48px 96px minmax(0,1fr)!important;
-    grid-template-rows:82px 40px!important;
+    grid-template-rows:78px 36px!important;
     column-gap:8px!important;row-gap:4px!important;
     align-items:center!important;direction:ltr!important;
   }
   .top .menu-btn{
     grid-column:1!important;grid-row:1!important;
     justify-self:start!important;align-self:center!important;
-    width:48px!important;height:48px!important;margin:0!important;padding:0!important;
+    width:48px!important;height:48px!important;
+    margin:0!important;padding:0!important;
     border-radius:15px!important;font-size:1.45rem!important;line-height:1!important;
   }
   .top .actions{
@@ -1377,81 +1229,83 @@ footer .foot{align-items:start}
   .top .actions .btn.ghost{display:none!important}
   .top .actions .btn.primary{
     width:96px!important;min-width:96px!important;min-height:50px!important;
-    padding:0 8px!important;margin:0!important;border-radius:17px!important;
-    font-size:.84rem!important;white-space:nowrap!important;
+    padding:0 8px!important;margin:0!important;
+    border-radius:17px!important;font-size:.84rem!important;white-space:nowrap!important;
   }
   .top .brand{
     grid-column:3!important;grid-row:1!important;
     justify-self:end!important;align-self:center!important;
-    width:auto!important;max-width:178px!important;min-width:0!important;
+    max-width:185px!important;min-width:0!important;width:auto!important;
     display:flex!important;flex-direction:row!important;direction:rtl!important;
-    justify-content:flex-start!important;align-items:center!important;
-    gap:7px!important;margin:0!important;padding:0!important;overflow:visible!important;
+    align-items:center!important;gap:8px!important;margin:0!important;overflow:visible!important;
   }
   .top .brand-logo{
-    width:62px!important;height:62px!important;flex:0 0 62px!important;
+    width:60px!important;height:60px!important;flex:0 0 60px!important;
     object-fit:contain!important;order:0!important;
   }
   .top .brand-copy{
-    width:108px!important;min-width:0!important;max-width:108px!important;
+    flex:1!important;min-width:0!important;
     display:flex!important;flex-direction:column!important;justify-content:center!important;
-    text-align:right!important;line-height:1.1!important;overflow:visible!important;order:1!important;
+    text-align:right!important;line-height:1.15!important;overflow:visible!important;order:1!important;
   }
   .top .brand-copy>span{
-    display:block!important;width:100%!important;
-    white-space:nowrap!important;overflow:visible!important;text-overflow:clip!important;
-    font-size:.92rem!important;font-weight:950!important;letter-spacing:-.25px!important;color:#fff!important;
+    display:block!important;white-space:nowrap!important;overflow:visible!important;text-overflow:clip!important;
+    font-size:.95rem!important;font-weight:950!important;letter-spacing:-.25px!important;color:#fff!important;
   }
   .top .brand-tagline{
-    display:block!important;width:100%!important;max-width:none!important;
-    margin-top:5px!important;white-space:normal!important;overflow:visible!important;
-    font-size:.47rem!important;line-height:1.45!important;color:rgba(255,255,255,.72)!important;
+    display:block!important;margin-top:4px!important;white-space:normal!important;overflow:visible!important;
+    font-size:.63rem!important;line-height:1.42!important;color:rgba(255,255,255,.72)!important;
+    max-width:115px!important;
   }
   .header-languages{
     grid-column:1 / -1!important;grid-row:2!important;
     justify-self:center!important;align-self:center!important;
-    position:static!important;transform:none!important;margin:0!important;
-    display:flex!important;direction:ltr!important;
-    padding:4px!important;gap:3px!important;
-    background:rgba(255,255,255,.08)!important;
-    border:1px solid rgba(255,255,255,.22)!important;
-    border-radius:999px!important;box-shadow:none!important;
+    position:static!important;transform:none!important;margin:0!important;direction:ltr!important;
   }
-  .header-languages button{
-    min-width:39px!important;height:31px!important;padding:0 7px!important;
-    font-size:.70rem!important;border-radius:999px!important;
-  }
+  .header-languages button{min-width:40px!important;height:32px!important;padding:0 8px!important;font-size:.70rem!important}
   .hero{background-position:center 38%!important}
-  .hero-card{max-width:100%!important}
 }
-
-@media (max-width:390px){
-  .top .wrap.nav{
-    grid-template-columns:44px 88px minmax(0,1fr)!important;
-    padding-inline:8px!important;column-gap:6px!important;
-  }
+@media(max-width:412px){
+  .top .wrap.nav{grid-template-columns:46px 90px minmax(0,1fr)!important;padding-inline:12px!important;column-gap:7px!important}
+  .top .menu-btn{width:46px!important;height:46px!important}
+  .top .actions .btn.primary{width:90px!important;min-width:90px!important;font-size:.82rem!important}
+  .top .brand{max-width:175px!important;gap:7px!important}
+  .top .brand-logo{width:58px!important;height:58px!important;flex-basis:58px!important}
+  .top .brand-copy>span{font-size:.91rem!important}
+  .top .brand-tagline{font-size:.59rem!important;max-width:108px!important}
+}
+@media(max-width:390px){
+  .top .wrap.nav{grid-template-columns:44px 86px minmax(0,1fr)!important;padding-inline:10px!important;column-gap:6px!important}
   .top .menu-btn{width:44px!important;height:44px!important;font-size:1.35rem!important}
-  .top .actions .btn.primary{width:88px!important;min-width:88px!important;font-size:.78rem!important;padding-inline:6px!important}
-  .top .brand{max-width:164px!important;gap:5px!important}
+  .top .actions .btn.primary{width:86px!important;min-width:86px!important;font-size:.80rem!important;padding-inline:6px!important}
+  .top .brand{max-width:168px!important;gap:6px!important}
   .top .brand-logo{width:56px!important;height:56px!important;flex-basis:56px!important}
-  .top .brand-copy{width:103px!important;max-width:103px!important}
-  .top .brand-copy>span{font-size:.84rem!important}
-  .top .brand-tagline{font-size:.43rem!important;line-height:1.4!important}
-  .header-languages button{min-width:36px!important;padding:0 6px!important}
+  .top .brand-copy>span{font-size:.88rem!important}
+  .top .brand-tagline{font-size:.56rem!important;max-width:104px!important}
+  .header-languages button{min-width:37px!important;padding:0 6px!important}
 }
-
-@media (max-width:350px){
-  .top .wrap.nav{grid-template-columns:42px 82px minmax(0,1fr)!important;column-gap:5px!important;padding-inline:6px!important}
-  .top .menu-btn{width:42px!important;height:42px!important}
-  .top .actions .btn.primary{width:82px!important;min-width:82px!important;font-size:.73rem!important}
-  .top .brand{max-width:153px!important;gap:4px!important}
+@media(max-width:360px){
+  .top .wrap.nav{grid-template-columns:42px 80px minmax(0,1fr)!important;padding-inline:8px!important;column-gap:5px!important}
+  .top .menu-btn{width:42px!important;height:42px!important;font-size:1.3rem!important}
+  .top .actions .btn.primary{width:80px!important;min-width:80px!important;font-size:.76rem!important}
+  .top .brand{max-width:155px!important;gap:5px!important}
   .top .brand-logo{width:52px!important;height:52px!important;flex-basis:52px!important}
-  .top .brand-copy{width:96px!important;max-width:96px!important}
-  .top .brand-copy>span{font-size:.77rem!important}
-  .top .brand-tagline{font-size:.40rem!important}
-  .header-languages button{min-width:33px!important;height:29px!important;padding:0 5px!important;font-size:.66rem!important}
+  .top .brand-copy>span{font-size:.84rem!important}
+  .top .brand-tagline{font-size:.52rem!important;max-width:96px!important}
+  .header-languages button{min-width:34px!important;padding:0 5px!important}
+}
+@media(max-width:320px){
+  .top .wrap.nav{grid-template-columns:40px 74px minmax(0,1fr)!important;padding-inline:6px!important;column-gap:4px!important}
+  .top .menu-btn{width:40px!important;height:40px!important;font-size:1.25rem!important}
+  .top .actions .btn.primary{width:74px!important;min-width:74px!important;font-size:.70rem!important}
+  .top .brand{max-width:150px!important;gap:4px!important}
+  .top .brand-logo{width:48px!important;height:48px!important;flex-basis:48px!important}
+  .top .brand-copy>span{font-size:.80rem!important}
+  .top .brand-tagline{font-size:.49rem!important;max-width:95px!important;line-height:1.35!important}
+  .header-languages button{min-width:32px!important;height:28px!important;padding:0 4px!important;font-size:.64rem!important}
 }
 </style>
+
 
 
 <style id="mdz-v16-light-registration">
@@ -2112,7 +1966,8 @@ footer .foot{align-items:start}
  <div class="role-section-title">المعلومات المهنية للطبيب البيطري</div>
  <div class="field"><label>رقم الاعتماد أو التسجيل المهني</label><input name="vet_license"></div>
  <div class="field"><label>اسم العيادة (إن وجدت)</label><input name="clinic_name"></div>
- <div class="field"><label>سنة التخرج</label><input name="graduation_year" type="number" min="1950" max="2035"></div>
+ <div class="field"><label>التخصص</label><select name="vet_specialty"><option value="">اختر التخصص</option><option>عام</option><option>مجترات كبيرة</option><option>مجترات صغيرة</option><option>دواجن</option><option>تناسل وتوليد</option><option>أمراض معدية</option><option>جراحة</option></select></div>
+ <div class="field"><label>سنوات الخبرة</label><input name="vet_experience" type="number" min="0" max="60" inputmode="numeric" placeholder="مثال: 5"></div>
  <div class="field"><label>نطاق التغطية</label><select name="coverage"><option>البلدية</option><option>الدائرة</option><option>الولاية</option><option>عدة ولايات</option></select></div>
  <div class="field full"><label>الخدمات المقدمة</label><div class="check-grid">
   <label class="check-item"><input type="checkbox" name="vet_services" value="فحص عام">فحص عام</label>
@@ -2128,6 +1983,7 @@ footer .foot{align-items:start}
 <div class="role-fields" data-for="feed">
  <div class="role-section-title">معلومات تاجر الأعلاف</div>
  <div class="field"><label>اسم النشاط التجاري</label><input name="business_name"></div>
+ <div class="field"><label>نوع الأعلاف</label><select name="feed_type"><option value="">اختر النوع</option><option>أعلاف الأغنام والماعز</option><option>أعلاف الأبقار والجمال</option><option>أعلاف الدواجن</option><option>أعلاف مركزة</option><option>أعلاف خضراء وجافة</option><option>متنوع</option></select></div>
  <div class="field"><label>نطاق التوصيل</label><select name="delivery"><option>لا يوجد توصيل</option><option>داخل البلدية</option><option>داخل الولاية</option><option>عدة ولايات</option></select></div>
 </div>
 <div class="role-fields" data-for="buyer">
@@ -2281,10 +2137,28 @@ const SUPABASE_AUTH = `${SUPABASE_URL}/auth/v1`;
 const MDZ_SESSION_KEY='mdz_auth_session';
 const ROLE_PREFIX={breeder:'F',vet:'V',feed:'S',buyer:'U',manager:'W',ambassador:'B',partner:'P'};
 function generateMemberId(role){
- const d=new Date(), date=String(d.getFullYear()).slice(-2)+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0');
- const a='ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let x='';
- if(crypto?.getRandomValues){const b=new Uint8Array(5);crypto.getRandomValues(b);x=[...b].map(v=>a[v%a.length]).join('')}else{x=Math.random().toString(36).slice(2,7).toUpperCase()}
- return `MDZ-${ROLE_PREFIX[role]||'U'}-${date}-${x}`;
+  // Format: MDZ-F-XXXXXX (unique 6-digit suffix)
+  const prefix=ROLE_PREFIX[role]||'U';
+  const arr=new Uint32Array(1); crypto.getRandomValues(arr);
+  const num=String((arr[0]%999000)+1000).padStart(6,'0');
+  return `MDZ-${prefix}-${num}`;
+}
+async function generateSequentialMemberId(role){
+  // Requires Supabase function: next_member_sequence(role_prefix TEXT) → INTEGER
+  // SQL: CREATE SEQUENCE mdz_member_seq_F START 1; (one per prefix)
+  // CREATE FUNCTION next_member_sequence(role_prefix TEXT) RETURNS INT AS $$
+  //   SELECT nextval('mdz_member_seq_' || role_prefix);
+  // $$ LANGUAGE sql SECURITY DEFINER;
+  const prefix=ROLE_PREFIX[role]||'U';
+  try{
+    const r=await fetch(`${SUPABASE_REST}/rpc/next_member_sequence`,{
+      method:'POST',
+      headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:`Bearer ${SUPABASE_PUBLISHABLE_KEY}`,'Content-Type':'application/json'},
+      body:JSON.stringify({role_prefix:prefix})
+    });
+    if(r.ok){const seq=await r.json();if(typeof seq==='number'&&seq>0)return `MDZ-${prefix}-${String(seq).padStart(6,'0')}`;}
+  }catch{}
+  return generateMemberId(role);
 }
 function saveSession(session){if(session)localStorage.setItem(MDZ_SESSION_KEY,JSON.stringify(session));else localStorage.removeItem(MDZ_SESSION_KEY)}
 function getSession(){try{return JSON.parse(localStorage.getItem(MDZ_SESSION_KEY)||'null')}catch{return null}}
@@ -2476,7 +2350,7 @@ $('#registerForm').addEventListener('submit', async e=>{
   const fullName=`${firstName} ${lastName}`.replace(/\s+/g,' ').trim();
   const registrationId=makeRegistrationId();
   const memberInviteCode=makeMemberInviteCode(lastName||firstName);
-  const memberId=generateMemberId(raw.role);
+  const memberId=await generateSequentialMemberId(raw.role);
   const password=String(raw.password||'');
   if(password.length<8 || password!==String(raw.password_confirm||'')){
     showToast(password.length<8?'كلمة المرور يجب أن تحتوي على 8 أحرف على الأقل.':'كلمتا المرور غير متطابقتين.');
@@ -2511,9 +2385,11 @@ $('#registerForm').addEventListener('submit', async e=>{
     referral_code:safeText(String(raw.referral_code||'').trim().toUpperCase(),80), bio:safeText(raw.bio),
     livestock_count:raw.livestock_count||null, breeder_activity:safeText(raw.breeder_activity,120),
     vet_license:safeText(raw.vet_license,160), clinic_name:safeText(raw.clinic_name,160),
+    vet_specialty:safeText(raw.vet_specialty,120), vet_experience:raw.vet_experience||null,
     graduation_year:raw.graduation_year||null, coverage:safeText(raw.coverage,120),
     vet_services:selectedValues(form,'vet_services'), accept_requests:raw.accept_requests==='yes',
     accept_qr:raw.accept_qr==='yes', business_name:safeText(raw.business_name,180),
+    feed_type:safeText(raw.feed_type,120),
     delivery:safeText(raw.delivery,120), qualification:safeText(raw.qualification,200),
     management_experience:safeText(raw.management_experience,500), manager_plan:safeText(raw.manager_plan),
     buyer_interest:safeText(raw.buyer_interest,160), buyer_delivery:safeText(raw.buyer_delivery,160),
@@ -2646,7 +2522,7 @@ $('#contactForm').addEventListener('submit',async e=>{
     saveRow('mdz_contacts',payload); form.reset(); showToast(`تم إرسال رسالتك — ${ticketId}`);
   }catch(error){
     console.error('Contact error',error); saveRow('mdz_failed_contacts',{...payload,error:String(error)});
-    showToast('تعذر إرسال الرسالة. شغّل ملف SQL المرفق ثم أعد المحاولة.');
+    showToast('تعذر إرسال الرسالة حالياً. سيُحفظ الطلب في هذا الجهاز.');
   }finally{button.disabled=false;button.textContent=old;}
 });
 async function loadWeather(forceLocation=false){
@@ -2788,8 +2664,8 @@ async function loadAlgeriaLocations(){
       const dairaCount=uniqueSorted(rows.map(x=>`${x.wilaya}|${x.daira}`)).length;
       const communeCount=uniqueSorted(rows.map(x=>`${x.wilaya}|${x.daira}|${x.commune}`)).length;
       // نرفض أي مصدر ناقص حتى لا تظهر دوائر المدية أو غيرها بشكل مبتور.
-      if(wilayaCount<58 || dairaCount<500 || communeCount<1500){
-        throw new Error(`قائمة ناقصة: ${wilayaCount}/${dairaCount}/${communeCount}`);
+      if(wilayaCount<58 || dairaCount<500 || communeCount<1540){
+        throw new Error(`مصدر ناقص: ${wilayaCount}w/${dairaCount}d/${communeCount}c`);
       }
       algeriaLocations=rows;
       const wilayas=uniqueSorted(rows.map(x=>`${x.wilayaCode ? String(x.wilayaCode).padStart(2,'0')+' - ' : ''}${x.wilaya}`));
