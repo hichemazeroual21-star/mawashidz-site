@@ -5,6 +5,11 @@
 [functions]
   node_bundler = "esbuild"
 
+[[redirects]]
+  from = "/api/livestock-news"
+  to = "/.netlify/functions/news"
+  status = 200
+
 [[headers]]
   for = "/*"
   [headers.values]
