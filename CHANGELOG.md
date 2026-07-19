@@ -2,6 +2,27 @@
 
 All notable changes to MawashiDZ are documented here.
 
+## [Phase 0 Final] — 2026-07-20 — Production baseline freeze
+
+### Added
+
+- Canonical migration `supabase/migrations/20260720_phase0_final.sql` (idempotent, merges all Phase 0 logic)
+- `docs/PHASE0_DATABASE_ARCHITECTURE.md` — full database architecture reference
+- `docs/PRODUCTION_CHECKLIST.md` — step-by-step deployment checklist
+- `docs/PRODUCTION_READINESS_REPORT.md` — security audit and readiness summary
+- `docs/PHASE0_TEST_REPORT.md` — auto-generated test report (`npm run test:db`)
+- Automated security audit in test suite (grants, triggers, search_path, duplicates)
+
+### Changed
+
+- Archived superseded migrations to `supabase/migrations/archive/`
+- Test harness now targets final migration only (fresh + legacy upgrade paths)
+- `supabase/setup.sql` points to final migration
+
+### Frozen scope
+
+No new features. No RBAC. No QR. No verification workflow. No dashboards. Phase 1+.
+
 ## [1.8.2] — 2026-07-19 — Signup metadata hardening
 
 ### Changed
