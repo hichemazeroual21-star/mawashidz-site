@@ -27,22 +27,15 @@ Policy: **no Production deploy / no merge by agent** — wait for owner review.
 | Dashboard fields (اسم، عضوية، طلب، صفة، حالة، بريد، هاتف) | Done |
 | Version → v1.9.0 + CHANGELOG | Done |
 
-## Screenshots (artifacts)
-Path: `/opt/cursor/artifacts/phase1-screenshots/`
-
-- `01-home-desktop.png` — guest header (تسجيل الدخول / تسجيل الآن)
-- `02-home-mobile.png` — mobile home
-- `03-login-modal.png` / `04-login-mobile.png` — login
-- `05-register-success.png` / `06-register-success-mobile.png` — success contrast fix
-- `07-dashboard.png` / `08-dashboard-mobile.png` — حسابي
-- `09-header-authed.png` — حسابي / تسجيل الخروج
-- `10-mobile-menu.png` — drawer login/register links
+## Screenshots
+Skipped for completion (headless Chrome was blocking the agent loop). UI verification done via static checks + code review. Optional artifacts may exist under `/opt/cursor/artifacts/phase1-screenshots/` from an earlier attempt.
 
 ## Automated checks run
-- Inline scripts parse (`new Function`)
-- No `generateMemberId` / `allocateMemberId` in `index.html`
-- `resolve_login_identifier` RPC reachable (HTTP 200, returns `null` for unknown id)
-- No `supabase/` diffs vs `main` on this branch
+- Inline scripts parse (`new Function`) — pass
+- Checklist: version, login/header/drawer/dashboard markers, success CSS, auth redirect — pass
+- No `generateMemberId` / `allocateMemberId` in `index.html` — pass
+- `resolve_login_identifier` RPC reachable (HTTP 200, returns `null` for unknown id) — pass
+- No `supabase/` diffs vs `main` on this branch — pass
 
 ## Manual owner steps before Production
 1. Supabase → Auth → Emails → Confirm signup: paste template from `docs/auth-email-templates-ar.md`
