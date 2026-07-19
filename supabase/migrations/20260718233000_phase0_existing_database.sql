@@ -1,6 +1,6 @@
 -- ============================================================
 -- MawashiDZ Phase 0 — Migration for EXISTING databases
--- Version: 1.8.2
+-- Version: 1.8.3
 --
 -- Target (verified via REST API on 2026-07-18, project fpjvjfgwbfehhcvdirpy):
 --   profiles:           id, full_name, phone, email, created_at
@@ -242,6 +242,7 @@ revoke all on function public.allocate_member_id(text) from anon, authenticated;
 
 -- ------------------------------------------------------------
 -- 5) Sync counters from any pre-existing sequential member_ids
+--     (must run BEFORE legacy allocation so new IDs continue the series)
 -- ------------------------------------------------------------
 insert into public.member_id_counters (prefix, last_value, updated_at)
 select
@@ -258,11 +259,12 @@ set
 
 -- ------------------------------------------------------------
 -- 5b) Backfill member_id for legacy profiles (NULL / blank)
---     WHY: Production profiles currently have no member_id column.
---     After ADD COLUMN, existing rows are NULL. Phase 0 must assign
---     stable sequential IDs so login-by-MDZ and account display work.
---     Idempotent: only rows with null/blank member_id are touched.
---     Role defaults via mdz_normalize_role (NULL/unknown → buyer → U).
+--     Order (production-safe):
+--       1. sync counters from existing valid IDs  (§5 above)
+--       2. allocate server-side IDs for NULL/blank (§5b here)
+--       3. re-sync counters after backfill         (§5c below)
+--     Idempotent: second run finds zero NULL/blank rows → zero allocations.
+--     Role: mdz_normalize_role(stored role); NULL/unknown → buyer → prefix U.
 -- ------------------------------------------------------------
 update public.profiles
 set member_id = null
@@ -272,6 +274,7 @@ where member_id is not null
 do $$
 declare
   r record;
+  v_role text;
   new_id text;
 begin
   for r in
@@ -279,16 +282,35 @@ begin
     from public.profiles p
     where p.member_id is null
     order by p.created_at asc nulls last, p.id asc
+    for update of p
   loop
-    new_id := public.allocate_member_id(public.mdz_normalize_role(r.role));
+    v_role := public.mdz_normalize_role(r.role);
+    new_id := public.allocate_member_id(v_role);
     update public.profiles
     set
       member_id = new_id,
+      role = v_role,
       updated_at = now()
     where id = r.id
       and member_id is null;
   end loop;
 end $$;
+
+-- ------------------------------------------------------------
+-- 5c) Re-sync counters AFTER backfill (idempotent greatest())
+-- ------------------------------------------------------------
+insert into public.member_id_counters (prefix, last_value, updated_at)
+select
+  substring(p.member_id from 5 for 1) as prefix,
+  max(substring(p.member_id from 7)::bigint) as last_value,
+  now()
+from public.profiles p
+where p.member_id ~ '^MDZ-[A-Z]-[0-9]{6}$'
+group by substring(p.member_id from 5 for 1)
+on conflict (prefix) do update
+set
+  last_value = greatest(public.member_id_counters.last_value, excluded.last_value),
+  updated_at = now();
 
 -- ------------------------------------------------------------
 -- 6) resolve_login_identifier — email lookup by MDZ / phone

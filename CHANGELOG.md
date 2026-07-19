@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.8.3] — 2026-07-19 — Phase 0 production-safety blockers closed
+
+### Fixed / hardened
+- Confirmed `jwt_role` uses valid multi-line `coalesce(nullif(...), '')` (reject broken one-liner)
+- Legacy backfill order locked: sync counters → allocate NULL/blank → re-sync counters (§5/5b/5c)
+- Second migration run proven to consume **zero** additional member IDs
+- Legacy NULL role normalized and stored as `buyer` during backfill
+
 ## [1.8.2] — 2026-07-19 — Phase 0 syntax clarity + legacy member_id backfill
 
 ### Fixed

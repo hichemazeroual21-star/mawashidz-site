@@ -40,19 +40,51 @@ LEGACY_BEFORE=$(psql_db mawashi_existing -Atc "select count(*)::text||':'||coale
 [[ "$LEGACY_BEFORE" == "1:legacy@example.com" ]] || fail "legacy seed missing"
 
 apply_sql mawashi_existing "$ROOT/supabase/migrations/20260718233000_phase0_existing_database.sql"
-pass "existing migration applied once"
+pass "existing migration applied once (first run)"
 
-apply_sql mawashi_existing "$ROOT/supabase/migrations/20260718233000_phase0_existing_database.sql"
-pass "existing migration re-run (idempotent) OK"
-
-LEGACY_AFTER=$(psql_db mawashi_existing -Atc "select count(*)::text||':'||coalesce(max(email),'')||':'||coalesce(max(full_name),'')||':'||coalesce(max(member_id),'') from profiles where id='11111111-1111-1111-1111-111111111111';")
-echo "$LEGACY_AFTER" | grep -qE '^1:legacy@example.com:مستخدم قديم:MDZ-[A-Z]-[0-9]{6}$' \
+# Snapshot after first run — used to prove second run allocates nothing
+psql_db mawashi_existing -Atc "select coalesce(string_agg(prefix||':'||last_value::text, ',' order by prefix), '') from member_id_counters;" > /tmp/mdz_counters_run1.txt
+psql_db mawashi_existing -Atc "select coalesce(string_agg(id::text||'='||member_id, ',' order by id), '') from profiles;" > /tmp/mdz_members_run1.txt
+COUNTER_SUM_1=$(psql_db mawashi_existing -Atc "select coalesce(sum(last_value),0) from member_id_counters;")
+LEGACY_AFTER=$(psql_db mawashi_existing -Atc "select count(*)::text||':'||coalesce(max(email),'')||':'||coalesce(max(full_name),'')||':'||coalesce(max(member_id),'')||':'||coalesce(max(role),'') from profiles where id='11111111-1111-1111-1111-111111111111';")
+echo "$LEGACY_AFTER" | grep -qE '^1:legacy@example.com:مستخدم قديم:MDZ-[A-Z]-[0-9]{6}:buyer$' \
   || fail "legacy data/backfill failed: $LEGACY_AFTER"
-pass "legacy row preserved and member_id backfilled"
+pass "first-run: legacy preserved + unique valid member_id + role=buyer"
+echo "FIRST_RUN_LEGACY=$LEGACY_AFTER"
+echo "FIRST_RUN_COUNTER_SUM=$COUNTER_SUM_1"
+echo "FIRST_RUN_COUNTERS=$(cat /tmp/mdz_counters_run1.txt)"
 
 NULL_IDS=$(psql_db mawashi_existing -Atc "select count(*) from profiles where member_id is null or btrim(member_id)='';")
 [[ "$NULL_IDS" == "0" ]] || fail "profiles still missing member_id: $NULL_IDS"
-pass "no NULL/blank member_id after backfill"
+pass "first-run: no NULL/blank member_id"
+
+# Syntax proof: jwt_role multi-line coalesce is present in deployed function
+psql_db mawashi_existing -Atc "select pg_get_functiondef('public.protect_profile_sensitive_columns()'::regprocedure);" \
+  | grep -A3 'jwt_role text' | tee /tmp/mdz_jwt_role_def.txt
+grep -q "nullif(current_setting('request.jwt.claim.role', true), '')" /tmp/mdz_jwt_role_def.txt \
+  || fail "jwt_role declaration missing nullif/current_setting"
+# Reject the historically broken one-liner form (missing closing args)
+! grep -qE "jwt_role text := coalesce\(nullif\(current_setting\('request\.jwt\.claim\.role', true\), ''\);" /tmp/mdz_jwt_role_def.txt \
+  || fail "broken one-liner jwt_role declaration detected"
+pass "jwt_role declaration is valid multi-arg coalesce"
+
+apply_sql mawashi_existing "$ROOT/supabase/migrations/20260718233000_phase0_existing_database.sql"
+pass "existing migration re-run (second run)"
+
+psql_db mawashi_existing -Atc "select coalesce(string_agg(prefix||':'||last_value::text, ',' order by prefix), '') from member_id_counters;" > /tmp/mdz_counters_run2.txt
+psql_db mawashi_existing -Atc "select coalesce(string_agg(id::text||'='||member_id, ',' order by id), '') from profiles;" > /tmp/mdz_members_run2.txt
+COUNTER_SUM_2=$(psql_db mawashi_existing -Atc "select coalesce(sum(last_value),0) from member_id_counters;")
+
+diff -u /tmp/mdz_members_run1.txt /tmp/mdz_members_run2.txt >/tmp/mdz_members_diff.txt \
+  || { cat /tmp/mdz_members_diff.txt; fail "second run changed profile member_ids"; }
+pass "second-run: profile member_ids unchanged"
+
+[[ "$COUNTER_SUM_1" == "$COUNTER_SUM_2" ]] \
+  || fail "second run consumed member IDs: sum $COUNTER_SUM_1 -> $COUNTER_SUM_2"
+diff -u /tmp/mdz_counters_run1.txt /tmp/mdz_counters_run2.txt >/tmp/mdz_counters_diff.txt \
+  || { cat /tmp/mdz_counters_diff.txt; fail "second run changed counter last_value"; }
+pass "second-run: counters unchanged (zero additional allocations)"
+echo "SECOND_RUN_COUNTER_SUM=$COUNTER_SUM_2"
 
 COLS=$(psql_db mawashi_existing -Atc "select count(*) from information_schema.columns where table_schema='public' and table_name='profiles' and column_name in ('member_id','role','status','wilaya','registration_id');")
 [[ "$COLS" == "5" ]] || fail "missing profile columns (got $COLS)"
