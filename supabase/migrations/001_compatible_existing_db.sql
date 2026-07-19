@@ -229,6 +229,19 @@ create policy "feedback: public insert"
   to anon, authenticated
   with check (true);
 
+-- ------------------------------------------------------------
+-- 7) user_roles — تفعيل RLS (جدول أدوار إدارية داخلية)
+-- ------------------------------------------------------------
+alter table public.user_roles enable row level security;
+
+drop policy if exists "user_roles: self read" on public.user_roles;
+create policy "user_roles: self read"
+  on public.user_roles for select
+  to authenticated
+  using (user_id = (select auth.uid()));
+
+-- لا سياسات كتابة عامة: الإدارة عبر service_role أو SQL Editor فقط.
+
 -- ============================================================
 -- بعد التشغيل: تحقق محليًا (اختياري)
 --   node supabase/introspect.mjs
