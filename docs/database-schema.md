@@ -2,7 +2,7 @@
 
 ## Overview
 
-Phase 0 stabilizes member identity, profile auto-creation, and login resolution. QR, RBAC, audit, and workflow tables are planned for later phases.
+Phase 0 stabilizes member identity, profile auto-creation, and login resolution.
 
 ## Tables
 
@@ -32,27 +32,40 @@ Phase 0 stabilizes member identity, profile auto-creation, and login resolution.
 | `status` | `text` | Default `pending` |
 | `created_at` | `timestamptz` | |
 
-**Indexes:** partial unique on `member_id`, index on `phone`, index on `lower(email)`.
-
 **RLS:** authenticated users can `SELECT` own row only.
-
-### `public.registrations`, `contact_messages`, `feedback_tickets`
-
-Unchanged from v1.7. Public insert only (Phase 0). Admin read policies come in Phase 2.
 
 ## Functions (RPC)
 
 | Function | Grants | Purpose |
 |----------|--------|---------|
-| `allocate_member_id(text)` | anon, authenticated, service_role | Next sequential ID for role |
+| `allocate_member_id(text)` | **service_role only** | Next sequential ID (trigger-internal) |
 | `resolve_login_identifier(text)` | anon, authenticated, service_role | Map email / phone / member_id → email |
 | `normalize_algerian_phone(text)` | anon, authenticated, service_role | Normalize Algerian mobile |
 | `sync_member_id_counters_from_profiles()` | service_role | Rebuild counters from existing IDs |
-| `handle_new_user()` | trigger only | Auto-create profile on signup |
+| `assign_member_id_before_signup()` | trigger only | BEFORE INSERT on `auth.users` |
+| `handle_new_user()` | trigger only | AFTER INSERT on `auth.users` |
+
+### Final `allocate_member_id` grants
+
+```sql
+revoke all on function public.allocate_member_id(text) from public;
+revoke all on function public.allocate_member_id(text) from anon, authenticated;
+grant execute on function public.allocate_member_id(text) to service_role;
+```
 
 ## Triggers
 
-- `on_auth_user_created` → `handle_new_user()` on `auth.users` AFTER INSERT
+1. `on_auth_user_assign_member_id` → `assign_member_id_before_signup()` **BEFORE INSERT** on `auth.users`
+2. `on_auth_user_created` → `handle_new_user()` **AFTER INSERT** on `auth.users`
+
+## Signup flow
+
+```
+Client signUp(metadata with role, no member_id)
+  → BEFORE INSERT: assign_member_id_before_signup() sets metadata.member_id
+  → AFTER INSERT: handle_new_user() creates profiles row
+  → Client reads member_id from user.user_metadata or profile
+```
 
 ## Migration paths
 
@@ -60,32 +73,19 @@ Unchanged from v1.7. Public insert only (Phase 0). Admin read policies come in P
 
 1. `supabase/migrations/20260718220000_align_existing_schema.sql`
 2. `supabase/migrations/20260719000000_phase0_member_id_foundation.sql`
+3. `supabase/migrations/20260719110000_secure_allocate_member_id.sql`
 
 ### New Supabase project
 
-- `supabase/setup.sql` (single file)
+- `supabase/setup.sql` (includes secure grants and both triggers)
 
-## Phase 0 rollback
-
-Rollback is manual. Do **not** drop production data.
-
-1. Drop trigger: `drop trigger if exists on_auth_user_created on auth.users;`
-2. Restore previous function bodies from git tag `v1.7.1` if needed.
-3. Columns added by Phase 0 can remain (non-destructive). Do not drop `member_id` if profiles contain values.
-4. To undo counter table only (empty project): `drop table if exists public.member_id_counters cascade;`
-
-## Verification checklist (manual on Supabase)
-
-After running migrations in SQL Editor:
+## Verification (SQL Editor — service role)
 
 ```sql
-select public.allocate_member_id('breeder');
-select public.resolve_login_identifier('MDZ-F-000001');
-select column_name from information_schema.columns
-  where table_schema='public' and table_name='profiles' and column_name='member_id';
+select public.allocate_member_id('breeder');  -- works in SQL Editor only
 ```
 
-Expected: function returns values; `member_id` column exists.
+Publishable key RPC call must return `permission denied`.
 
 ## Automated tests
 
@@ -93,4 +93,4 @@ Expected: function returns values; `member_id` column exists.
 npm run test:db
 ```
 
-Covers fresh install, legacy upgrade, 40 parallel allocations, phone/member_id login resolution, and idempotent re-runs.
+Includes anon permission denial and before-insert trigger coverage.

@@ -56,7 +56,9 @@ begin
 end;
 $$;
 
-grant execute on function public.allocate_member_id(text) to anon, authenticated;
+revoke all on function public.allocate_member_id(text) from public;
+revoke all on function public.allocate_member_id(text) from anon, authenticated;
+grant execute on function public.allocate_member_id(text) to service_role;
 
 -- ------------------------------------------------------------
 -- 2) ترقية profiles — إضافة الأعمدة الناقصة فقط

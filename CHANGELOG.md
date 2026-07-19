@@ -2,6 +2,30 @@
 
 All notable changes to MawashiDZ are documented here.
 
+## [1.8.1] — 2026-07-19 — Security: server-side member_id only
+
+### Changed
+
+- `allocate_member_id()` EXECUTE restricted to `service_role` (revoked from `anon`, `authenticated`)
+- Added `assign_member_id_before_signup()` BEFORE INSERT trigger on `auth.users`
+- `index.html`: removed client RPC allocation; reads `member_id` after signup
+- ADR 001, database schema, PR review report updated
+
+### Added
+
+- `supabase/migrations/20260719110000_secure_allocate_member_id.sql`
+- `.github/PULL_REQUEST_TEMPLATE.md`
+- `docs/PR_REVIEW_REPORT.md`
+- Automated test: `anon` cannot execute `allocate_member_id()`
+
+### Security
+
+```sql
+revoke all on function public.allocate_member_id(text) from public;
+revoke all on function public.allocate_member_id(text) from anon, authenticated;
+grant execute on function public.allocate_member_id(text) to service_role;
+```
+
 ## [1.8.0] — 2026-07-18 — Phase 0: Database foundation
 
 ### Added

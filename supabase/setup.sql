@@ -103,7 +103,19 @@ begin
   return 'MDZ-' || role_prefix || '-' || lpad(next_value::text, 6, '0');
 end; $$;
 revoke all on function public.allocate_member_id(text) from public;
-grant execute on function public.allocate_member_id(text) to anon, authenticated, service_role;
+revoke all on function public.allocate_member_id(text) from anon, authenticated;
+grant execute on function public.allocate_member_id(text) to service_role;
+
+create or replace function public.assign_member_id_before_signup()
+returns trigger language plpgsql security definer set search_path = public as $$
+declare user_role text; assigned_member_id text;
+begin
+  user_role := nullif(trim(new.raw_user_meta_data ->> 'role'), '');
+  assigned_member_id := public.allocate_member_id(coalesce(user_role, 'buyer'));
+  new.raw_user_meta_data := coalesce(new.raw_user_meta_data, '{}'::jsonb)
+    || jsonb_build_object('member_id', assigned_member_id);
+  return new;
+end; $$;
 
 create or replace function public.sync_member_id_counters_from_profiles()
 returns void language plpgsql security definer set search_path = public as $$
@@ -134,16 +146,11 @@ grant execute on function public.resolve_login_identifier(text) to anon, authent
 
 create or replace function public.handle_new_user()
 returns trigger language plpgsql security definer set search_path = public as $$
-declare user_role text; meta_member_id text; assigned_member_id text;
+declare user_role text; assigned_member_id text;
 begin
   user_role := nullif(trim(new.raw_user_meta_data ->> 'role'), '');
-  meta_member_id := nullif(trim(new.raw_user_meta_data ->> 'member_id'), '');
-  if meta_member_id is not null and meta_member_id ~ '^MDZ-[A-Z]-[0-9]{6}$' then
-    if not exists (select 1 from public.profiles where upper(member_id) = upper(meta_member_id)) then
-      assigned_member_id := meta_member_id;
-    end if;
-  end if;
-  if assigned_member_id is null then
+  assigned_member_id := nullif(trim(new.raw_user_meta_data ->> 'member_id'), '');
+  if assigned_member_id is null or assigned_member_id !~ '^MDZ-[A-Z]-[0-9]{6}$' then
     assigned_member_id := public.allocate_member_id(coalesce(user_role, 'buyer'));
   end if;
   insert into public.profiles (
@@ -195,6 +202,10 @@ alter table public.profiles enable row level security;
 drop policy if exists "profiles: self read" on public.profiles;
 create policy "profiles: self read" on public.profiles for select to authenticated
   using (id = (select auth.uid()));
+
+drop trigger if exists on_auth_user_assign_member_id on auth.users;
+create trigger on_auth_user_assign_member_id before insert on auth.users
+  for each row execute function public.assign_member_id_before_signup();
 
 drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created after insert on auth.users

@@ -2,38 +2,30 @@
 
 ## Status
 
-Accepted — Phase 0 (2026-07-18)
+Accepted — updated v1.8.1 (2026-07-19) after external security review
 
 ## Context
 
-MawashiDZ assigns every member a permanent ID (`MDZ-F-000001`, `MDZ-V-000001`, …). The first site version allocated IDs in the browser with random suffixes when the database RPC was unavailable. That caused:
-
-- Duplicate IDs under concurrency
-- IDs issued before signup validation completed
-- No sync between legacy rows and counters
-
-Production Supabase (verified 2026-07-18) still lacks `member_id`, `allocate_member_id()`, and related functions.
+MawashiDZ assigns every member a permanent ID (`MDZ-F-000001`, `MDZ-V-000001`, …). Early Phase 0 granted `allocate_member_id()` to `anon` so the browser could pre-allocate IDs before signup. External review correctly flagged this as an abuse vector (counter exhaustion, scraping) without rate limiting.
 
 ## Decision
 
-1. **Database is the source of truth** for sequential member IDs via `allocate_member_id(role)`.
-2. **Concurrency safety** uses `INSERT … ON CONFLICT DO UPDATE` on `member_id_counters` plus `pg_advisory_xact_lock` per role prefix.
-3. **`handle_new_user()`** creates profiles automatically and allocates an ID when metadata does not include a valid unused sequential ID.
-4. **Client pre-allocation** remains supported for signup UX/email templates, but the trigger backstops missing or conflicting IDs.
-5. **Grants**: `member_id_counters` has no direct table access for `anon`/`authenticated`. RPCs are `SECURITY DEFINER` with explicit grants only.
-6. **Phone normalization** is centralized in `normalize_algerian_phone()` and applied on insert/update.
+1. **Database is the sole allocator** — `allocate_member_id()` is callable only by `service_role` and internal `SECURITY DEFINER` triggers.
+2. **`assign_member_id_before_signup()`** — `BEFORE INSERT` on `auth.users` allocates the ID and writes it into `raw_user_meta_data` (available in confirmation emails).
+3. **`handle_new_user()`** — `AFTER INSERT` creates `profiles` using the server-assigned `member_id`.
+4. **No browser RPC** — the frontend never calls `allocate_member_id()`.
+5. **Concurrency safety** — advisory lock + atomic counter row (unchanged).
 
 ## Consequences
 
-- Migrations must be run manually on Supabase (not auto-deployed to production).
-- Re-running Phase 0 migration is safe and idempotent.
-- Automated tests (`npm run test:db`) validate fresh + legacy paths and 40 parallel allocations.
-- Rate limiting for anonymous `allocate_member_id` calls is deferred to Phase 1 (Edge/Worker layer).
+- Anonymous users cannot exhaust member ID counters.
+- Signup still receives `member_id` in user metadata and profile.
+- Manual verification requires `service_role` or SQL Editor (not publishable key).
 
 ## Alternatives considered
 
 | Option | Rejected because |
 |--------|------------------|
-| UUID-only member IDs | Not human-friendly for Algerian field users / support |
-| Client-only sequential counters | Not safe under concurrency |
-| Single global counter | Loses role prefix semantics required by product |
+| Keep `anon` + rate limiting later | Review requires protection now; deferred controls are insufficient |
+| Client-only allocation | Not concurrency-safe |
+| AFTER INSERT only | `member_id` missing from signup email metadata |

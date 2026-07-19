@@ -2082,28 +2082,21 @@ const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_kl5En74g9tnPW6JDpf3wDA_wQ573fB9
 const SUPABASE_REST = `${SUPABASE_URL}/rest/v1`;
 const SUPABASE_AUTH = `${SUPABASE_URL}/auth/v1`;
 const MDZ_SESSION_KEY='mdz_auth_session';
-const ROLE_PREFIX={breeder:'F',vet:'V',feed:'S',buyer:'U',manager:'W',ambassador:'B',partner:'P'};
-function generateMemberId(role){
- const d=new Date(), date=String(d.getFullYear()).slice(-2)+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0');
- const a='ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let x='';
- if(crypto?.getRandomValues){const b=new Uint8Array(5);crypto.getRandomValues(b);x=[...b].map(v=>a[v%a.length]).join('')}else{x=Math.random().toString(36).slice(2,7).toUpperCase()}
- return `MDZ-${ROLE_PREFIX[role]||'U'}-${date}-${x}`;
+function memberIdFromAuthResult(authResult){
+ const fromUser=authResult?.user?.user_metadata?.member_id;
+ if(typeof fromUser==='string'&&/^MDZ-[A-Z]-\d{6}$/.test(fromUser)) return fromUser;
+ return null;
 }
-async function allocateMemberId(role){
- /* رقم عضوية تسلسلي دائم (MDZ-F-000001) يُخصّص من قاعدة البيانات لضمان عدم التكرار.
-    عند غياب دالة قاعدة البيانات (قبل تشغيل supabase/setup.sql) نستعمل الصيغة العشوائية القديمة كخطة بديلة. */
+async function memberIdAfterSignup(authResult){
+ const direct=memberIdFromAuthResult(authResult);
+ if(direct) return direct;
+ const token=authResult?.session?.access_token;
+ if(!token) return null;
  try{
-  const r=await fetch(`${SUPABASE_REST}/rpc/allocate_member_id`,{
-   method:'POST',
-   headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:`Bearer ${SUPABASE_PUBLISHABLE_KEY}`,'Content-Type':'application/json'},
-   body:JSON.stringify({member_role:String(role||'buyer')})
-  });
-  if(r.ok){
-   const value=await r.json();
-   if(typeof value==='string' && /^MDZ-[A-Z]-\d{6}$/.test(value)) return {id:value,sequential:true};
-  }
- }catch(error){ console.warn('Sequential member id unavailable, using fallback format:',error); }
- return {id:generateMemberId(role),sequential:false};
+  const profile=await fetchMyProfile(token);
+  if(profile?.member_id&&/^MDZ-[A-Z]-\d{6}$/.test(profile.member_id)) return profile.member_id;
+ }catch(error){ console.warn('Profile member_id lookup skipped:',error); }
+ return null;
 }
 function saveSession(session){if(session)localStorage.setItem(MDZ_SESSION_KEY,JSON.stringify(session));else localStorage.removeItem(MDZ_SESSION_KEY)}
 function getSession(){try{return JSON.parse(localStorage.getItem(MDZ_SESSION_KEY)||'null')}catch{return null}}
@@ -2319,10 +2312,7 @@ $('#registerForm').addEventListener('submit', async e=>{
     document.getElementById('birthDate')?.focus();
     return;
   }
-  /* رقم العضوية يُخصّص بعد نجاح كل التحقق حتى لا تُستهلك أرقام تسلسلية على طلبات ناقصة. */
-  const memberAllocation=await allocateMemberId(raw.role);
-  const memberId=memberAllocation.id;
-  /* تُرسل فقط حقول الدور النشط؛ الحقول المخفية للأدوار الأخرى لا تصل إلى Supabase إطلاقًا. */
+  /* رقم العضوية يُخصّص من قاعدة البيانات عند إنشاء الحساب (trigger) — لا استدعاء RPC من المتصفح. */
   const ROLE_EXTRA_BUILDERS={
     breeder:()=>({livestock_count:raw.livestock_count||null,breeder_activity:safeText(raw.breeder_activity,120)}),
     vet:()=>({vet_license:safeText(raw.vet_license,160),clinic_name:safeText(raw.clinic_name,160),
@@ -2343,8 +2333,6 @@ $('#registerForm').addEventListener('submit', async e=>{
   });
   const extra={
     registration_id:registrationId,
-    member_id:memberId,
-    member_id_sequential:memberAllocation.sequential,
     member_invite_code:memberInviteCode,
     first_name:firstName,
     last_name:lastName,
@@ -2366,10 +2354,17 @@ $('#registerForm').addEventListener('submit', async e=>{
   submit.disabled=true; submit.dataset.oldText=submit.textContent; submit.textContent='جاري إرسال الطلب...';
   const confirm=document.getElementById('registerConfirm');
   let authResult=null;
+  let memberId=null;
   try{
     authResult=await signUpAccount(String(raw.email||'').trim().toLowerCase(),password,{
-      member_id:memberId,registration_id:registrationId,role_label:registrationRoleLabel(raw.role),first_name:firstName,last_name:lastName,full_name:fullName,phone,role:raw.role,wilaya:payload.wilaya,daira:extra.daira,commune:extra.commune,birth_date:birthDate,invite_code:memberInviteCode,invited_by:extra.invited_by
+      registration_id:registrationId,role_label:registrationRoleLabel(raw.role),first_name:firstName,last_name:lastName,full_name:fullName,phone,role:raw.role,wilaya:payload.wilaya,daira:extra.daira,commune:extra.commune,birth_date:birthDate,invite_code:memberInviteCode,invited_by:extra.invited_by
     });
+    memberId=await memberIdAfterSignup(authResult);
+    if(memberId){
+      extra.member_id=memberId;
+      extra.member_id_sequential=true;
+      payload.message=JSON.stringify(extra);
+    }
     if(authResult?.session) saveSession(authResult.session);
     await supabaseInsert('registrations',payload);
   }catch(error){
@@ -2406,7 +2401,8 @@ $('#registerForm').addEventListener('submit', async e=>{
   confirm.style.display='block';
   confirm.className='full confirm-card premium-success';
   const inviteUrl=`${location.origin}${location.pathname}?ref=${encodeURIComponent(memberInviteCode)}#register`;
-  confirm.innerHTML=`<div class="success-mark">✓</div><div class="success-title">أهلًا بك ضمن مجتمع MawashiDZ</div><div class="success-copy">تم استلام طلبك بنجاح وهو الآن قيد المراجعة المهنية. رقم الطلب مخصص لمتابعة ملفك، أما كود الدعوة فهو لمشاركة المنصة واحتساب مساهمتك.</div><div class="success-id">رقم عضويتك: <span dir="ltr">${memberId}</span></div><div class="success-id">رقم متابعة الطلب: ${registrationId}</div><div class="auth-status ${authResult?.session?'ok':''}">${authResult?.session?'تم تفعيل جلسة حسابك ويمكنك الدخول الآن.':'افتح رسالة MawashiDZ لتأكيد بريدك وتفعيل الدخول. ستجد فيها صفتك ورقم عضويتك ورقم الطلب.'}</div><div class="invite-panel"><div class="invite-label">كود دعوتك الشخصي</div><div class="invite-code">${memberInviteCode}</div><div class="invite-actions"><button type="button" id="copyInviteCode">نسخ الكود</button><button type="button" id="shareInviteLink">مشاركة رابط الدعوة</button></div></div><div class="success-mail">✉ أرسلنا رسالة تأكيد واحدة إلى ${safeText(raw.email,254)}</div>`;
+  const memberIdLabel=memberId?`<span dir="ltr">${memberId}</span>`:'سيصلك في رسالة التأكيد وفي حسابك بعد الدخول';
+  confirm.innerHTML=`<div class="success-mark">✓</div><div class="success-title">أهلًا بك ضمن مجتمع MawashiDZ</div><div class="success-copy">تم استلام طلبك بنجاح وهو الآن قيد المراجعة المهنية. رقم الطلب مخصص لمتابعة ملفك، أما كود الدعوة فهو لمشاركة المنصة واحتساب مساهمتك.</div><div class="success-id">رقم عضويتك: ${memberIdLabel}</div><div class="success-id">رقم متابعة الطلب: ${registrationId}</div><div class="auth-status ${authResult?.session?'ok':''}">${authResult?.session?'تم تفعيل جلسة حسابك ويمكنك الدخول الآن.':'افتح رسالة MawashiDZ لتأكيد بريدك وتفعيل الدخول. ستجد فيها صفتك ورقم عضويتك ورقم الطلب.'}</div><div class="invite-panel"><div class="invite-label">كود دعوتك الشخصي</div><div class="invite-code">${memberInviteCode}</div><div class="invite-actions"><button type="button" id="copyInviteCode">نسخ الكود</button><button type="button" id="shareInviteLink">مشاركة رابط الدعوة</button></div></div><div class="success-mail">✉ أرسلنا رسالة تأكيد واحدة إلى ${safeText(raw.email,254)}</div>`;
   document.getElementById('copyInviteCode')?.addEventListener('click',async()=>{try{await navigator.clipboard.writeText(memberInviteCode);showToast('تم نسخ كود الدعوة.');}catch{showToast(`كودك: ${memberInviteCode}`);}});
   document.getElementById('shareInviteLink')?.addEventListener('click',async()=>{const shareData={title:'MawashiDZ',text:`سجّل في منصة MawashiDZ باستعمال كود دعوتي: ${memberInviteCode}`,url:inviteUrl};try{if(navigator.share) await navigator.share(shareData);else{await navigator.clipboard.writeText(inviteUrl);showToast('تم نسخ رابط الدعوة.');}}catch(error){if(error?.name!=='AbortError') showToast('تعذر فتح المشاركة الآن.');}});
   showToast(`تم إرسال الطلب — ${registrationId}`);

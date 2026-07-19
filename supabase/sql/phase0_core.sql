@@ -89,7 +89,29 @@ end;
 $$;
 
 revoke all on function public.allocate_member_id(text) from public;
-grant execute on function public.allocate_member_id(text) to anon, authenticated, service_role;
+revoke all on function public.allocate_member_id(text) from anon, authenticated;
+grant execute on function public.allocate_member_id(text) to service_role;
+
+-- ------------------------------------------------------------
+-- Assign member_id before auth.users insert (for email metadata + security)
+-- ------------------------------------------------------------
+create or replace function public.assign_member_id_before_signup()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  user_role text;
+  assigned_member_id text;
+begin
+  user_role := nullif(trim(new.raw_user_meta_data ->> 'role'), '');
+  assigned_member_id := public.allocate_member_id(coalesce(user_role, 'buyer'));
+  new.raw_user_meta_data := coalesce(new.raw_user_meta_data, '{}'::jsonb)
+    || jsonb_build_object('member_id', assigned_member_id);
+  return new;
+end;
+$$;
 
 -- ------------------------------------------------------------
 -- Sync counters from existing sequential member IDs
@@ -166,21 +188,12 @@ set search_path = public
 as $$
 declare
   user_role text;
-  meta_member_id text;
   assigned_member_id text;
 begin
   user_role := nullif(trim(new.raw_user_meta_data ->> 'role'), '');
-  meta_member_id := nullif(trim(new.raw_user_meta_data ->> 'member_id'), '');
+  assigned_member_id := nullif(trim(new.raw_user_meta_data ->> 'member_id'), '');
 
-  if meta_member_id is not null and meta_member_id ~ '^MDZ-[A-Z]-[0-9]{6}$' then
-    if not exists (
-      select 1 from public.profiles where upper(member_id) = upper(meta_member_id)
-    ) then
-      assigned_member_id := meta_member_id;
-    end if;
-  end if;
-
-  if assigned_member_id is null then
+  if assigned_member_id is null or assigned_member_id !~ '^MDZ-[A-Z]-[0-9]{6}$' then
     assigned_member_id := public.allocate_member_id(coalesce(user_role, 'buyer'));
   end if;
 

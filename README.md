@@ -19,6 +19,7 @@ Official website package with multilingual interface, automatic dark mode, and t
 
 1. `supabase/migrations/20260718220000_align_existing_schema.sql`
 2. `supabase/migrations/20260719000000_phase0_member_id_foundation.sql`
+3. `supabase/migrations/20260719110000_secure_allocate_member_id.sql`
 
 ### مشروع Supabase جديد
 
@@ -26,13 +27,15 @@ Official website package with multilingual interface, automatic dark mode, and t
 
 ### بعد الترحيل
 
-1. عرّب قالب «Confirm signup» في Auth → Emails (يتضمن `member_id` و `registration_id`)
+1. عرّب قالب «Confirm signup» في Auth → Emails (يتضمن `{{ .Data.member_id }}`)
 2. أضف نطاق الموقع في Auth → URL Configuration → Redirect URLs
-3. تحقق:
+3. تحقق من SQL Editor (service role):
 
 ```sql
 select public.allocate_member_id('breeder');
 ```
+
+استدعاء نفس الدالة بمفتاح publishable من المتصفح يجب أن يعيد `permission denied`.
 
 ## اختبارات قاعدة البيانات (محليًا)
 

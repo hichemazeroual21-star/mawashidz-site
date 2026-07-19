@@ -206,6 +206,34 @@ async function testResolveLogin(client) {
   }
 }
 
+async function testAnonCannotAllocate(client) {
+  await client.query('grant usage on schema public to anon');
+  await client.query('set role anon');
+  let denied = false;
+  try {
+    await client.query(`select public.allocate_member_id('breeder')`);
+  } catch (error) {
+    denied = /permission denied/i.test(String(error.message || error));
+  } finally {
+    await client.query('reset role');
+  }
+  if (!denied) {
+    throw new Error('anon role should not be allowed to execute allocate_member_id()');
+  }
+}
+
+async function testBeforeSignupTrigger(client) {
+  const { rows: [created] } = await client.query(`
+    insert into auth.users (email, raw_user_meta_data)
+    values ('trigger-test@example.com', '{"role":"breeder","full_name":"Trigger Test"}'::jsonb)
+    returning raw_user_meta_data
+  `);
+  const memberId = created.raw_user_meta_data?.member_id;
+  if (!memberId || !/^MDZ-F-\d{6}$/.test(memberId)) {
+    throw new Error(`before-signup trigger did not assign member_id: ${memberId}`);
+  }
+}
+
 async function testHandleNewUser(client) {
   const { rows: [created] } = await client.query(`
     insert into auth.users (email, raw_user_meta_data)
@@ -267,6 +295,8 @@ async function main() {
   await runSql(client, setupSql, 'setup.sql');
   await testSequentialAllocation(client);
   await testParallelAllocation(port);
+  await testAnonCannotAllocate(client);
+  await testBeforeSignupTrigger(client);
   await testHandleNewUser(client);
   await testIdempotentRerun(client, setupSql);
 
