@@ -1,17 +1,13 @@
 -- ============================================================
--- MawashiDZ — ترقية idempotent للمخطط الحالي (v1.7.1)
--- شغّل هذا الملف من: Supabase Dashboard → SQL Editor → Run
+-- DEPRECATED — superseded by Phase 0 (v1.8.0)
+-- Use instead:
+--   migrations/20260718233000_phase0_existing_database.sql
 --
--- تم اكتشاف المخطط الحالي عبر REST API (2026-07-18):
---   profiles:          id, full_name, phone, email, created_at
---   registrations:     كامل + عمود status إضافي (يُترك كما هو)
---   contact_messages:  كامل + عمود email إضافي (يُترك كما هو)
---   feedback_tickets:  كامل
---   breeders:          جدول قديم (id, full_name, phone, wilaya, commune, farm_name, created_at)
---   member_id_counters: غير موجود
---   الدوال allocate_member_id / resolve_login_identifier / handle_new_user: غير موجودة
---
--- لا يُعاد إنشاء أي جدول موجود. يُضاف فقط ما ينقص.
+-- Kept for git history only. Do not run on Production.
+-- Original notes (v1.7.1):
+--   profiles lacked member_id and related columns; functions missing.
+-- ============================================================
+-- Legacy body retained below for reference; prefer Phase 0 file.
 -- ============================================================
 
 -- ------------------------------------------------------------
