@@ -19,6 +19,8 @@ drop function if exists public.protect_profile_sensitive_columns();
 drop function if exists public.allocate_member_id(text);
 drop function if exists public.resolve_login_identifier(text);
 drop function if exists public.member_role_prefix(text);
+drop function if exists public.mdz_role_prefix(text);
+drop function if exists public.mdz_normalize_role(text);
 
 drop policy if exists "profiles: self read" on public.profiles;
 drop policy if exists "profiles: self update limited" on public.profiles;

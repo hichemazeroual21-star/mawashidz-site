@@ -5,7 +5,11 @@ declare
   v_id2 text;
   v_email text;
   v_uid uuid;
+  v_uid2 uuid;
   v_member text;
+  v_member_spoof_attempt text := 'MDZ-F-999999';
+  v_status text;
+  v_role text;
   v_count int;
   v_dupes int;
 begin
@@ -22,15 +26,19 @@ begin
     raise exception 'allocate_member_id not sequential: % -> %', v_id, v_id2;
   end if;
 
-  -- 2) Role prefixes
-  if public.allocate_member_id('vet') not like 'MDZ-V-%' then
-    raise exception 'vet prefix failed';
-  end if;
-  if public.allocate_member_id('feed') not like 'MDZ-S-%' then
-    raise exception 'feed prefix failed';
-  end if;
+  -- 2) Canonical frontend role prefixes + alias defense-in-depth
+  if public.mdz_role_prefix('vet') <> 'V' then raise exception 'vet prefix'; end if;
+  if public.mdz_role_prefix('feed') <> 'S' then raise exception 'feed prefix'; end if;
+  if public.mdz_role_prefix('manager') <> 'W' then raise exception 'manager prefix'; end if;
+  if public.mdz_role_prefix('veterinarian') <> 'V' then raise exception 'veterinarian alias'; end if;
+  if public.mdz_role_prefix('feed_seller') <> 'S' then raise exception 'feed_seller alias'; end if;
+  if public.mdz_role_prefix('feed_trader') <> 'S' then raise exception 'feed_trader alias'; end if;
+  if public.mdz_role_prefix('wilaya_manager') <> 'W' then raise exception 'wilaya_manager alias'; end if;
+  if public.mdz_normalize_role('veterinarian') <> 'vet' then raise exception 'normalize veterinarian'; end if;
+  if public.mdz_normalize_role('feed_seller') <> 'feed' then raise exception 'normalize feed_seller'; end if;
+  if public.mdz_normalize_role('wilaya_manager') <> 'manager' then raise exception 'normalize wilaya_manager'; end if;
 
-  -- 3) handle_new_user creates profile + member_id
+  -- 3) handle_new_user creates profile + server-side member_id
   v_uid := gen_random_uuid();
   insert into auth.users (id, email, raw_user_meta_data)
   values (
@@ -47,7 +55,8 @@ begin
     )
   );
 
-  select member_id, email into v_member, v_email
+  select member_id, email, status, role
+    into v_member, v_email, v_status, v_role
   from public.profiles where id = v_uid;
 
   if v_member is null or v_member !~ '^MDZ-F-[0-9]{6}$' then
@@ -56,8 +65,47 @@ begin
   if v_email <> 'newuser@example.com' then
     raise exception 'handle_new_user email mismatch: %', v_email;
   end if;
+  if v_status <> 'pending' then
+    raise exception 'new profile status must be pending, got: %', v_status;
+  end if;
+  if v_role <> 'breeder' then
+    raise exception 'role not normalized/stored as breeder: %', v_role;
+  end if;
+
+  -- 3b) Client member_id + status must be ignored
+  v_uid2 := gen_random_uuid();
+  insert into auth.users (id, email, raw_user_meta_data)
+  values (
+    v_uid2,
+    'spoof@example.com',
+    jsonb_build_object(
+      'role', 'vet',
+      'member_id', v_member_spoof_attempt,
+      'status', 'approved',
+      'full_name', 'محاولة تزوير',
+      'phone', '+213671234567'
+    )
+  );
+
+  select member_id, status, role
+    into v_member, v_status, v_role
+  from public.profiles where id = v_uid2;
+
+  if v_member = v_member_spoof_attempt then
+    raise exception 'client member_id was trusted (must be ignored)';
+  end if;
+  if v_member !~ '^MDZ-V-[0-9]{6}$' then
+    raise exception 'server member_id for vet expected, got: %', v_member;
+  end if;
+  if v_status <> 'pending' then
+    raise exception 'client status was trusted (must be pending), got: %', v_status;
+  end if;
+  if v_role <> 'vet' then
+    raise exception 'vet role expected, got: %', v_role;
+  end if;
 
   -- 4) resolve_login_identifier by member_id and phone
+  select member_id into v_member from public.profiles where id = v_uid;
   if public.resolve_login_identifier(v_member) <> 'newuser@example.com' then
     raise exception 'resolve by member_id failed';
   end if;
@@ -73,7 +121,6 @@ begin
   from public.profiles
   where id = '11111111-1111-1111-1111-111111111111';
   if v_count = 1 then
-    -- must still exist with original email
     if not exists (
       select 1 from public.profiles
       where id = '11111111-1111-1111-1111-111111111111'

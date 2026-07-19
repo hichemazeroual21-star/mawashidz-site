@@ -116,8 +116,12 @@ COUNTER_POLICIES=$(psql_db mawashi_existing -Atc "select count(*) from pg_polici
 pass "member_id_counters locked (0 RLS policies)"
 
 ANON_ALLOC=$(psql_db mawashi_existing -Atc "select has_function_privilege('anon','public.allocate_member_id(text)','EXECUTE');")
-[[ "$ANON_ALLOC" == "t" ]] || fail "anon should execute allocate_member_id for registration UX"
-pass "anon can execute allocate_member_id (registration path)"
+[[ "$ANON_ALLOC" == "f" ]] || fail "anon must NOT execute allocate_member_id (counter exhaustion hardening)"
+pass "anon cannot execute allocate_member_id (server-side only)"
+
+AUTH_ALLOC=$(psql_db mawashi_existing -Atc "select has_function_privilege('authenticated','public.allocate_member_id(text)','EXECUTE');")
+[[ "$AUTH_ALLOC" == "f" ]] || fail "authenticated must NOT execute allocate_member_id"
+pass "authenticated cannot execute allocate_member_id"
 
 RLS_ON=$(psql_db mawashi_existing -Atc "select relrowsecurity from pg_class where oid='public.profiles'::regclass;")
 [[ "$RLS_ON" == "t" ]] || fail "profiles RLS not enabled"

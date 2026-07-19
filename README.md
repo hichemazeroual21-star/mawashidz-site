@@ -47,6 +47,8 @@ Subject: أكد بريدك لتفعيل حسابك في MawashiDZ
 - `docs/database-schema.md`
 - `docs/adr/0001-member-id-allocation.md`
 - `docs/reports/phase-0-foundation.md`
+- `docs/reports/phase-0-role-security-verification.md`
+- `SECURITY.md`
 - `CHANGELOG.md`
 
 ## Rules

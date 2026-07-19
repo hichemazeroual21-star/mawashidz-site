@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.8.1] — 2026-07-19 — Phase 0 role/security hardening (pre-Production)
+
+### Verified
+- Signup `raw_user_meta_data.role` wire values are exactly:
+  `breeder | vet | feed | buyer | manager | ambassador | partner`
+  (not `veterinarian` / `feed_seller` / `wilaya_manager`)
+
+### Security
+- `handle_new_user` ignores client `member_id` and client `status`
+- Always allocates `member_id` server-side; new profiles always `pending`
+- `allocate_member_id` revoked from `anon` / `authenticated` (stops counter exhaustion)
+- Canonical `public.mdz_role_prefix()` + `mdz_normalize_role()` with defense-in-depth aliases
+- Documented open/resolved risks in `SECURITY.md`
+
 ## [1.8.0] — 2026-07-18 — Phase 0 Database Foundation
 
 ### Added

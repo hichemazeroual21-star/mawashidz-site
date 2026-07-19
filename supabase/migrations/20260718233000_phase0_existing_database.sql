@@ -113,27 +113,68 @@ create index if not exists profiles_status_idx on public.profiles (status);
 alter table public.profiles enable row level security;
 
 -- ------------------------------------------------------------
--- 3) Role → prefix helper
+-- 3) Role normalization + prefix (canonical: public.mdz_role_prefix)
+--
+-- Frontend signup values verified in index.html (2026-07-19):
+--   data-role / #roleInput / raw_user_meta_data.role =
+--   breeder | vet | feed | buyer | manager | ambassador | partner
+-- Aliases below are defense-in-depth only (NOT currently sent by signup).
 -- ------------------------------------------------------------
-create or replace function public.member_role_prefix(member_role text)
+create or replace function public.mdz_normalize_role(member_role text)
 returns text
 language sql
 immutable
 as $$
   select case lower(trim(coalesce(member_role, '')))
-    when 'breeder'    then 'F'
-    when 'vet'        then 'V'
-    when 'feed'       then 'S'
-    when 'buyer'      then 'U'
-    when 'manager'    then 'W'
-    when 'ambassador' then 'B'
-    when 'partner'    then 'P'
-    -- Extended roles (Phase 2 readiness; safe no-op mapping for now)
+    -- Canonical frontend signup values (index.html tabs / roleInput)
+    when 'breeder'    then 'breeder'
+    when 'vet'        then 'vet'
+    when 'feed'       then 'feed'
+    when 'buyer'      then 'buyer'
+    when 'manager'    then 'manager'
+    when 'ambassador' then 'ambassador'
+    when 'partner'    then 'partner'
+    -- Display-only / legacy aliases seen in registrationRoleLabel()
+    -- (not sent by current signup; mapped for safety)
+    when 'rancher'        then 'breeder'
+    when 'veterinarian'   then 'vet'
+    when 'feed_trader'    then 'feed'
+    when 'feed_seller'    then 'feed'
+    when 'wilaya_manager' then 'manager'
+    -- Extended platform roles (Phase 2 readiness)
+    when 'founder'               then 'founder'
+    when 'ceo'                   then 'ceo'
+    when 'operations_manager'    then 'operations_manager'
+    when 'national_admin'        then 'national_admin'
+    when 'deputy_wilaya_manager' then 'deputy_wilaya_manager'
+    when 'verification_officer'  then 'verification_officer'
+    when 'support_agent'         then 'support_agent'
+    when 'technical_admin'       then 'technical_admin'
+    when 'printing_officer'      then 'printing_officer'
+    when 'delivery_partner'      then 'delivery_partner'
+    when 'charity_partner'       then 'charity_partner'
+    when 'advisor'               then 'advisor'
+    else 'buyer'
+  end;
+$$;
+
+create or replace function public.mdz_role_prefix(member_role text)
+returns text
+language sql
+immutable
+as $$
+  select case public.mdz_normalize_role(member_role)
+    when 'breeder'               then 'F'
+    when 'vet'                   then 'V'
+    when 'feed'                  then 'S'
+    when 'buyer'                 then 'U'
+    when 'manager'               then 'W'
+    when 'ambassador'            then 'B'
+    when 'partner'               then 'P'
     when 'founder'               then 'A'
     when 'ceo'                   then 'A'
     when 'operations_manager'    then 'A'
     when 'national_admin'        then 'A'
-    when 'wilaya_manager'        then 'W'
     when 'deputy_wilaya_manager' then 'W'
     when 'verification_officer'  then 'R'
     when 'support_agent'         then 'T'
@@ -146,13 +187,28 @@ as $$
   end;
 $$;
 
+-- Backward-compatible alias
+create or replace function public.member_role_prefix(member_role text)
+returns text
+language sql
+immutable
+as $$
+  select public.mdz_role_prefix(member_role);
+$$;
+
+revoke all on function public.mdz_normalize_role(text) from public;
+revoke all on function public.mdz_role_prefix(text) from public;
 revoke all on function public.member_role_prefix(text) from public;
+grant execute on function public.mdz_normalize_role(text) to anon, authenticated;
+grant execute on function public.mdz_role_prefix(text) to anon, authenticated;
 grant execute on function public.member_role_prefix(text) to anon, authenticated;
 
 -- ------------------------------------------------------------
 -- 4) allocate_member_id — concurrency-safe sequential IDs
 --    Uses INSERT ... ON CONFLICT row lock (serializes per prefix).
 --    Extra advisory xact lock as belt-and-suspenders under burst load.
+--    NOT granted to anon/authenticated — only security definer callers
+--    (handle_new_user) may allocate. Prevents anonymous counter exhaustion.
 -- ------------------------------------------------------------
 create or replace function public.allocate_member_id(member_role text)
 returns text
@@ -164,7 +220,7 @@ declare
   role_prefix text;
   next_value bigint;
 begin
-  role_prefix := public.member_role_prefix(member_role);
+  role_prefix := public.mdz_role_prefix(member_role);
 
   -- Serialize concurrent allocators for the same prefix inside this transaction
   perform pg_advisory_xact_lock(hashtextextended('mdz_member_id:' || role_prefix, 0));
@@ -182,7 +238,7 @@ end;
 $$;
 
 revoke all on function public.allocate_member_id(text) from public;
-grant execute on function public.allocate_member_id(text) to anon, authenticated;
+revoke all on function public.allocate_member_id(text) from anon, authenticated;
 
 -- ------------------------------------------------------------
 -- 5) Sync counters from any pre-existing sequential member_ids
@@ -254,6 +310,10 @@ grant execute on function public.resolve_login_identifier(text) to anon, authent
 
 -- ------------------------------------------------------------
 -- 7) handle_new_user — auto-create profile + authoritative member_id
+--    HARDENING:
+--      - Never trust client-provided member_id
+--      - Never trust client-provided status (always 'pending')
+--      - Always allocate member_id server-side from normalized role
 -- ------------------------------------------------------------
 create or replace function public.handle_new_user()
 returns trigger
@@ -275,11 +335,13 @@ declare
   v_birth_date date;
   v_invite_code text;
   v_invited_by text;
-  v_prefix text;
-  v_num bigint;
 begin
-  v_role := nullif(trim(coalesce(new.raw_user_meta_data ->> 'role', '')), '');
-  v_member_id := nullif(trim(coalesce(new.raw_user_meta_data ->> 'member_id', '')), '');
+  -- Normalize role; unknown values collapse to buyer (safe default).
+  -- Client may send aliases; we store the canonical role only.
+  v_role := public.mdz_normalize_role(new.raw_user_meta_data ->> 'role');
+
+  -- INTENTIONALLY IGNORED from client metadata:
+  --   member_id, status (and any elevation attempt)
   v_registration_id := nullif(trim(coalesce(new.raw_user_meta_data ->> 'registration_id', '')), '');
   v_full_name := nullif(trim(coalesce(new.raw_user_meta_data ->> 'full_name', '')), '');
   v_first_name := nullif(trim(coalesce(new.raw_user_meta_data ->> 'first_name', '')), '');
@@ -297,23 +359,8 @@ begin
     v_birth_date := null;
   end;
 
-  -- Accept client-provided sequential ID only if format-valid and unused.
-  -- Otherwise allocate authoritatively server-side (prevents spoof / gaps under failure).
-  if v_member_id is null
-     or v_member_id !~ '^MDZ-[A-Z]-[0-9]{6}$'
-     or exists (select 1 from public.profiles p where p.member_id = v_member_id)
-  then
-    v_member_id := public.allocate_member_id(coalesce(v_role, 'buyer'));
-  else
-    -- Keep counter ahead of any accepted client ID
-    v_prefix := substring(v_member_id from 5 for 1);
-    v_num := substring(v_member_id from 7)::bigint;
-    insert into public.member_id_counters as c (prefix, last_value, updated_at)
-    values (v_prefix, v_num, now())
-    on conflict (prefix) do update
-    set last_value = greatest(c.last_value, excluded.last_value),
-        updated_at = now();
-  end if;
+  -- Server-side allocation only (client member_id discarded).
+  v_member_id := public.allocate_member_id(v_role);
 
   insert into public.profiles (
     id, member_id, registration_id, full_name, first_name, last_name,
@@ -354,6 +401,8 @@ begin
     birth_date = coalesce(public.profiles.birth_date, excluded.birth_date),
     invite_code = coalesce(public.profiles.invite_code, excluded.invite_code),
     invited_by = coalesce(public.profiles.invited_by, excluded.invited_by),
+    -- status is never taken from client; keep existing or pending
+    status = coalesce(public.profiles.status, 'pending'),
     updated_at = now();
 
   return new;
