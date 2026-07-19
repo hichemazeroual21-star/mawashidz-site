@@ -2,6 +2,22 @@
 
 All notable changes to MawashiDZ are documented here.
 
+## [1.8.2] — 2026-07-19 — Signup metadata hardening
+
+### Changed
+
+- `status` hardcoded to `'pending'` — never read from client metadata
+- `normalize_public_signup_role()` whitelist: buyer, breeder, vet, feed; all others → buyer
+- `safe_metadata_date()` prevents invalid birth_date from aborting signup
+- ON CONFLICT keeps existing `status` (no client overwrite)
+- `allocate_member_id()` normalizes role before prefix selection
+- BEFORE INSERT overwrites client `member_id`, `role`, and `status` in metadata
+
+### Added
+
+- Security tests for spoofed member_id, status, roles, NULL metadata, invalid dates
+- `authenticated` permission denial test for `allocate_member_id()`
+
 ## [1.8.1] — 2026-07-19 — Security: server-side member_id only
 
 ### Changed

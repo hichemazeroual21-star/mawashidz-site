@@ -206,9 +206,9 @@ async function testResolveLogin(client) {
   }
 }
 
-async function testAnonCannotAllocate(client) {
-  await client.query('grant usage on schema public to anon');
-  await client.query('set role anon');
+async function testRoleCannotAllocate(client, roleName) {
+  await client.query(`grant usage on schema public to ${roleName}`);
+  await client.query(`set role ${roleName}`);
   let denied = false;
   try {
     await client.query(`select public.allocate_member_id('breeder')`);
@@ -218,8 +218,129 @@ async function testAnonCannotAllocate(client) {
     await client.query('reset role');
   }
   if (!denied) {
-    throw new Error('anon role should not be allowed to execute allocate_member_id()');
+    throw new Error(`${roleName} role should not be allowed to execute allocate_member_id()`);
   }
+}
+
+async function signupWithMetadata(client, email, metadata) {
+  const { rows: [created] } = await client.query(
+    `insert into auth.users (email, raw_user_meta_data)
+     values ($1, $2::jsonb)
+     returning id, raw_user_meta_data`,
+    [email, JSON.stringify(metadata)]
+  );
+  const { rows: [profile] } = await client.query(
+    `select member_id, role, status, birth_date from public.profiles where id = $1`,
+    [created.id]
+  );
+  return { user: created, profile };
+}
+
+async function testClientMemberIdOverwritten(client) {
+  const { user, profile } = await signupWithMetadata(client, 'spoof-id@example.com', {
+    role: 'manager',
+    member_id: 'MDZ-W-000001',
+    status: 'approved',
+  });
+  if (profile.member_id === 'MDZ-W-000001') {
+    throw new Error('Client-supplied member_id was not overwritten');
+  }
+  if (!/^MDZ-U-\d{6}$/.test(profile.member_id)) {
+    throw new Error(`Privileged role should downgrade to buyer prefix, got ${profile.member_id}`);
+  }
+  if (user.raw_user_meta_data?.member_id !== profile.member_id) {
+    throw new Error('Metadata member_id does not match allocated profile member_id');
+  }
+}
+
+async function testClientStatusIgnored(client) {
+  const { profile } = await signupWithMetadata(client, 'spoof-status@example.com', {
+    role: 'breeder',
+    status: 'approved',
+  });
+  if (profile.status !== 'pending') {
+    throw new Error(`Expected pending status, got ${profile.status}`);
+  }
+}
+
+async function testPrivilegedRoleDowngraded(client) {
+  const { profile } = await signupWithMetadata(client, 'spoof-admin@example.com', {
+    role: 'admin',
+  });
+  if (profile.role !== 'buyer') {
+    throw new Error(`admin role should downgrade to buyer, got ${profile.role}`);
+  }
+}
+
+async function testUnknownRoleDowngraded(client) {
+  const { profile } = await signupWithMetadata(client, 'spoof-unknown@example.com', {
+    role: 'totally_unknown_role',
+  });
+  if (profile.role !== 'buyer') {
+    throw new Error(`unknown role should downgrade to buyer, got ${profile.role}`);
+  }
+}
+
+async function testValidRolePrefixes(client) {
+  const cases = [
+    ['breeder', 'MDZ-F-'],
+    ['vet', 'MDZ-V-'],
+    ['feed', 'MDZ-S-'],
+    ['buyer', 'MDZ-U-'],
+  ];
+  for (const [role, prefix] of cases) {
+    const { profile } = await signupWithMetadata(client, `${role}-prefix@example.com`, { role });
+    if (!profile.member_id?.startsWith(prefix)) {
+      throw new Error(`Role ${role} expected prefix ${prefix}, got ${profile.member_id}`);
+    }
+  }
+}
+
+async function testOneSignupOneProfile(client) {
+  const beforeUsers = Number((await client.query(`select count(*)::int as c from auth.users`)).rows[0].c);
+  const beforeProfiles = Number((await client.query(`select count(*)::int as c from public.profiles`)).rows[0].c);
+  const { profile } = await signupWithMetadata(client, 'single-signup@example.com', { role: 'breeder' });
+  const afterUsers = Number((await client.query(`select count(*)::int as c from auth.users`)).rows[0].c);
+  const afterProfiles = Number((await client.query(`select count(*)::int as c from public.profiles`)).rows[0].c);
+  if (afterUsers !== beforeUsers + 1 || afterProfiles !== beforeProfiles + 1) {
+    throw new Error('Signup must create exactly one auth user and one profile');
+  }
+  if (!/^MDZ-F-\d{6}$/.test(profile.member_id)) {
+    throw new Error(`Expected one sequential breeder member_id, got ${profile.member_id}`);
+  }
+}
+
+async function testNullMetadataSignup(client) {
+  const { rows: [created] } = await client.query(`
+    insert into auth.users (email, raw_user_meta_data)
+    values ('null-meta@example.com', null)
+    returning id
+  `);
+  const { rows: [profile] } = await client.query(
+    `select member_id, role, status from public.profiles where id = $1`,
+    [created.id]
+  );
+  if (!profile || profile.status !== 'pending' || profile.role !== 'buyer') {
+    throw new Error('NULL metadata signup did not create secure default profile');
+  }
+}
+
+async function testInvalidBirthDateDoesNotAbort(client) {
+  const { profile } = await signupWithMetadata(client, 'bad-date@example.com', {
+    role: 'buyer',
+    birth_date: 'not-a-real-date',
+  });
+  if (profile.birth_date !== null) {
+    throw new Error(`Invalid birth_date should be null, got ${profile.birth_date}`);
+  }
+}
+
+async function testAnonCannotAllocate(client) {
+  await testRoleCannotAllocate(client, 'anon');
+}
+
+async function testAuthenticatedCannotAllocate(client) {
+  await testRoleCannotAllocate(client, 'authenticated');
 }
 
 async function testBeforeSignupTrigger(client) {
@@ -289,6 +410,7 @@ async function main() {
   const setupSql = readSql('setup.sql');
   const alignSql = readSql('migrations/20260718220000_align_existing_schema.sql');
   const phase0Sql = readSql('migrations/20260719000000_phase0_member_id_foundation.sql');
+  const secureSql = readSql('migrations/20260719110000_secure_allocate_member_id.sql');
 
   console.log('→ Testing fresh install (setup.sql)');
   await createAuthSchema(client);
@@ -296,15 +418,26 @@ async function main() {
   await testSequentialAllocation(client);
   await testParallelAllocation(port);
   await testAnonCannotAllocate(client);
+  await testAuthenticatedCannotAllocate(client);
   await testBeforeSignupTrigger(client);
   await testHandleNewUser(client);
+  await testClientMemberIdOverwritten(client);
+  await testClientStatusIgnored(client);
+  await testPrivilegedRoleDowngraded(client);
+  await testUnknownRoleDowngraded(client);
+  await testValidRolePrefixes(client);
+  await testOneSignupOneProfile(client);
+  await testNullMetadataSignup(client);
+  await testInvalidBirthDateDoesNotAbort(client);
   await testIdempotentRerun(client, setupSql);
+  await testIdempotentRerun(client, secureSql);
 
-  console.log('→ Testing existing schema path (legacy + align + phase0)');
+  console.log('→ Testing existing schema path (legacy + align + phase0 + secure)');
   await client.query('drop schema public cascade; drop schema auth cascade; create schema public;');
   await createLegacySchema(client);
   await runSql(client, alignSql, 'align_existing');
   await runSql(client, phase0Sql, 'phase0');
+  await runSql(client, secureSql, 'secure');
 
   const legacyMember = await client.query(
     `select member_id, phone from public.profiles where email = 'legacy@example.com'`
@@ -318,11 +451,13 @@ async function main() {
 
   await testResolveLogin(client);
   await testParallelAllocation(port);
+  await testClientStatusIgnored(client);
   await testIdempotentRerun(client, phase0Sql);
+  await testIdempotentRerun(client, secureSql);
 
+  console.log('✓ All Phase 0 + security hardening database tests passed');
   await client.end();
   await embedded.stop();
-  console.log('✓ All Phase 0 database tests passed');
 }
 
 main().catch((error) => {
