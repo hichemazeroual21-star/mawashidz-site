@@ -1,0 +1,101 @@
+id,name,cluster,cluster_code,status
+1,Dossier AI Schengen,A,A_eligibility,pending
+2,Campus France pack,A,A_eligibility,pending
+3,Turkey visa docs,A,A_eligibility,pending
+4,Insurance conformity checker,A,A_eligibility,pending
+5,Financial proof builder,A,A_eligibility,pending
+6,Sponsor letter generator,A,A_eligibility,pending
+7,Appeal letter AI,A,A_eligibility,pending
+8,Rejection decoder,A,A_eligibility,pending
+9,Document OCR vault,A,A_eligibility,pending
+10,Multi-embassy rule engine,A,A_eligibility,pending
+11,Student housing proof solver,A,A_eligibility,pending
+12,Campus France timeline,A,A_eligibility,pending
+13,Nusuk form helper,A,A_eligibility,pending
+14,ONPO medical form,A,A_eligibility,pending
+15,Mahram guide app,A,A_eligibility,pending
+16,Arabic-French doc translator,A,A_eligibility,pending
+17,Passport expiry monitor,A,A_eligibility,pending
+18,Photo spec validator,A,A_eligibility,pending
+19,Cover letter AI,A,A_eligibility,pending
+20,Travel itinerary proof builder,A,A_eligibility,pending
+21,Capago slot alerts,B,B_signals,pending
+22,Mosaic Turkey alerts,B,B_signals,pending
+23,BLS multi-country,B,B_signals,pending
+24,Historical slot analytics,B,B_signals,pending
+25,SMS alert service,B,B_signals,pending
+26,Telegram bot alerts,B,B_signals,pending
+27,Embassy RSS aggregator,B,B_signals,pending
+28,Appointment fairness monitor,B,B_signals,pending
+29,Bot detection watchdog,B,B_signals,pending
+30,Wait time predictor,B,B_signals,pending
+31,EU261 claim bot,C,C_recovery,pending
+32,Decree 16-175 assistant,C,C_recovery,pending
+33,Refund tracker Air Algerie,C,C_recovery,pending
+34,OTA buck-pass manager,C,C_recovery,pending
+35,Downgrade compensation,C,C_recovery,pending
+36,Charter delay claims,C,C_recovery,pending
+37,e-doleances filler,C,C_recovery,pending
+38,Baggage PIR wizard,C,C_recovery,pending
+39,Overbooking instant claim,C,C_recovery,pending
+40,Family cost comparator,D,D_family,pending
+41,FX dual-rate calculator,D,D_family,pending
+42,Gift customs simulator,D,D_family,pending
+43,WhatsApp family vote,D,D_family,pending
+44,Diaspora summer planner,D,D_family,pending
+45,Multi-passenger cart,D,D_family,pending
+46,Baggage family calc,D,D_family,pending
+47,Ferry+flight planner,D,D_family,pending
+48,Maison du bled logistics,D,D_family,pending
+49,Travel escrow SATIM,E,E_fintech,pending
+50,Agency float platform,E,E_fintech,pending
+51,Tourist FX wizard,E,E_fintech,pending
+52,DZD wallet tourist,E,E_fintech,pending
+53,Remittance travel pool,E,E_fintech,pending
+54,BNPL for packages,E,E_fintech,pending
+55,Crypto travel,E,E_fintech,pending
+56,Microinsurance visa,E,E_fintech,pending
+57,Parametric refusal payout,E,E_fintech,pending
+58,Fraud insurance travel,E,E_fintech,pending
+59,OTA Algeria,F,F_marketplace,pending
+60,Agency marketplace,F,F_marketplace,pending
+61,Hotel direct booking,F,F_marketplace,pending
+62,Flight metasearch,F,F_marketplace,pending
+63,Charter aggregator,F,F_marketplace,pending
+64,Sahara tour market,F,F_marketplace,pending
+65,Umrah package portal,F,F_marketplace,pending
+66,Student housing market,F,F_marketplace,pending
+67,Inbound DMC platform,F,F_marketplace,pending
+68,Scam-free deals feed,F,F_marketplace,pending
+69,Agency trust score,G,G_trust,pending
+70,Complaint registry,G,G_trust,pending
+71,ONPO verifier,G,G_trust,pending
+72,Scam ad detector,G,G_trust,pending
+73,Fake agency ML,G,G_trust,pending
+74,License lookup API,G,G_trust,pending
+75,Court case lookup,G,G_trust,pending
+76,Protest history map,G,G_trust,pending
+77,Verified reviews post-trip,G,G_trust,pending
+78,SNAV quality badge,G,G_trust,pending
+79,MTA license API,H,H_infra,pending
+80,GDS host agency,H,H_infra,pending
+81,SATIM travel escrow API,H,H_infra,pending
+82,BSP integration layer,H,H_infra,pending
+83,WhatsApp travel CRM,H,H_infra,pending
+84,Agency SaaS CRM,H,H_infra,pending
+85,PNR sync monitor,H,H_infra,pending
+86,Airline status dashboard,H,H_infra,pending
+87,ALCES customs API,H,H_infra,pending
+88,E-visa inbound tracker,H,H_infra,pending
+89,Travel scam journalism,I,I_media,pending
+90,Facebook warning bot,I,I_media,pending
+91,Influencer audit,I,I_media,pending
+92,TikTok tip verifier,I,I_media,pending
+93,Podcast diaspora travel,I,I_media,pending
+94,YouTube dossier courses,I,I_media,pending
+95,Community wiki visas,I,I_media,pending
+96,Reddit Algeria travel mod,I,I_media,pending
+97,Consulate warning feed,I,I_media,pending
+98,Airport live map,J,J_other,pending
+99,Fog cancel predictor,J,J_other,pending
+100,Domestic bus optimizer,J,J_other,pending

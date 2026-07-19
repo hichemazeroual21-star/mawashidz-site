@@ -1,0 +1,71 @@
+graph TB
+    subgraph HUMAN["HUMAN LAYER"]
+        FAM[Family Decision Unit]
+        FEAR[Fear: scam / rejection / shame]
+        HOPE[Hope: reunion / pilgrimage / study]
+    end
+
+    subgraph INFO["INFORMATION"]
+        G[Google 84.2%]
+        FB[Facebook 64-87%]
+        WA[WhatsApp conversion]
+        COUSIN[Cousin referral]
+    end
+
+    subgraph INTERMEDIARY["INTERMEDIARY"]
+        AG[5570 Agencies]
+        BRO[Illegal brokers]
+        ONPO_AG[ONPO authorized]
+    end
+
+    subgraph SUPPLY["SUPPLY"]
+        AH[Air Algérie / GDS]
+        HTL[Hotels cash/OTA FX]
+        CHR[Charter risk]
+    end
+
+    subgraph GATE["SOVEREIGN GATES"]
+        EMB[Embassies]
+        CAP[Capago/VFS]
+        ONPO[ONPO]
+        BA[Banque d'Algérie]
+        MTA[MTA license]
+    end
+
+    subgraph INFRA["INFRASTRUCTURE"]
+        SATIM[SATIM/CIB]
+        IATA[IATA BSP]
+        ANAC[ANAC]
+    end
+
+    subgraph WATHIQ["WATHIQ LAYER (proposed)"]
+        DOS[Wathiq Dossier]
+        SIG[Wathiq Signal]
+        REC[Wathiq Recover]
+        COST[Family Cost Tool]
+    end
+
+    FAM --> COUSIN
+    FAM --> WA
+    G --> AG
+    FB --> AG
+    FB --> BRO
+    WA --> AG
+    AG --> AH
+    AG --> ONPO_AG
+    AG --> CAP
+    BRO -.->|illegal| CAP
+    AG --> SATIM
+    FAM --> BA
+    EMB --> CAP
+    CAP --> EMB
+    AH --> IATA
+    MTA --> AG
+    ONPO --> ONPO_AG
+    FEAR --> COUSIN
+    FEAR --> BRO
+    FAM --> DOS
+    G --> DOS
+    FB --> SIG
+    FAM --> COST
+    FAM --> REC

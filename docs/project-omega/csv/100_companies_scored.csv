@@ -1,0 +1,101 @@
+id,name,cluster,cluster_code,score,status
+1,Dossier AI Schengen,A,A_eligibility,92,SURVIVOR_1
+2,Campus France pack,A,A_eligibility,72,candidate
+3,Turkey visa docs,A,A_eligibility,47,merged
+4,Insurance conformity checker,A,A_eligibility,90,survivor
+5,Financial proof builder,A,A_eligibility,93,merged_into_wathiq_dossier
+6,Sponsor letter generator,A,A_eligibility,46,merged
+7,Appeal letter AI,A,A_eligibility,60,merged
+8,Rejection decoder,A,A_eligibility,86,survivor
+9,Document OCR vault,A,A_eligibility,41,merged
+10,Multi-embassy rule engine,A,A_eligibility,40,merged
+11,Student housing proof solver,A,A_eligibility,41,merged
+12,Campus France timeline,A,A_eligibility,43,merged
+13,Nusuk form helper,A,A_eligibility,56,merged
+14,ONPO medical form,A,A_eligibility,49,merged
+15,Mahram guide app,A,A_eligibility,52,merged
+16,Arabic-French doc translator,A,A_eligibility,63,merged
+17,Passport expiry monitor,A,A_eligibility,46,merged
+18,Photo spec validator,A,A_eligibility,43,merged
+19,Cover letter AI,A,A_eligibility,56,merged
+20,Travel itinerary proof builder,A,A_eligibility,40,merged
+21,Capago slot alerts,B,B_signals,88,SURVIVOR_2
+22,Mosaic Turkey alerts,B,B_signals,72,candidate
+23,BLS multi-country,B,B_signals,62,merged
+24,Historical slot analytics,B,B_signals,58,merged
+25,SMS alert service,B,B_signals,63,merged
+26,Telegram bot alerts,B,B_signals,41,merged
+27,Embassy RSS aggregator,B,B_signals,54,merged
+28,Appointment fairness monitor,B,B_signals,58,merged
+29,Bot detection watchdog,B,B_signals,62,merged
+30,Wait time predictor,B,B_signals,64,merged
+31,EU261 claim bot,C,C_recovery,84,SURVIVOR_3
+32,Decree 16-175 assistant,C,C_recovery,57,merged
+33,Refund tracker Air Algerie,C,C_recovery,73,candidate
+34,OTA buck-pass manager,C,C_recovery,61,merged
+35,Downgrade compensation,C,C_recovery,59,merged
+36,Charter delay claims,C,C_recovery,60,merged
+37,e-doleances filler,C,C_recovery,40,merged
+38,Baggage PIR wizard,C,C_recovery,60,merged
+39,Overbooking instant claim,C,C_recovery,47,merged
+40,Family cost comparator,D,D_family,91,merged_acquisition_free
+41,FX dual-rate calculator,D,D_family,91,merged_acquisition_free
+42,Gift customs simulator,D,D_family,49,merged
+43,WhatsApp family vote,D,D_family,73,candidate
+44,Diaspora summer planner,D,D_family,53,merged
+45,Multi-passenger cart,D,D_family,61,merged
+46,Baggage family calc,D,D_family,50,merged
+47,Ferry+flight planner,D,D_family,47,merged
+48,Maison du bled logistics,D,D_family,56,merged
+49,Travel escrow SATIM,E,E_fintech,20,killed
+50,Agency float platform,E,E_fintech,48,merged
+51,Tourist FX wizard,E,E_fintech,41,merged
+52,DZD wallet tourist,E,E_fintech,48,merged
+53,Remittance travel pool,E,E_fintech,41,merged
+54,BNPL for packages,E,E_fintech,41,merged
+55,Crypto travel,E,E_fintech,19,killed
+56,Microinsurance visa,E,E_fintech,61,merged
+57,Parametric refusal payout,E,E_fintech,48,merged
+58,Fraud insurance travel,E,E_fintech,46,merged
+59,OTA Algeria,F,F_marketplace,17,killed
+60,Agency marketplace,F,F_marketplace,40,merged
+61,Hotel direct booking,F,F_marketplace,51,merged
+62,Flight metasearch,F,F_marketplace,58,merged
+63,Charter aggregator,F,F_marketplace,49,merged
+64,Sahara tour market,F,F_marketplace,41,merged
+65,Umrah package portal,F,F_marketplace,50,merged
+66,Student housing market,F,F_marketplace,64,merged
+67,Inbound DMC platform,F,F_marketplace,42,merged
+68,Scam-free deals feed,F,F_marketplace,50,merged
+69,Agency trust score,G,G_trust,89,survivor
+70,Complaint registry,G,G_trust,89,survivor
+71,ONPO verifier,G,G_trust,70,candidate
+72,Scam ad detector,G,G_trust,76,candidate
+73,Fake agency ML,G,G_trust,49,merged
+74,License lookup API,G,G_trust,57,merged
+75,Court case lookup,G,G_trust,41,merged
+76,Protest history map,G,G_trust,60,merged
+77,Verified reviews post-trip,G,G_trust,45,merged
+78,SNAV quality badge,G,G_trust,61,merged
+79,MTA license API,H,H_infra,58,merged
+80,GDS host agency,H,H_infra,53,merged
+81,SATIM travel escrow API,H,H_infra,59,merged
+82,BSP integration layer,H,H_infra,61,merged
+83,WhatsApp travel CRM,H,H_infra,53,merged
+84,Agency SaaS CRM,H,H_infra,55,merged
+85,PNR sync monitor,H,H_infra,49,merged
+86,Airline status dashboard,H,H_infra,43,merged
+87,ALCES customs API,H,H_infra,51,merged
+88,E-visa inbound tracker,H,H_infra,45,merged
+89,Travel scam journalism,I,I_media,61,merged
+90,Facebook warning bot,I,I_media,57,merged
+91,Influencer audit,I,I_media,43,merged
+92,TikTok tip verifier,I,I_media,45,merged
+93,Podcast diaspora travel,I,I_media,43,merged
+94,YouTube dossier courses,I,I_media,45,merged
+95,Community wiki visas,I,I_media,62,merged
+96,Reddit Algeria travel mod,I,I_media,59,merged
+97,Consulate warning feed,I,I_media,60,merged
+98,Airport live map,J,J_other,53,merged
+99,Fog cancel predictor,J,J_other,58,merged
+100,Domestic bus optimizer,J,J_other,58,merged

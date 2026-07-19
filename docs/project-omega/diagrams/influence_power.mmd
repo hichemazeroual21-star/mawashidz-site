@@ -1,0 +1,35 @@
+graph LR
+    subgraph POWER10["POWER 9-10"]
+        BA[Banque d'Algérie]
+        EMB[Embassies]
+        AH[Air Algérie]
+    end
+
+    subgraph POWER7["POWER 6-8"]
+        CAP[Capago/VFS]
+        ONPO[ONPO]
+        MTA[MTA]
+        SATIM[SATIM]
+    end
+
+    subgraph POWER4["POWER 3-5"]
+        AG[Agencies 5570]
+        SNAV[SNAV]
+        YAS[Yassir]
+    end
+
+    subgraph POWER1["POWER 1-2"]
+        DIY[DIY Traveler]
+        WATHIQ[WATHIQ proposed]
+    end
+
+    BA -->|FX/payments| AG
+    BA -->|FX| DIY
+    EMB -->|visa| CAP
+    CAP -->|appointments| DIY
+    MTA -->|license| AG
+    ONPO -->|hajj/umrah| AG
+    AH -->|supply| AG
+    SATIM -->|e-pay| AG
+    AG -->|trust| DIY
+    WATHIQ -.->|information only| DIY

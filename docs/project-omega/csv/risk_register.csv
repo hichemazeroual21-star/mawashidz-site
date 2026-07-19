@@ -1,0 +1,26 @@
+id,risk,category,probability,impact,score,mitigation,experiment,owner,status
+R01,No willingness to pay for dossier review,commercial,H,H,9,E001,E001,founder,open
+R02,Visa rejection blamed on Wathiq despite disclaimer,legal,H,H,9,Disclaimer + human review + no guarantee language,—,legal,open
+R03,AI hallucination on document rules,product,M,H,7,Rules engine primary; AI assist only,E008,product,open
+R04,Passport/PII data breach,security,L,H,6,No long-term storage; ephemeral processing,—,security,open
+R05,Capago/VFS cease-and-desist on Signal,legal,M,H,7,Historical patterns only; no live scrape,E003,product,open
+R06,Yassir bundles free dossier checker,competitive,M,H,7,Partner early or sell,E006,strategy,open
+R07,OpenAI/Google commoditize checklist,competitive,H,M,7,Outcome data moat; Algerian-specific corpus,E008,product,open
+R08,Agency sabotage or bad referrals,distribution,M,M,5,White-label revenue share,E004,sales,open
+R09,Classified as unauthorized immigration advice,legal,M,H,7,Legal counsel memo; checklist not advice,—,legal,open
+R10,Founder burnout single-reviewer bottleneck,execution,H,H,9,Recover revenue Month 6; hire diaspora reviewer,—,founder,open
+R11,2018 Madouche data stale for 2026 GTM,market,M,M,5,E005 survey,E005,research,open
+R12,France Schengen policy shock (rules change),regulatory,M,H,7,Multi-country expansion Year 2,—,strategy,open
+R13,Seasonal revenue concentration (summer/hajj),commercial,H,M,6,Campus France + Turkey diversification,—,finance,open
+R14,Defamation from agency reviews,legal,L,M,4,Facts only; user-submitted evidence,—,legal,open
+R15,Cannot hire qualified French-speaking reviewer,operations,M,H,7,Remote FR diaspora contractors,—,hr,open
+R16,SATIM requirement if payments scale,regulatory,M,M,5,Start with manual transfer; legal review before scale,E007,finance,open
+R17,Embassy rule changes faster than update cycle,product,M,H,7,Embassy RSS + community reports,—,product,open
+R18,User uploads forged documents; liability,legal,M,H,7,Flag only; no submission on behalf,—,legal,open
+R19,EU261 success fee disputes,commercial,M,M,5,Clear fee agreement upfront,—,product,open
+R20,Currency devaluation erodes DZD pricing,macro,H,M,6,USD/EUR pricing option for diaspora,E007,finance,open
+R21,Political instability disrupts outbound travel,macro,M,H,7,Multi-corridor; inbound not required,—,strategy,open
+R22,Fake pre-orders / fraud in E001,commercial,L,M,4,Verified payment or deposit,—,growth,open
+R23,WhatsApp support scale unsustainable,operations,H,M,6,Self-serve checklist first,—,product,open
+R24,Competitor copies checklist in 2 weeks,competitive,H,L,5,Outcome data + human review brand,—,strategy,open
+R25,Insurance partner rejects integration,partnership,M,M,5,Standalone conformity module first,U15,partnerships,open

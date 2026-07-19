@@ -1,0 +1,11 @@
+id,unknown_id,unknown,experiment,success_metric,kill_metric,budget_eur,timeline_days,confidence_before,confidence_target,status
+E001,U01,Paid dossier WTP at 3-8k DZD,Landing page + 100 pre-orders France dossier @ 5000 DZD,>=10% conversion,<2% conversion,500,30,0,80,pending
+E002,U05,Dossier review reduces rejection,Track 200 opt-in dossiers vs rejection baseline,>10% relative reduction vs base,No measurable difference,0,180,0,70,pending
+E003,U04,Capago scrape/partnership legality,Publish historical Capago patterns; measure signups,5000 emails,C&D received,200,60,50,75,pending
+E004,U07,Agency white-label adoption,10 agencies white-label pilot,3 paying agencies,0 paying agencies,0,90,0,70,pending
+E005,U03,2026 agency booking % vs 56.7% (2018),Survey n=300 at Algiers/Oran agencies,Valid sample + distribution,Sample bias >30%,1000,60,40,75,pending
+E006,U06,Yassir travel launch date,Monitor dev.travel.yassir.com + job posts,Partnership window identified,Launch without contact,0,ongoing,60,85,ongoing
+E007,U14,Cash vs digital split 2026,Ask 100 customers preferred payment method,Payment mix documented,—,0,30,40,70,pending
+E008,U13,OpenAI free dossier checker impact,A/B: GPT generic vs Wathiq checklist on 50 dossiers,Wathiq catches >20% more gaps,Parity or worse,100,14,50,75,pending
+E009,U11,Total addressable paid users/year,Bottom-up: France Schengen applicants Algeria + diaspora funnel,±30% TAM estimate,Order-of-magnitude error >3x,300,45,35,70,pending
+E010,U12,B2G MTA API feasibility,3 structured interviews MTA/ONPO digital teams,1 pilot interest expressed,0 interest,0,90,20,60,pending

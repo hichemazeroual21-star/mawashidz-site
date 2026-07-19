@@ -1,0 +1,37 @@
+flowchart TB
+    subgraph IN["MONEY IN (Algeria)"]
+        CASH[Cash CCP/postal]
+        SATIM[SATIM/CIB card]
+        FX_BLACK[Parallel FX market]
+    end
+
+    subgraph INTERMEDIARY["INTERMEDIARIES"]
+        AG[Travel Agency]
+        BRO[Illegal broker]
+    end
+
+    subgraph OUT["MONEY OUT"]
+        AH[Air Algérie / airlines]
+        HOTEL[Hotels abroad]
+        VISA[Visa fees Capago]
+        ONPO[ONPO packages]
+    end
+
+    subgraph WATHIQ_REV["WATHIQ REVENUE (proposed)"]
+        DOS[Dossier fee 3-8k DZD]
+        SIG[Signal sub 2k DZD/mo]
+        REC[EU261 25-30% fee]
+    end
+
+    CASH --> AG
+    SATIM --> AG
+    FX_BLACK --> AG
+    AG --> AH
+    AG --> HOTEL
+    AG --> VISA
+    AG --> ONPO
+    BRO --> VISA
+    DIY[Family] --> DOS
+    DIY --> SIG
+    DIY --> REC
+    SATIM -.->|if scaled| DOS

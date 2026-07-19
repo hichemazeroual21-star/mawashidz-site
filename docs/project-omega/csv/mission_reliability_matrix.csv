@@ -1,0 +1,12 @@
+mission,exists_in_repo,evidence_grade,strong_evidence_count,weak_evidence_count,missing_evidence_count,survivable_conclusions,dead_conclusions,overall_reliability_1_10
+005,yes,B+,45,30,12,8,2,8
+006,yes,B,35,25,15,10,1,7
+007,yes,A-,50,20,18,12,1,8
+008,yes,C+,20,15,25,4,6,5
+009,yes,B,30,10,8,3,5,7
+010,yes,B+,25,12,10,6,4,7
+001,no,N/A,0,0,0,0,0,0
+002,no,N/A,0,0,0,0,0,0
+003,no,N/A,0,0,0,0,0,0
+004,no,N/A,0,0,0,0,0,0
+011,no,N/A,0,0,0,0,0,0

@@ -1,0 +1,17 @@
+source_id,target_id,relationship_type,weight_1_10,evidence_mission
+Traveler,Agency,pays_cash,9,M005
+Traveler,Agency,pays_satim,4,M007
+Agency,Airline,via_BSP,8,M007
+Traveler,Banque_dAlgerie,FX_allocation,8,M007
+Traveler,Capago,visa_appointment,9,M007
+Embassy,Capago,delegates_collection,9,M007
+Illegal_broker,Capago,unauthorized_access,7,M005
+Traveler,Google,research,8,M006
+Traveler,Facebook,discover_warn,8,M006
+Traveler,WhatsApp,negotiate_close,8,M006
+Cousin,Traveler,trust_referral,9,M006
+MTA,Agency,licenses,9,M007
+ONPO,Pilgrim_agency,authorizes,9,M007
+Yassir,Traveler,super_app_future,6,M007
+SATIM,Ecommerce,required_rail,9,M007
+Air_Algerie,GDS,distributes,9,M007

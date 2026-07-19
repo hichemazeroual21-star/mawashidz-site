@@ -1,0 +1,29 @@
+flowchart LR
+    subgraph ACQUIRE["ACQUISITION"]
+        FB[Facebook diaspora groups]
+        G[Google France visa queries]
+        COST[Free Family Cost Tool]
+    end
+
+    subgraph CORE["CORE REVENUE"]
+        DOS[Wathiq Dossier<br/>3-8k DZD review]
+        SIG[Wathiq Signal<br/>2k DZD/mo alerts]
+    end
+
+    subgraph LTV["LTV EXTENSION"]
+        REC[Wathiq Recover<br/>25-30% success fee]
+    end
+
+    subgraph GATES["SOVEREIGN OUTCOME"]
+        CAP[Capago appointment]
+        EMB[Embassy decision]
+    end
+
+    FB --> COST
+    G --> DOS
+    COST --> DOS
+    DOS --> CAP
+    SIG --> CAP
+    CAP --> EMB
+    EMB -->|rejection or delay| REC
+    EMB -->|approval| REC

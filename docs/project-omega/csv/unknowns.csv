@@ -1,0 +1,16 @@
+id,unknown,impact,confidence_pct,mission,experiment,resolvable
+U01,Paid dossier WTP at 3-8k DZD,existential,0,M010,E001,yes
+U02,Escrow legal under Banque d'Algerie,killed path,N/A,M007,—,no
+U03,2026 agency booking % vs 56.7% (2018),gtm,40,M006,E005,yes
+U04,Capago scrape/partnership legality,signal product,50,M010,E003,yes
+U05,Dossier review reduces rejection rate,core claim,0,M010,E002,yes
+U06,Yassir travel launch date,competitive,60,M007,E006,partial
+U07,Agency white-label adoption,distribution,0,M008,E004,yes
+U08,SNAV 10% still accurate,trust model,30,M005,E005,yes
+U09,Gender authority in travel decisions,ux,40,M006,survey needed,yes
+U10,Missions 001-004 and 011 content,audit completeness,0,Omega,—,maybe
+U11,Total addressable paid users/year,tam,35,Omega,E009,yes
+U12,B2G MTA API feasibility,moat,20,M007,E010,yes
+U13,OpenAI free dossier checker impact,existential,50,Omega,E008,yes
+U14,Cash vs digital split 2026,product,40,M007,E007,yes
+U15,Insurance partner revenue share,revenue,0,M005,partnership outreach,yes

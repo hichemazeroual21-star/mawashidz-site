@@ -1,0 +1,16 @@
+date,decision_id,decision,rationale,mission_source,status,reversible
+2026-07-19,D-001,Abort Safar escrow path,M009 destroyed unit economics and legal hypothesis; M007 escrow unvalidated,M008+M009,locked,no
+2026-07-19,D-002,Adopt WATHIQ as final company,Omega Phase 7-10 convergence: dossier + signal + recover,Omega,locked,no
+2026-07-19,D-003,France Schengen Type C as v1,Highest evidence density: 185k refusals; documentary ~48%,M005+M007,locked,yes
+2026-07-19,D-004,Defer Missions 001-004 and 011 audit,Not present in repository; cannot audit absent evidence,Omega,open,yes
+2026-07-19,D-005,Run E001 before full AI build,U01 WTP at 0% confidence,M010,pending,yes
+2026-07-19,D-006,Merge Family Cost Tool as free acquisition,#40-41 scored high; distribution wedge without payment friction,Omega,locked,yes
+2026-07-19,D-007,Kill all escrow/fintech cluster companies,Regulatory + cultural + M009 red team,M007+M009,locked,no
+2026-07-19,D-008,Kill OTA/marketplace cluster,Pain is interstitial not discovery,M005,locked,no
+2026-07-19,D-009,Human review before AI automation,AI hallucination risk R03; trust requires human for v1,Omega,locked,yes
+2026-07-19,D-010,No passport long-term storage,R04 breach risk,M007,locked,no
+2026-07-19,D-011,Recover product deferred to Month 6,LTV extension; not validation wedge,M010,locked,yes
+2026-07-19,D-012,Resolve CSV vs narrative survivor inconsistency,Scoring script ranked modules not companies; #1 #21 #31 are canonical survivors,Omega,locked,no
+2026-07-19,D-013,Package truth score separate from epistemic confidence,Deliverable completeness 10/10; market truth 8.8/10 until E001,Omega,locked,no
+2026-07-19,D-014,Day 90 kill meeting scheduled,Founder manual rule: fail fast on E001,Omega,pending,yes
+2026-07-19,D-015,No visa slot resale or botting,Illegal per M007 Capago warning,M007,locked,no
