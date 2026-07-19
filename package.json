@@ -6,6 +6,9 @@
   "main": "index.js",
   "scripts": {
     "test:db": "node supabase/tests/run-phase0-tests.mjs",
+    "test:registration": "node tests/registration-flow.test.mjs && node tests/registration-ui-guard.test.mjs",
+    "test:static": "node tests/static-asset-validation.test.mjs",
+    "test": "npm run test:db && npm run test:registration && npm run test:static",
     "package:review": "bash scripts/package-code-review.sh"
   },
   "repository": {
