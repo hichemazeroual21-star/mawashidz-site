@@ -8,10 +8,19 @@ Official website package with multilingual interface, automatic dark mode, and t
 - `assets/algeria_cities.json` — التقسيم الإداري الكامل: 58 ولاية، 548 دائرة، 1541 بلدية (مصدر محلي، مع CDN كاحتياط)
 - `netlify.toml` — إعدادات Netlify + تحويل `/api/livestock-news` إلى الدالة
 - `netlify/functions/news.mjs` — دالة جلب أخبار قطاع المواشي (تعمل على Netlify فقط؛ على GitHub Pages يُستعمل الاحتياط داخل الصفحة)
-- `supabase/setup.sql` — ملف إعداد قاعدة البيانات: أرقام العضوية التسلسلية، الملفات الشخصية، الدخول بالبريد/الهاتف/رقم MDZ، جداول التسجيل والتواصل والبلاغات مع RLS
+- `supabase/setup.sql` — إعداد قاعدة بيانات **جديدة** (مشروع فارغ)
+- `supabase/migrations/001_compatible_existing_db.sql` — ترحيل **آمن لقاعدة موجودة** (يضيف الناقص فقط)
+- `supabase/introspect.mjs` / `supabase/probe-columns.mjs` — أدوات فحص البنية عبر REST
 
 ## Supabase setup (مطلوب مرة واحدة)
 
-1. افتح Supabase Dashboard → SQL Editor وشغّل `supabase/setup.sql` كاملًا.
-2. عرّب قالب «Confirm signup» في Auth → Emails (نموذج جاهز داخل نهاية ملف SQL).
-3. أضف نطاق الموقع في Auth → URL Configuration → Redirect URLs (لاسترجاع كلمة المرور).
+**مشروع جديد (بدون جداول):**
+1. شغّل `supabase/setup.sql` كاملًا.
+
+**مشروع موجود (ظهر خطأ `column "member_id" does not exist`):**
+1. شغّل `supabase/migrations/001_compatible_existing_db.sql` بدل `setup.sql`.
+2. للتحقق بعد التشغيل: `node supabase/probe-columns.mjs`
+
+**لكلا الحالتين:**
+3. عرّب قالب «Confirm signup» في Auth → Emails (نموذج جاهز داخل نهاية ملف SQL).
+4. أضف نطاق الموقع في Auth → URL Configuration → Redirect URLs (لاسترجاع كلمة المرور).

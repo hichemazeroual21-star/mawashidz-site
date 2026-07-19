@@ -1,18 +1,21 @@
 -- ============================================================
--- MawashiDZ — ملف إعداد قاعدة بيانات Supabase (v1.7.1)
--- شغّل هذا الملف كاملًا من: Supabase Dashboard → SQL Editor → Run
--- الملف آمن لإعادة التشغيل (idempotent) ولا يحذف بيانات موجودة.
+-- MawashiDZ — ترحيل متوافق مع قاعدة بيانات موجودة (v1.7.2)
+-- شغّله من: Supabase Dashboard → SQL Editor → Run
 --
--- ⚠️ إذا كانت الجداول موجودة مسبقًا (مشروع قديم): استخدم بدلًا منه
---    supabase/migrations/001_compatible_existing_db.sql
---    لأن CREATE TABLE IF NOT EXISTS لا يضيف أعمدة جديدة للجداول القديمة،
---    وقد يفشل عند إنشاء فهارس على أعمدة غير موجودة (مثل member_id).
+-- لا يُعيد إنشاء الجداول الموجودة. يضيف الأعمدة/الدوال/المحفّزات/
+-- السياسات الناقصة فقط (idempotent).
+--
+-- تم اكتشاف البنية الحالية عبر REST (2026-07-19):
+--   profiles         — كامل (member_id, registration_id موجودان)
+--   registrations    — ينقصه member_id, registration_id
+--   contact_messages — ينقصه wilaya_name (محفّز قديم يشير إليه)
+--   feedback_tickets — كامل
+--   member_id_counters — موجود (بدون SELECT عام، وهذا صحيح)
+--   allocate_member_id — موجود لكن بدون GRANT EXECUTE لـ anon
 -- ============================================================
 
 -- ------------------------------------------------------------
--- 1) أرقام العضوية التسلسلية الدائمة: MDZ-F-000001 ...
---    F=موال، V=بيطري، S=تاجر أعلاف، U=مشتري، W=مدير ولاية،
---    B=سفير، P=شريك
+-- 1) عدّادات أرقام العضوية (إن لم تكن موجودة)
 -- ------------------------------------------------------------
 create table if not exists public.member_id_counters (
   prefix text primary key,
@@ -20,7 +23,7 @@ create table if not exists public.member_id_counters (
 );
 
 alter table public.member_id_counters enable row level security;
--- لا سياسات عامة: الجدول يُعدَّل فقط عبر الدالة أدناه (security definer).
+-- لا سياسات عامة: يُعدَّل فقط عبر allocate_member_id (security definer).
 
 create or replace function public.allocate_member_id(member_role text)
 returns text
@@ -56,28 +59,28 @@ $$;
 grant execute on function public.allocate_member_id(text) to anon, authenticated;
 
 -- ------------------------------------------------------------
--- 2) جدول الملفات الشخصية (يُنشأ تلقائيًا عند كل تسجيل Auth)
+-- 2) profiles — أعمدة ناقصة فقط (الجدول موجود مسبقًا)
 -- ------------------------------------------------------------
-create table if not exists public.profiles (
-  id uuid primary key references auth.users (id) on delete cascade,
-  member_id text unique,
-  registration_id text,
-  full_name text,
-  first_name text,
-  last_name text,
-  phone text,
-  email text,
-  role text,
-  wilaya text,
-  daira text,
-  commune text,
-  birth_date date,
-  invite_code text,
-  invited_by text,
-  status text not null default 'pending',
-  created_at timestamptz not null default now()
-);
+alter table public.profiles add column if not exists member_id text;
+alter table public.profiles add column if not exists registration_id text;
+alter table public.profiles add column if not exists full_name text;
+alter table public.profiles add column if not exists first_name text;
+alter table public.profiles add column if not exists last_name text;
+alter table public.profiles add column if not exists phone text;
+alter table public.profiles add column if not exists email text;
+alter table public.profiles add column if not exists role text;
+alter table public.profiles add column if not exists wilaya text;
+alter table public.profiles add column if not exists daira text;
+alter table public.profiles add column if not exists commune text;
+alter table public.profiles add column if not exists birth_date date;
+alter table public.profiles add column if not exists invite_code text;
+alter table public.profiles add column if not exists invited_by text;
+alter table public.profiles add column if not exists status text not null default 'pending';
+alter table public.profiles add column if not exists created_at timestamptz not null default now();
+alter table public.profiles add column if not exists updated_at timestamptz not null default now();
 
+create unique index if not exists profiles_member_id_key on public.profiles (member_id)
+  where member_id is not null;
 create index if not exists profiles_member_id_idx on public.profiles (member_id);
 create index if not exists profiles_phone_idx on public.profiles (phone);
 
@@ -89,7 +92,6 @@ create policy "profiles: self read"
   to authenticated
   using (id = (select auth.uid()));
 
--- إنشاء الملف الشخصي تلقائيًا من بيانات التسجيل (user_metadata)
 create or replace function public.handle_new_user()
 returns trigger
 language plpgsql
@@ -129,7 +131,7 @@ create trigger on_auth_user_created
   for each row execute function public.handle_new_user();
 
 -- ------------------------------------------------------------
--- 3) الدخول بالبريد أو الهاتف أو رقم العضوية MDZ
+-- 3) resolve_login_identifier — يعتمد على profiles.member_id
 -- ------------------------------------------------------------
 create or replace function public.resolve_login_identifier(lookup_value text)
 returns text
@@ -159,25 +161,23 @@ $$;
 grant execute on function public.resolve_login_identifier(text) to anon, authenticated;
 
 -- ------------------------------------------------------------
--- 4) طلبات التسجيل (النسخة الكاملة للمراجعة الإدارية)
+-- 4) registrations — أعمدة ناقصة (الجدول موجود ببنية مختلفة)
 -- ------------------------------------------------------------
-create table if not exists public.registrations (
-  id bigint generated always as identity primary key,
-  full_name text not null,
-  phone text not null,
-  email text,
-  whatsapp text,
-  wilaya text,
-  user_type text,
-  role text,
-  message text,
-  is_verified boolean not null default false,
-  privacy_accepted boolean not null default false,
-  founding_terms_accepted boolean not null default false,
-  created_at timestamptz not null default now(),
-  unique (email),
-  unique (phone)
-);
+alter table public.registrations add column if not exists member_id text;
+alter table public.registrations add column if not exists registration_id text;
+alter table public.registrations add column if not exists daira text;
+
+create index if not exists registrations_member_id_idx on public.registrations (member_id);
+create index if not exists registrations_registration_id_idx on public.registrations (registration_id);
+
+-- استرجاع القيم المخزّنة سابقًا داخل message (JSON)
+update public.registrations r
+set
+  member_id = coalesce(r.member_id, nullif(r.message::jsonb ->> 'member_id', '')),
+  registration_id = coalesce(r.registration_id, nullif(r.message::jsonb ->> 'registration_id', ''))
+where r.message is not null
+  and r.message ~ '^\s*\{'
+  and (r.member_id is null or r.registration_id is null);
 
 alter table public.registrations enable row level security;
 
@@ -188,21 +188,27 @@ create policy "registrations: public insert"
   with check (true);
 
 -- ------------------------------------------------------------
--- 5) رسائل التواصل وبلاغات الملاحظات
+-- 5) contact_messages — إصلاح محفّز قديم يشير إلى wilaya_name
 -- ------------------------------------------------------------
-create table if not exists public.contact_messages (
-  id bigint generated always as identity primary key,
-  ticket_id text unique,
-  full_name text,
-  phone text,
-  wilaya text,
-  daira text,
-  commune text,
-  request_type text,
-  message text,
-  status text not null default 'new',
-  created_at timestamptz not null default now()
-);
+alter table public.contact_messages add column if not exists wilaya_name text;
+
+create or replace function public.contact_messages_sync_wilaya_name()
+returns trigger
+language plpgsql
+set search_path = public
+as $$
+begin
+  if new.wilaya_name is null and new.wilaya is not null then
+    new.wilaya_name := new.wilaya;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists contact_messages_sync_wilaya_name on public.contact_messages;
+create trigger contact_messages_sync_wilaya_name
+  before insert or update on public.contact_messages
+  for each row execute function public.contact_messages_sync_wilaya_name();
 
 alter table public.contact_messages enable row level security;
 
@@ -212,17 +218,9 @@ create policy "contact: public insert"
   to anon, authenticated
   with check (true);
 
-create table if not exists public.feedback_tickets (
-  id bigint generated always as identity primary key,
-  ticket_id text unique,
-  report_type text,
-  full_name text,
-  contact text,
-  details text,
-  status text not null default 'new',
-  created_at timestamptz not null default now()
-);
-
+-- ------------------------------------------------------------
+-- 6) feedback_tickets — سياسات الإدراج فقط
+-- ------------------------------------------------------------
 alter table public.feedback_tickets enable row level security;
 
 drop policy if exists "feedback: public insert" on public.feedback_tickets;
@@ -232,19 +230,7 @@ create policy "feedback: public insert"
   with check (true);
 
 -- ============================================================
--- خطوات يدوية متبقية داخل لوحة Supabase (لا يمكن تنفيذها بـ SQL):
---
--- أ) Auth → Emails → Confirm signup: استبدل القالب بقالب عربي، مثال:
---
---    Subject: أكد بريدك لتفعيل حسابك في MawashiDZ
---
---    <h2>مرحبًا {{ .Data.first_name }}،</h2>
---    <p>يسعدنا انضمامك إلى MawashiDZ بصفة: <b>{{ .Data.role_label }}</b>.</p>
---    <p>رقم عضويتك: <b>{{ .Data.member_id }}</b><br>
---       رقم متابعة الطلب: <b>{{ .Data.registration_id }}</b></p>
---    <p><a href="{{ .ConfirmationURL }}">اضغط هنا لتأكيد بريدك وتفعيل الدخول</a></p>
---    <p>احتفظ برقم الطلب للمتابعة. فريق MawashiDZ</p>
---
--- ب) Auth → URL Configuration: أضف https://mawashidz.com ضمن Redirect URLs
---    (مطلوب لرابط استرجاع كلمة المرور).
+-- بعد التشغيل: تحقق محليًا (اختياري)
+--   node supabase/introspect.mjs
+--   node supabase/probe-columns.mjs
 -- ============================================================
