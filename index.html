@@ -1407,6 +1407,15 @@ footer .foot{align-items:start}
   #registerModal #registerConfirm .success-id{font-size:.9rem}
   #registerModal #registerConfirm .invite-actions{display:grid}
 }
+/* After successful signup: show only the success card */
+#registerModal.is-success .tabs,
+#registerModal.is-success .field,
+#registerModal.is-success .role-fields,
+#registerModal.is-success .consent-stack,
+#registerModal.is-success .notice:not(.auth-status),
+#registerModal.is-success #registerSubmit,
+#registerModal.is-success .role-section-title{display:none!important}
+#registerModal.is-success #registerConfirm.premium-success{display:block!important;margin-top:0}
 
 #loginModal .modal-box,
 #accountModal .modal-box{
@@ -2459,10 +2468,23 @@ function checked(form,name){ const el=form.querySelector(`[name="${name}"]`); re
 function selectedValues(form,name){ return [...form.querySelectorAll(`[name="${name}"]:checked`)].map(x=>x.value); }
 
 function toggleMenu(v){$('#drawer').classList.toggle('open',v)}
-function openRegister(role='breeder'){closeAll();$('#registerModal').classList.add('open');setRole(role)}
+function openRegister(role='breeder'){
+  closeAll();
+  const modal=$('#registerModal');
+  modal.classList.remove('is-success');
+  const confirm=document.getElementById('registerConfirm');
+  if(confirm){ confirm.className='full confirm-card'; confirm.style.display='none'; confirm.innerHTML=''; }
+  modal.classList.add('open');
+  setRole(role);
+}
 function openLogin(){closeAll();$('#loginModal').classList.add('open')}
-function closeModal(id){$('#'+id).classList.remove('open')}
-function closeAll(){$$('.modal').forEach(m=>m.classList.remove('open'))}
+function closeModal(id){
+  const modal=$('#'+id);
+  if(!modal) return;
+  modal.classList.remove('open');
+  if(id==='registerModal') modal.classList.remove('is-success');
+}
+function closeAll(){$$('.modal').forEach(m=>{m.classList.remove('open'); if(m.id==='registerModal') m.classList.remove('is-success');})}
 function openManager(){openRegister('manager')}
 function openContact(){document.querySelector('#contact').scrollIntoView({behavior:'smooth'})}
 function openFeedback(){closeAll();$('#feedbackModal').classList.add('open')}
@@ -2718,15 +2740,10 @@ $('#registerForm').addEventListener('submit', async e=>{
   document.getElementById('copyInviteCode')?.addEventListener('click',async()=>{try{await navigator.clipboard.writeText(memberInviteCode);showToast('تم نسخ كود الدعوة.');}catch{showToast(`كودك: ${memberInviteCode}`);}});
   document.getElementById('shareInviteLink')?.addEventListener('click',async()=>{const shareData={title:'MawashiDZ',text:`سجّل في منصة MawashiDZ باستعمال كود دعوتي: ${memberInviteCode}`,url:inviteUrl};try{if(navigator.share) await navigator.share(shareData);else{await navigator.clipboard.writeText(inviteUrl);showToast('تم نسخ رابط الدعوة.');}}catch(error){if(error?.name!=='AbortError') showToast('تعذر فتح المشاركة الآن.');}});
   document.getElementById('openAccountAfterSignup')?.addEventListener('click',()=>openAccount());
+  document.getElementById('registerModal')?.classList.add('is-success');
+  try{ confirm.scrollIntoView({behavior:'smooth',block:'start'}); }catch{}
   showToast(`تم إرسال الطلب — ${registrationId}`);
   updateAuthChrome();
-  setTimeout(()=>{
-    try{
-      form.reset();
-      wilayaSelect.value=''; fillSelect(dairaSelect,[],'اختر الولاية أولاً'); dairaSelect.disabled=true;
-      fillSelect(communeSelect,[],'اختر الدائرة أولاً'); communeSelect.disabled=true; setRole('breeder');
-    }catch(error){ console.warn('Form reset skipped:',error); }
-  },1400);
   submit.disabled=false; submit.textContent=submit.dataset.oldText||'إنشاء الحساب وإرسال الطلب';
 });
 
