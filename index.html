@@ -1336,6 +1336,154 @@ footer .foot{align-items:start}
 }
 </style>
 
+<style id="mdz-v19-phase1-auth-ui">
+/* ===== MawashiDZ v1.9.0 — Phase 1 Auth UI + success contrast fix ===== */
+#registerModal #registerConfirm.premium-success{
+  display:block;
+  margin-top:4px;
+  padding:20px 18px;
+  border-radius:18px;
+  border:1px solid #c5ddce;
+  background:linear-gradient(165deg,#f3faf6 0%,#e7f3ec 100%);
+  color:#143528;
+  box-shadow:0 10px 28px rgba(16,70,48,.08);
+  position:relative;
+  overflow:hidden;
+}
+#registerModal #registerConfirm.premium-success:before{
+  content:"";
+  position:absolute;
+  width:120px;height:120px;border-radius:50%;
+  background:rgba(21,117,81,.08);
+  left:-40px;top:-50px;
+}
+#registerModal #registerConfirm .success-mark{
+  width:46px;height:46px;border-radius:50%;
+  display:grid;place-items:center;
+  background:#11744f;color:#fff;
+  font-size:1.3rem;font-weight:1000;margin-bottom:12px;
+}
+#registerModal #registerConfirm .success-title{
+  color:#0f3d2b;font-size:1.16rem;font-weight:950;margin:0 0 8px;line-height:1.45;
+}
+#registerModal #registerConfirm .success-copy{
+  color:#355849;line-height:1.8;font-weight:700;margin:0 0 12px;
+}
+#registerModal #registerConfirm .success-id{
+  display:flex;flex-wrap:wrap;align-items:center;gap:8px;
+  margin-top:10px;padding:11px 13px;border-radius:14px;
+  background:#fff;border:1px solid #d0e2d7;color:#143528;font-weight:900;
+}
+#registerModal #registerConfirm .success-id span{direction:ltr;unicode-bidi:isolate;color:#0d5a3e}
+#registerModal #registerConfirm .auth-status{
+  margin-top:12px;padding:12px 13px;border-radius:14px;
+  background:#fff8e8;border:1px solid #e6d29a;color:#5c4a18;font-weight:800;line-height:1.7;
+}
+#registerModal #registerConfirm .auth-status.ok{
+  background:#e8f6ee;border-color:#b7dfc6;color:#155438;
+}
+#registerModal #registerConfirm .invite-panel{
+  margin-top:14px;padding:14px;border-radius:16px;
+  background:#fff;border:1px solid #d4e3da;
+}
+#registerModal #registerConfirm .invite-label{color:#5f7468;font-size:.8rem;margin-bottom:6px;font-weight:800}
+#registerModal #registerConfirm .invite-code{
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+  font-size:1.05rem;font-weight:950;letter-spacing:.6px;
+  color:#0d5a3e;direction:ltr;text-align:center;
+  padding:11px;border-radius:12px;background:#f3faf6;border:1px dashed #9fc4b0;
+}
+#registerModal #registerConfirm .invite-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+#registerModal #registerConfirm .invite-actions button{
+  flex:1;min-width:120px;border:1px solid #c5d9cd;background:#f7fbf8;
+  color:#163728;border-radius:11px;padding:10px;font-weight:850;cursor:pointer;
+}
+#registerModal #registerConfirm .invite-actions button:hover{background:#eef6f1}
+#registerModal #registerConfirm .success-mail{
+  margin-top:12px;color:#215c44;font-weight:850;line-height:1.7;
+}
+@media(max-width:480px){
+  #registerModal #registerConfirm.premium-success{padding:16px 14px}
+  #registerModal #registerConfirm .success-id{font-size:.9rem}
+  #registerModal #registerConfirm .invite-actions{display:grid}
+}
+/* After successful signup: show only the success card */
+#registerModal.is-success .tabs,
+#registerModal.is-success .field,
+#registerModal.is-success .role-fields,
+#registerModal.is-success .consent-stack,
+#registerModal.is-success .notice:not(.auth-status),
+#registerModal.is-success #registerSubmit,
+#registerModal.is-success .role-section-title{display:none!important}
+#registerModal.is-success #registerConfirm.premium-success{display:block!important;margin-top:0}
+
+#loginModal .modal-box,
+#accountModal .modal-box{
+  width:min(520px,96vw);
+  color:#173126;
+  background:linear-gradient(180deg,#fbfdfb 0%,#f4f8f5 100%);
+  border:1px solid #d8e3dc;
+  border-radius:24px;
+  box-shadow:0 28px 80px rgba(5,34,22,.24);
+  padding:22px;
+}
+#loginModal .modal-top h2,
+#accountModal .modal-top h2{color:#123326}
+#loginModal .close,
+#accountModal .close{
+  color:#173126;background:#edf4ef;border:1px solid #d3e1d8;border-radius:12px;
+}
+#loginModal .account-note{
+  border:1px solid #d5e4db;background:#eef7f1;color:#355849;
+  border-radius:14px;padding:12px 14px;font-weight:750;line-height:1.7;
+}
+#loginModal .field label{color:#1b3d2e;font-weight:850}
+#loginModal .field input{
+  color:#173126;background:#fff;border:1px solid #cfdcd4;border-radius:14px;min-height:52px;font-size:16px;
+}
+#loginModal .login-state{min-height:1.4em;font-weight:800;color:#5c4a18}
+#loginModal .login-state.is-error{color:#9b1c1c}
+#loginModal .login-state.is-ok{color:#0f6a49}
+#loginModal #loginSubmit{
+  min-height:54px;width:100%;color:#fff;
+  background:linear-gradient(145deg,#0d5a3e,#11744f);border:0;border-radius:14px;font-weight:900;
+}
+#loginModal .text-action{color:#0d5a3e}
+
+.member-dashboard{display:grid;gap:14px}
+.member-hero{
+  padding:20px;border-radius:20px;
+  background:linear-gradient(135deg,#0f3f2e,#176647);color:#fff;
+}
+.member-id-chip{
+  display:inline-flex;direction:ltr;padding:7px 12px;border-radius:999px;
+  background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);
+  font-weight:950;letter-spacing:.4px;
+}
+.member-data-grid{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;
+}
+.member-data{
+  background:#fff;border:1px solid #d7e4dc;border-radius:14px;padding:12px 13px;
+}
+.member-data small{display:block;color:#667c70;font-weight:800;margin-bottom:4px}
+.member-data b{color:#143528;font-weight:950;word-break:break-word}
+.member-status-pill{
+  display:inline-flex;margin-top:8px;padding:6px 10px;border-radius:999px;
+  background:rgba(255,255,255,.14);font-weight:850;font-size:.86rem;
+}
+@media(max-width:520px){
+  .member-data-grid{grid-template-columns:1fr}
+  #loginModal .modal-box,#accountModal .modal-box{width:100%;max-height:94svh;border-radius:22px 22px 0 0}
+  #loginModal,#accountModal{align-items:flex-end;padding:0}
+}
+#headerActions .btn[hidden],
+#drawerAccountLink[hidden],
+#drawerLogoutLink[hidden],
+#drawerLoginLink[hidden],
+#drawerRegisterLink[hidden]{display:none!important}
+</style>
+
 <style id="mdz-v17-header-final">
 /* ===== MawashiDZ v1.7.1 — بنية الهيدر النهائية (مصدر وحيد للتخطيط بدل طبقات الإصلاح السابقة) =====
    Desktop (>920px): شريط أفقي — العلامة يمينًا، الروابط، اللغات، ثم الأزرار يسارًا.
@@ -1452,9 +1600,11 @@ footer .foot{align-items:start}
     <button type="button" data-lang="fr" title="Français — قريبًا">FR</button>
     <button type="button" data-lang="de" title="Deutsch — قريبًا">DE</button>
   </div>
-  <div class="actions">
-   <button class="btn ghost" onclick="openLogin()">دخول</button>
-   <button class="btn primary" onclick="openRegister()">سجّل الآن</button>
+  <div class="actions" id="headerActions">
+   <button class="btn ghost" type="button" id="headerLoginBtn" onclick="openLogin()">تسجيل الدخول</button>
+   <button class="btn primary" type="button" id="headerRegisterBtn" onclick="openRegister()">تسجيل الآن</button>
+   <button class="btn ghost" type="button" id="headerAccountBtn" onclick="openAccount()" hidden>حسابي</button>
+   <button class="btn primary" type="button" id="headerLogoutBtn" onclick="logoutAccount()" hidden>تسجيل الخروج</button>
    <button class="menu-btn" onclick="toggleMenu(true)" aria-label="القائمة">☰</button>
   </div>
  </div>
@@ -1471,7 +1621,10 @@ footer .foot{align-items:start}
    <a href="#news" onclick="toggleMenu(false)">الأخبار والأسعار</a>
    <a href="#managers" onclick="toggleMenu(false)">مدراء الولايات</a>
    <a href="#how" onclick="toggleMenu(false)">كيف تعمل المنصة؟</a><a href="#trust-public" onclick="toggleMenu(false)">الثقة والشفافية</a><a href="#animal-life" onclick="toggleMenu(false)">هوية الحيوان وQR</a><a href="#eid" onclick="toggleMenu(false)">قسم الأضاحي</a><a href="#identity" onclick="toggleMenu(false)">بطاقات الأعضاء</a>
-   <a href="#login" onclick="toggleMenu(false);openLogin();return false">تسجيل الدخول إلى حسابي</a>
+   <a href="#login" id="drawerLoginLink" onclick="toggleMenu(false);openLogin();return false">تسجيل الدخول</a>
+   <a href="#register" id="drawerRegisterLink" onclick="toggleMenu(false);openRegister();return false">تسجيل الآن</a>
+   <a href="#account" id="drawerAccountLink" onclick="toggleMenu(false);openAccount();return false" hidden>حسابي</a>
+   <a href="#logout" id="drawerLogoutLink" onclick="toggleMenu(false);logoutAccount();return false" hidden>تسجيل الخروج</a>
    <a href="#contact" onclick="toggleMenu(false)">اتصل بنا</a>
   </div>
  </aside>
@@ -1856,7 +2009,7 @@ footer .foot{align-items:start}
   <div><h3>روابط</h3><a href="#market">التسجيل</a><a href="#news">الأخبار</a><a href="#managers">مدراء الولايات</a></div>
   <div><h3>السياسات والمساعدة</h3><a href="#" onclick="showToast('صفحة الشروط جاهزة للربط')">شروط الاستخدام</a><a href="#" onclick="showToast('صفحة الخصوصية جاهزة للربط')">الخصوصية</a><a href="#" onclick="openFeedback();return false;">شاركنا رأيك لنرتقي معًا</a></div>
  </div>
-  <div class="site-version"><span class="version-number">MawashiDZ — الإصدار v1.7.1</span><span class="copyright">© 2026 جميع الحقوق محفوظة لمنصة MawashiDZ</span></div>
+  <div class="site-version"><span class="version-number">MawashiDZ — الإصدار v1.9.0</span><span class="copyright">© 2026 جميع الحقوق محفوظة لمنصة MawashiDZ</span></div>
 </footer>
 
 <div class="modal" id="registerModal">
@@ -1956,21 +2109,25 @@ footer .foot{align-items:start}
 </div>
 
 <div class="modal" id="loginModal">
- <div class="modal-box">
-  <div class="modal-top"><h2>الدخول إلى حسابي</h2><button class="close" onclick="closeModal('loginModal')">✕</button></div>
-  <div class="account-note">ادخل بالبريد الإلكتروني، رقم الهاتف الجزائري أو رقم العضوية الذي يبدأ بـ MDZ.</div>
+ <div class="modal-box login-box">
+  <div class="modal-top"><h2>تسجيل الدخول</h2><button class="close" onclick="closeModal('loginModal')" type="button">✕</button></div>
+  <div class="account-note">يمكنك الدخول بالبريد الإلكتروني، رقم الهاتف الجزائري (+213)، أو رقم العضوية (MDZ-…).</div>
   <form id="loginForm" class="form-grid" style="margin-top:14px">
-   <div class="field full"><label>البريد، الهاتف أو رقم العضوية</label><input name="identifier" id="loginIdentifier" autocomplete="username" placeholder="MDZ-F-... أو +213... أو email" required></div>
-   <div class="field full"><label>كلمة المرور</label><input name="password" type="password" autocomplete="current-password" required></div>
-   <div class="full login-links"><button class="text-action" type="button" id="forgotPasswordBtn">نسيت كلمة المرور؟</button><span id="loginState" style="color:var(--muted);font-weight:700"></span></div>
-   <div class="full"><button class="btn primary" id="loginSubmit" type="submit">دخول آمن</button></div>
+   <div class="field full"><label for="loginIdentifier">البريد أو الهاتف أو رقم العضوية</label><input name="identifier" id="loginIdentifier" autocomplete="username" inputmode="text" placeholder="example@email.com أو 055xxxxxxx أو MDZ-F-000001" required></div>
+   <div class="field full"><label for="loginPassword">كلمة المرور</label><input name="password" id="loginPassword" type="password" autocomplete="current-password" required></div>
+   <div class="full login-links">
+     <button class="text-action" type="button" id="forgotPasswordBtn">نسيت كلمة المرور؟</button>
+     <button class="text-action" type="button" onclick="closeModal('loginModal');openRegister();">إنشاء حساب جديد</button>
+   </div>
+   <div class="full login-state" id="loginState" role="status" aria-live="polite"></div>
+   <div class="full"><button class="btn primary" id="loginSubmit" type="submit">تسجيل الدخول</button></div>
   </form>
  </div>
 </div>
 
 <div class="modal" id="accountModal">
- <div class="modal-box">
-  <div class="modal-top"><h2>حسابي في MawashiDZ</h2><button class="close" onclick="closeModal('accountModal')">✕</button></div>
+ <div class="modal-box account-box">
+  <div class="modal-top"><h2>حسابي</h2><button class="close" onclick="closeModal('accountModal')" type="button">✕</button></div>
   <div id="accountContent" class="member-dashboard"><div class="notice">جاري تحميل بيانات الحساب...</div></div>
  </div>
 </div>
@@ -2076,45 +2233,179 @@ function sendMemberConfirmationEmail(data){
   });
 }
 
-/* ===== MawashiDZ Supabase connection v1.1.0 ===== */
+/* ===== MawashiDZ Supabase Auth v1.9.0 (Phase 1) =====
+   member_id is allocated ONLY by the database (handle_new_user).
+   The frontend never invents or displays fake membership numbers. */
 const SUPABASE_URL = 'https://fpjvjfgwbfehhcvdirpy.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_kl5En74g9tnPW6JDpf3wDA_wQ573fB9';
 const SUPABASE_REST = `${SUPABASE_URL}/rest/v1`;
 const SUPABASE_AUTH = `${SUPABASE_URL}/auth/v1`;
 const MDZ_SESSION_KEY='mdz_auth_session';
-function memberIdFromAuthResult(authResult){
- const fromUser=authResult?.user?.user_metadata?.member_id;
- if(typeof fromUser==='string'&&/^MDZ-[A-Z]-\d{6}$/.test(fromUser)) return fromUser;
- return null;
+const MDZ_SITE_URL=()=>`${location.origin}${location.pathname}`;
+
+function saveSession(session){
+  if(session?.access_token){
+    const packed={
+      access_token:session.access_token,
+      refresh_token:session.refresh_token||null,
+      expires_at:session.expires_at || (session.expires_in ? Math.floor(Date.now()/1000)+Number(session.expires_in) : null),
+      user:session.user||null
+    };
+    localStorage.setItem(MDZ_SESSION_KEY,JSON.stringify(packed));
+  }else localStorage.removeItem(MDZ_SESSION_KEY);
+  updateAuthChrome();
 }
-async function memberIdAfterSignup(authResult){
- const direct=memberIdFromAuthResult(authResult);
- if(direct) return direct;
- const token=authResult?.session?.access_token;
- if(!token) return null;
- try{
-  const profile=await fetchMyProfile(token);
-  if(profile?.member_id&&/^MDZ-[A-Z]-\d{6}$/.test(profile.member_id)) return profile.member_id;
- }catch(error){ console.warn('Profile member_id lookup skipped:',error); }
- return null;
-}
-function saveSession(session){if(session)localStorage.setItem(MDZ_SESSION_KEY,JSON.stringify(session));else localStorage.removeItem(MDZ_SESSION_KEY)}
 function getSession(){try{return JSON.parse(localStorage.getItem(MDZ_SESSION_KEY)||'null')}catch{return null}}
-async function authRequest(path,options={}){
- const response=await fetch(`${SUPABASE_AUTH}${path}`,{...options,headers:{apikey:SUPABASE_PUBLISHABLE_KEY,'Content-Type':'application/json',...(options.headers||{})}});
- let data={};try{data=await response.json()}catch{}
- if(!response.ok){const e=new Error(data.msg||data.error_description||data.message||`HTTP ${response.status}`);e.status=response.status;throw e}return data;
+function isAuthenticated(){return Boolean(getSession()?.access_token)}
+
+function authErrorArabic(error){
+  const raw=String(error?.message||error||'').toLowerCase();
+  if(raw.includes('invalid login')||raw.includes('invalid_grant')||raw.includes('invalid credentials'))
+    return 'بيانات الدخول غير صحيحة. تحقق من المعرف وكلمة المرور.';
+  if(raw.includes('email not confirmed')||raw.includes('not confirmed'))
+    return 'يجب تأكيد البريد الإلكتروني أولًا. افتح رسالة MawashiDZ ثم أعد المحاولة.';
+  if(raw.includes('too many')||raw.includes('rate')||error?.status===429)
+    return 'محاولات كثيرة. انتظر قليلًا ثم أعد المحاولة.';
+  if(raw.includes('user not found')||raw.includes('لم نعثر'))
+    return 'لم نعثر على حساب مطابق. تحقق من البيانات أو أنشئ حسابًا جديدًا.';
+  if(raw.includes('network')||error?.name==='TypeError')
+    return 'تعذر الاتصال بالخادم. تحقق من الشبكة وأعد المحاولة.';
+  if(raw.includes('jwt')||raw.includes('expired')||raw.includes('session'))
+    return 'انتهت الجلسة. سجّل الدخول من جديد.';
+  return 'تعذر إتمام العملية الآن. أعد المحاولة بعد لحظات.';
 }
-async function signUpAccount(email,password,metadata){return authRequest('/signup',{method:'POST',body:JSON.stringify({email,password,data:metadata})})}
-async function signInAccount(email,password){return authRequest('/token?grant_type=password',{method:'POST',body:JSON.stringify({email,password})})}
+
+async function authRequest(path,options={}){
+  const response=await fetch(`${SUPABASE_AUTH}${path}`,{
+    ...options,
+    headers:{apikey:SUPABASE_PUBLISHABLE_KEY,'Content-Type':'application/json',...(options.headers||{})}
+  });
+  let data={};try{data=await response.json()}catch{}
+  if(!response.ok){
+    const e=new Error(data.msg||data.error_description||data.message||`HTTP ${response.status}`);
+    e.status=response.status;e.code=data.error_code||data.error||'';throw e;
+  }
+  return data;
+}
+
+async function signUpAccount(email,password,metadata){
+  const redirect=encodeURIComponent(MDZ_SITE_URL()+'#auth-callback');
+  return authRequest(`/signup?redirect_to=${redirect}`,{
+    method:'POST',
+    body:JSON.stringify({email,password,data:metadata})
+  });
+}
+async function signInAccount(email,password){
+  return authRequest('/token?grant_type=password',{
+    method:'POST',
+    body:JSON.stringify({email,password})
+  });
+}
+async function refreshSession(refreshToken){
+  return authRequest('/token?grant_type=refresh_token',{
+    method:'POST',
+    body:JSON.stringify({refresh_token:refreshToken})
+  });
+}
 async function resolveLoginEmail(identifier){
- const clean=String(identifier||'').trim(); if(clean.includes('@')) return clean.toLowerCase();
- const r=await fetch(`${SUPABASE_REST}/rpc/resolve_login_identifier`,{method:'POST',headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:`Bearer ${SUPABASE_PUBLISHABLE_KEY}`,'Content-Type':'application/json'},body:JSON.stringify({lookup_value:clean})});
- if(!r.ok) throw new Error('تعذر العثور على الحساب. استعمل البريد الإلكتروني أو تأكد من الرقم.');
- const email=await r.json(); if(!email) throw new Error('لم نعثر على حساب مطابق لهذه البيانات.'); return String(email);
+  const clean=String(identifier||'').trim();
+  if(!clean) throw new Error('أدخل البريد أو الهاتف أو رقم العضوية.');
+  if(clean.includes('@')) return clean.toLowerCase();
+  // Normalize local Algerian phone for resolve RPC
+  let lookup=clean;
+  const digits=clean.replace(/[^\d]/g,'');
+  if(/^0[567]\d{8}$/.test(digits)) lookup=`+213${digits.slice(1)}`;
+  else if(/^[567]\d{8}$/.test(digits)) lookup=`+213${digits}`;
+  const r=await fetch(`${SUPABASE_REST}/rpc/resolve_login_identifier`,{
+    method:'POST',
+    headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:`Bearer ${SUPABASE_PUBLISHABLE_KEY}`,'Content-Type':'application/json'},
+    body:JSON.stringify({lookup_value:lookup})
+  });
+  if(!r.ok) throw new Error('تعذر التحقق من بيانات الدخول الآن.');
+  const email=await r.json();
+  if(!email) throw new Error('لم نعثر على حساب مطابق لهذه البيانات.');
+  return String(email);
 }
 async function fetchMyProfile(token){
- const r=await fetch(`${SUPABASE_REST}/profiles?select=*&limit=1`,{headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:`Bearer ${token}`}});if(!r.ok)throw new Error('تعذر تحميل الملف الشخصي');const rows=await r.json();return rows[0]||null;
+  const r=await fetch(`${SUPABASE_REST}/profiles?select=*&limit=1`,{
+    headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:`Bearer ${token}`}
+  });
+  if(r.status===401||r.status===403) throw new Error('انتهت الجلسة. سجّل الدخول من جديد.');
+  if(!r.ok) throw new Error('تعذر تحميل الملف الشخصي');
+  const rows=await r.json();
+  return rows[0]||null;
+}
+
+async function ensureFreshSession(){
+  let session=getSession();
+  if(!session?.access_token) return null;
+  const now=Math.floor(Date.now()/1000);
+  if(session.expires_at && session.expires_at > now+30) return session;
+  if(!session.refresh_token){ saveSession(null); return null; }
+  try{
+    const renewed=await refreshSession(session.refresh_token);
+    saveSession(renewed);
+    return getSession();
+  }catch{
+    saveSession(null);
+    return null;
+  }
+}
+
+function updateAuthChrome(){
+  const authed=isAuthenticated();
+  const map=[
+    ['headerLoginBtn',!authed],
+    ['headerRegisterBtn',!authed],
+    ['headerAccountBtn',authed],
+    ['headerLogoutBtn',authed],
+    ['drawerLoginLink',!authed],
+    ['drawerRegisterLink',!authed],
+    ['drawerAccountLink',authed],
+    ['drawerLogoutLink',authed],
+  ];
+  map.forEach(([id,show])=>{
+    const el=document.getElementById(id);
+    if(!el) return;
+    if(show) el.removeAttribute('hidden'); else el.setAttribute('hidden','');
+  });
+}
+
+function logoutAccount(){
+  saveSession(null);
+  closeAll();
+  showToast('تم تسجيل الخروج بنجاح.');
+  if(location.hash==='#account'||location.hash==='#auth-callback') history.replaceState(null,'',location.pathname+location.search);
+}
+window.logoutAccount=logoutAccount;
+
+function parseAuthRedirect(){
+  const hash=location.hash.startsWith('#')?location.hash.slice(1):'';
+  const params=new URLSearchParams(hash.includes('access_token')?hash:location.search.replace(/^\?/,''));
+  const access=params.get('access_token');
+  const refresh=params.get('refresh_token');
+  const type=params.get('type')||'';
+  const errorDesc=params.get('error_description')||params.get('error')||'';
+  return {access,refresh,type,errorDesc,expires_in:params.get('expires_in')};
+}
+
+async function handleAuthRedirect(){
+  const {access,refresh,type,errorDesc,expires_in}=parseAuthRedirect();
+  if(errorDesc){
+    showToast(authErrorArabic({message:decodeURIComponent(errorDesc)}));
+    history.replaceState(null,'',MDZ_SITE_URL());
+    return;
+  }
+  if(!access) return;
+  saveSession({
+    access_token:access,
+    refresh_token:refresh,
+    expires_in:expires_in?Number(expires_in):3600,
+    user:null
+  });
+  history.replaceState(null,'',MDZ_SITE_URL()+'#account');
+  showToast(type==='recovery'?'يمكنك الآن تعيين كلمة مرور جديدة من بريدك.':type==='signup'?'تم تأكيد بريدك بنجاح. مرحبًا بك.':'تم تفعيل جلستك.');
+  await openAccount();
 }
 
 
@@ -2177,10 +2468,23 @@ function checked(form,name){ const el=form.querySelector(`[name="${name}"]`); re
 function selectedValues(form,name){ return [...form.querySelectorAll(`[name="${name}"]:checked`)].map(x=>x.value); }
 
 function toggleMenu(v){$('#drawer').classList.toggle('open',v)}
-function openRegister(role='breeder'){closeAll();$('#registerModal').classList.add('open');setRole(role)}
+function openRegister(role='breeder'){
+  closeAll();
+  const modal=$('#registerModal');
+  modal.classList.remove('is-success');
+  const confirm=document.getElementById('registerConfirm');
+  if(confirm){ confirm.className='full confirm-card'; confirm.style.display='none'; confirm.innerHTML=''; }
+  modal.classList.add('open');
+  setRole(role);
+}
 function openLogin(){closeAll();$('#loginModal').classList.add('open')}
-function closeModal(id){$('#'+id).classList.remove('open')}
-function closeAll(){$$('.modal').forEach(m=>m.classList.remove('open'))}
+function closeModal(id){
+  const modal=$('#'+id);
+  if(!modal) return;
+  modal.classList.remove('open');
+  if(id==='registerModal') modal.classList.remove('is-success');
+}
+function closeAll(){$$('.modal').forEach(m=>{m.classList.remove('open'); if(m.id==='registerModal') m.classList.remove('is-success');})}
 function openManager(){openRegister('manager')}
 function openContact(){document.querySelector('#contact').scrollIntoView({behavior:'smooth'})}
 function openFeedback(){closeAll();$('#feedbackModal').classList.add('open')}
@@ -2312,7 +2616,8 @@ $('#registerForm').addEventListener('submit', async e=>{
     document.getElementById('birthDate')?.focus();
     return;
   }
-  /* رقم العضوية يُخصّص من قاعدة البيانات عند إنشاء الحساب (trigger) — لا استدعاء RPC من المتصفح. */
+  /* رقم العضوية يُخصَّص حصريًا من قاعدة البيانات عبر handle_new_user — لا توليد في المتصفح. */
+  /* تُرسل فقط حقول الدور النشط؛ الحقول المخفية للأدوار الأخرى لا تصل إلى Supabase إطلاقًا. */
   const ROLE_EXTRA_BUILDERS={
     breeder:()=>({livestock_count:raw.livestock_count||null,breeder_activity:safeText(raw.breeder_activity,120)}),
     vet:()=>({vet_license:safeText(raw.vet_license,160),clinic_name:safeText(raw.clinic_name,160),
@@ -2354,18 +2659,24 @@ $('#registerForm').addEventListener('submit', async e=>{
   submit.disabled=true; submit.dataset.oldText=submit.textContent; submit.textContent='جاري إرسال الطلب...';
   const confirm=document.getElementById('registerConfirm');
   let authResult=null;
-  let memberId=null;
+  let profileMemberId='';
   try{
     authResult=await signUpAccount(String(raw.email||'').trim().toLowerCase(),password,{
       registration_id:registrationId,role_label:registrationRoleLabel(raw.role),first_name:firstName,last_name:lastName,full_name:fullName,phone,role:raw.role,wilaya:payload.wilaya,daira:extra.daira,commune:extra.commune,birth_date:birthDate,invite_code:memberInviteCode,invited_by:extra.invited_by
     });
-    memberId=await memberIdAfterSignup(authResult);
-    if(memberId){
-      extra.member_id=memberId;
-      extra.member_id_sequential=true;
-      payload.message=JSON.stringify(extra);
+    if(authResult?.session){
+      saveSession(authResult.session);
+      try{
+        const profile=await fetchMyProfile(authResult.session.access_token);
+        profileMemberId=profile?.member_id||'';
+      }catch(profileError){ console.warn('Profile fetch after signup:',profileError); }
+    }else if(authResult?.access_token){
+      saveSession(authResult);
+      try{
+        const profile=await fetchMyProfile(authResult.access_token);
+        profileMemberId=profile?.member_id||'';
+      }catch(profileError){ console.warn('Profile fetch after signup:',profileError); }
     }
-    if(authResult?.session) saveSession(authResult.session);
     await supabaseInsert('registrations',payload);
   }catch(error){
     console.error('Registration database error',error);
@@ -2392,27 +2703,47 @@ $('#registerForm').addEventListener('submit', async e=>{
   }
 
   // من هنا التسجيل محفوظ فعليًا. أي فشل لاحق في البريد أو التخزين المحلي لا يغيّر النتيجة.
-  try{ saveRow('mdz_registrations',{...raw,...extra,status:'قيد المراجعة'}); }catch(error){ console.warn(error); }
+  try{ saveRow('mdz_registrations',{...raw,...extra,member_id:profileMemberId||null,status:'قيد المراجعة'}); }catch(error){ console.warn(error); }
   try{ refreshStats(); }catch(error){ console.warn('Stats refresh skipped:',error); }
-  const emailData={...payload,registration_id:registrationId,member_id:memberId,role_label:registrationRoleLabel(raw.role),member_invite_code:memberInviteCode,invited_by:extra.invited_by};
+  const emailData={...payload,registration_id:registrationId,member_id:profileMemberId||'',role_label:registrationRoleLabel(raw.role),member_invite_code:memberInviteCode,invited_by:extra.invited_by};
   // نرسل إشعار الإدارة فقط. رسالة المستخدم الوحيدة هي رسالة تأكيد Supabase المخصّصة.
   void sendRegistrationEmail(emailData).catch(error=>console.error('Admin email error:',error));
+
+  const hasSession=Boolean(getSession()?.access_token);
+  const memberIdLine=profileMemberId
+    ? `<div class="success-id">رقم العضوية: <span dir="ltr">${safeText(profileMemberId,40)}</span></div>`
+    : `<div class="success-id">رقم العضوية: <span>سيظهر بعد تأكيد البريد أو من داخل حسابي</span></div>`;
+  const authLine=hasSession
+    ? 'تم تفعيل جلسة حسابك. يمكنك فتح «حسابي» الآن.'
+    : 'افتح رسالة MawashiDZ لتأكيد بريدك. بعد التأكيد ستُفعَّل جلستك ويظهر رقم عضويتك من قاعدة البيانات.';
 
   confirm.style.display='block';
   confirm.className='full confirm-card premium-success';
   const inviteUrl=`${location.origin}${location.pathname}?ref=${encodeURIComponent(memberInviteCode)}#register`;
-  const memberIdLabel=memberId?`<span dir="ltr">${memberId}</span>`:'سيصلك في رسالة التأكيد وفي حسابك بعد الدخول';
-  confirm.innerHTML=`<div class="success-mark">✓</div><div class="success-title">أهلًا بك ضمن مجتمع MawashiDZ</div><div class="success-copy">تم استلام طلبك بنجاح وهو الآن قيد المراجعة المهنية. رقم الطلب مخصص لمتابعة ملفك، أما كود الدعوة فهو لمشاركة المنصة واحتساب مساهمتك.</div><div class="success-id">رقم عضويتك: ${memberIdLabel}</div><div class="success-id">رقم متابعة الطلب: ${registrationId}</div><div class="auth-status ${authResult?.session?'ok':''}">${authResult?.session?'تم تفعيل جلسة حسابك ويمكنك الدخول الآن.':'افتح رسالة MawashiDZ لتأكيد بريدك وتفعيل الدخول. ستجد فيها صفتك ورقم عضويتك ورقم الطلب.'}</div><div class="invite-panel"><div class="invite-label">كود دعوتك الشخصي</div><div class="invite-code">${memberInviteCode}</div><div class="invite-actions"><button type="button" id="copyInviteCode">نسخ الكود</button><button type="button" id="shareInviteLink">مشاركة رابط الدعوة</button></div></div><div class="success-mail">✉ أرسلنا رسالة تأكيد واحدة إلى ${safeText(raw.email,254)}</div>`;
+  confirm.innerHTML=`
+    <div class="success-mark">✓</div>
+    <div class="success-title">أهلًا بك في مجتمع MawashiDZ</div>
+    <div class="success-copy">تم استلام طلبك بنجاح وهو الآن قيد المراجعة. رقم الطلب لمتابعة ملفك، وكود الدعوة لمشاركة المنصة.</div>
+    ${memberIdLine}
+    <div class="success-id">رقم متابعة الطلب: <span dir="ltr">${safeText(registrationId,40)}</span></div>
+    <div class="auth-status ${hasSession?'ok':''}">${authLine}</div>
+    <div class="invite-panel">
+      <div class="invite-label">كود دعوتك الشخصي</div>
+      <div class="invite-code">${safeText(memberInviteCode,40)}</div>
+      <div class="invite-actions">
+        <button type="button" id="copyInviteCode">نسخ الكود</button>
+        <button type="button" id="shareInviteLink">مشاركة رابط الدعوة</button>
+        ${hasSession?'<button type="button" id="openAccountAfterSignup">فتح حسابي</button>':''}
+      </div>
+    </div>
+    <div class="success-mail">أرسلنا رسالة تأكيد إلى ${safeText(raw.email,254)}</div>`;
   document.getElementById('copyInviteCode')?.addEventListener('click',async()=>{try{await navigator.clipboard.writeText(memberInviteCode);showToast('تم نسخ كود الدعوة.');}catch{showToast(`كودك: ${memberInviteCode}`);}});
   document.getElementById('shareInviteLink')?.addEventListener('click',async()=>{const shareData={title:'MawashiDZ',text:`سجّل في منصة MawashiDZ باستعمال كود دعوتي: ${memberInviteCode}`,url:inviteUrl};try{if(navigator.share) await navigator.share(shareData);else{await navigator.clipboard.writeText(inviteUrl);showToast('تم نسخ رابط الدعوة.');}}catch(error){if(error?.name!=='AbortError') showToast('تعذر فتح المشاركة الآن.');}});
+  document.getElementById('openAccountAfterSignup')?.addEventListener('click',()=>openAccount());
+  document.getElementById('registerModal')?.classList.add('is-success');
+  try{ confirm.scrollIntoView({behavior:'smooth',block:'start'}); }catch{}
   showToast(`تم إرسال الطلب — ${registrationId}`);
-  setTimeout(()=>{
-    try{
-      form.reset();
-      wilayaSelect.value=''; fillSelect(dairaSelect,[],'اختر الولاية أولاً'); dairaSelect.disabled=true;
-      fillSelect(communeSelect,[],'اختر الدائرة أولاً'); communeSelect.disabled=true; setRole('breeder');
-    }catch(error){ console.warn('Form reset skipped:',error); }
-  },1400);
+  updateAuthChrome();
   submit.disabled=false; submit.textContent=submit.dataset.oldText||'إنشاء الحساب وإرسال الطلب';
 });
 
@@ -2421,26 +2752,102 @@ const passwordInput=document.getElementById('registerPassword');
 passwordInput?.addEventListener('input',()=>{const v=passwordInput.value;let score=0;if(v.length>=8)score++;if(/[A-Zأ-ي]/i.test(v)&&/\d/.test(v))score++;if(/[^A-Za-z0-9أ-ي]/.test(v))score++;document.getElementById('passwordMeterBar').style.width=(score/3*100)+'%';});
 
 document.getElementById('loginForm')?.addEventListener('submit',async e=>{
- e.preventDefault();const form=e.target,btn=document.getElementById('loginSubmit'),state=document.getElementById('loginState');const raw=Object.fromEntries(new FormData(form).entries());
- btn.disabled=true;btn.textContent='جاري التحقق...';state.textContent='';
- try{const email=await resolveLoginEmail(raw.identifier);const result=await signInAccount(email,String(raw.password||''));saveSession(result);state.textContent='تم الدخول بنجاح';state.style.color='var(--primary)';closeModal('loginModal');await openAccount();showToast('مرحبًا بك في حسابك.');}
- catch(err){state.textContent=String(err.message||'تعذر تسجيل الدخول');state.style.color='#b42318'}finally{btn.disabled=false;btn.textContent='دخول آمن'}
+  e.preventDefault();
+  const form=e.target;
+  const btn=document.getElementById('loginSubmit');
+  const state=document.getElementById('loginState');
+  const raw=Object.fromEntries(new FormData(form).entries());
+  btn.disabled=true;
+  btn.textContent='جاري التحقق...';
+  state.className='full login-state';
+  state.textContent='جاري التحقق من البيانات...';
+  try{
+    const email=await resolveLoginEmail(raw.identifier);
+    const result=await signInAccount(email,String(raw.password||''));
+    saveSession(result);
+    state.className='full login-state is-ok';
+    state.textContent='تم تسجيل الدخول بنجاح.';
+    closeModal('loginModal');
+    form.reset();
+    await openAccount();
+    showToast('مرحبًا بك في حسابك.');
+  }catch(err){
+    state.className='full login-state is-error';
+    state.textContent=authErrorArabic(err);
+  }finally{
+    btn.disabled=false;
+    btn.textContent='تسجيل الدخول';
+  }
 });
 
 document.getElementById('forgotPasswordBtn')?.addEventListener('click',async()=>{
- const id=document.getElementById('loginIdentifier')?.value.trim();if(!id){showToast('أدخل بريدك الإلكتروني أولًا.');return}
- try{const email=await resolveLoginEmail(id);await authRequest('/recover',{method:'POST',body:JSON.stringify({email,redirect_to:location.href.split('#')[0]})});showToast('أرسلنا رابط استرجاع كلمة المرور إلى بريدك.')}catch(e){showToast(e.message||'تعذر إرسال رابط الاسترجاع.')}
+  const id=document.getElementById('loginIdentifier')?.value.trim();
+  if(!id){ showToast('أدخل بريدك أو هاتفك أو رقم عضويتك أولًا.'); return; }
+  try{
+    const email=await resolveLoginEmail(id);
+    await authRequest(`/recover?redirect_to=${encodeURIComponent(MDZ_SITE_URL()+'#auth-callback')}`,{
+      method:'POST',
+      body:JSON.stringify({email})
+    });
+    showToast('إن وُجد حساب مطابق فسنرسل رابط الاسترجاع إلى البريد المرتبط.');
+  }catch(e){
+    // Non-enumerating message
+    showToast('إن وُجد حساب مطابق فسنرسل رابط الاسترجاع إلى البريد المرتبط.');
+  }
 });
 
+function statusLabelArabic(status){
+  const map={pending:'قيد المراجعة',approved:'مقبول / موثّق',rejected:'مرفوض',suspended:'موقوف',active:'نشط'};
+  return map[String(status||'').toLowerCase()]||'قيد المراجعة';
+}
+
 async function openAccount(){
- const session=getSession();if(!session?.access_token){openLogin();return}
- closeAll();document.getElementById('accountModal').classList.add('open');const box=document.getElementById('accountContent');box.innerHTML='<div class="notice">جاري تحميل بيانات الحساب...</div>';
- try{const p=await fetchMyProfile(session.access_token);if(!p)throw new Error('الملف الشخصي غير موجود. شغّل ملف إعداد قاعدة البيانات المرفق.');
- box.innerHTML=`<div class="member-hero"><span class="member-id-chip">${safeText(p.member_id,40)}</span><h2 style="margin:14px 0 4px">${safeText(p.full_name,180)}</h2><p style="margin:0;opacity:.85">حساب ${registrationRoleLabel(p.role)} · ${p.status==='approved'?'موثق/مقبول':'قيد المراجعة'}</p></div><div class="member-data-grid"><div class="member-data"><small>رقم الهاتف</small><b dir="ltr">${safeText(p.phone,30)}</b></div><div class="member-data"><small>الولاية</small><b>${safeText(p.wilaya,120)}</b></div><div class="member-data"><small>الدائرة</small><b>${safeText(p.daira,120)}</b></div><div class="member-data"><small>البلدية</small><b>${safeText(p.commune,120)}</b></div></div><button class="btn ghost" type="button" id="logoutBtn">تسجيل الخروج</button>`;
- document.getElementById('logoutBtn').onclick=()=>{saveSession(null);closeModal('accountModal');showToast('تم تسجيل الخروج.')};
- }catch(e){box.innerHTML=`<div class="notice">${safeText(e.message,500)}</div>`}
+  let session=await ensureFreshSession();
+  if(!session?.access_token){ openLogin(); return; }
+  closeAll();
+  document.getElementById('accountModal').classList.add('open');
+  const box=document.getElementById('accountContent');
+  box.innerHTML='<div class="notice">جاري تحميل بيانات الحساب...</div>';
+  try{
+    const p=await fetchMyProfile(session.access_token);
+    if(!p) throw new Error('الملف الشخصي غير موجود بعد. أكّد بريدك أو أعد المحاولة بعد لحظات.');
+    const memberId=p.member_id?safeText(p.member_id,40):'غير متوفر بعد';
+    box.innerHTML=`
+      <div class="member-hero">
+        <span class="member-id-chip">${memberId}</span>
+        <h2 style="margin:14px 0 6px;font-size:1.25rem">${safeText(p.full_name||`${p.first_name||''} ${p.last_name||''}`.trim(),180)||'عضو MawashiDZ'}</h2>
+        <p style="margin:0;opacity:.9;font-weight:750">حساب ${registrationRoleLabel(p.role)}</p>
+        <span class="member-status-pill">${statusLabelArabic(p.status)}</span>
+      </div>
+      <div class="member-data-grid">
+        <div class="member-data"><small>الاسم</small><b>${safeText(p.full_name||`${p.first_name||''} ${p.last_name||''}`.trim(),180)||'—'}</b></div>
+        <div class="member-data"><small>رقم العضوية</small><b dir="ltr">${memberId}</b></div>
+        <div class="member-data"><small>رقم الطلب</small><b dir="ltr">${safeText(p.registration_id,60)||'—'}</b></div>
+        <div class="member-data"><small>الصفة</small><b>${registrationRoleLabel(p.role)}</b></div>
+        <div class="member-data"><small>الحالة</small><b>${statusLabelArabic(p.status)}</b></div>
+        <div class="member-data"><small>البريد</small><b dir="ltr">${safeText(p.email,120)||'—'}</b></div>
+        <div class="member-data"><small>الهاتف</small><b dir="ltr">${safeText(p.phone,30)||'—'}</b></div>
+        <div class="member-data"><small>الولاية</small><b>${safeText(p.wilaya,120)||'—'}</b></div>
+      </div>
+      <button class="btn ghost" type="button" id="logoutBtn">تسجيل الخروج</button>`;
+    document.getElementById('logoutBtn').onclick=()=>logoutAccount();
+    updateAuthChrome();
+  }catch(e){
+    box.innerHTML=`<div class="notice">${safeText(authErrorArabic(e),500)}</div>
+      <button class="btn primary" type="button" id="reloginBtn">تسجيل الدخول</button>`;
+    document.getElementById('reloginBtn')?.addEventListener('click',()=>{closeModal('accountModal');openLogin();});
+  }
 }
 window.openAccount=openAccount;
+
+// Session restore + email-confirmation redirect
+window.addEventListener('DOMContentLoaded',async()=>{
+  updateAuthChrome();
+  await handleAuthRedirect();
+  const session=await ensureFreshSession();
+  if(session && (location.hash==='#account'||location.hash==='#auth-callback')) await openAccount();
+});
+updateAuthChrome();
 
 const contactPhoneLocal=document.getElementById('contactPhoneLocal');
 if(contactPhoneLocal){
