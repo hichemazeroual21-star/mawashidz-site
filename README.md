@@ -41,6 +41,14 @@ npm install
 npm run test:db
 ```
 
+## حزمة مراجعة الكود الخارجية
+
+```bash
+npm run package:review
+```
+
+الملف الجاهز: `artifacts/mawashidz-external-code-review-2026-07-19.zip` (+ ملف `.sha256` للتحقق).
+
 ## الوثائق
 
 - [مخطط قاعدة البيانات](docs/database-schema.md)

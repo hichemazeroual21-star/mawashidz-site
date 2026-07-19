@@ -5,7 +5,8 @@
   "description": "Official website package with multilingual interface, automatic dark mode, and trusted livestock-sector news.",
   "main": "index.js",
   "scripts": {
-    "test:db": "node supabase/tests/run-phase0-tests.mjs"
+    "test:db": "node supabase/tests/run-phase0-tests.mjs",
+    "package:review": "bash scripts/package-code-review.sh"
   },
   "repository": {
     "type": "git",
