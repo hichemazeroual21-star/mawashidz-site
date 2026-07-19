@@ -78,7 +78,7 @@ bash supabase/tests/run_phase0_tests.sh
 |--------|---------|
 | Existing migration apply | PASS |
 | Existing re-run idempotent | PASS |
-| Legacy row preserved | PASS |
+| Legacy row preserved + member_id backfilled | PASS |
 | Columns present | PASS |
 | `allocate_member_id` / `resolve_login_identifier` / `handle_new_user` | PASS |
 | 100 concurrent IDs unique | PASS |

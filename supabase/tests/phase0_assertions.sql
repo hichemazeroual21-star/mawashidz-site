@@ -116,7 +116,7 @@ begin
     raise exception 'resolve by local phone failed';
   end if;
 
-  -- 5) Legacy row preserved (existing DB fixture only — skip if absent)
+  -- 5) Legacy row preserved AND backfilled with member_id (existing fixture)
   select count(*) into v_count
   from public.profiles
   where id = '11111111-1111-1111-1111-111111111111';
@@ -126,9 +126,18 @@ begin
       where id = '11111111-1111-1111-1111-111111111111'
         and email = 'legacy@example.com'
         and full_name = 'مستخدم قديم'
+        and member_id ~ '^MDZ-[A-Z]-[0-9]{6}$'
     ) then
-      raise exception 'legacy profile data was altered or lost';
+      raise exception 'legacy profile missing data or member_id backfill';
     end if;
+  end if;
+
+  -- 5b) No profile may remain without member_id after Phase 0
+  select count(*) into v_count
+  from public.profiles
+  where member_id is null or btrim(member_id) = '';
+  if v_count > 0 then
+    raise exception 'profiles still missing member_id after backfill: %', v_count;
   end if;
 
   -- 6) No duplicate member_ids

@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.8.2] — 2026-07-19 — Phase 0 syntax clarity + legacy member_id backfill
+
+### Fixed
+- `protect_profile_sensitive_columns` `jwt_role` declaration rewritten with explicit multi-line `coalesce(..., '')` (blocking paste clarity)
+
+### Added
+- Idempotent legacy `member_id` backfill (§5b) after counter sync for NULL/blank profiles
+- Clarified: Phase 0 **does** assign member IDs to legacy profiles (required for MDZ login / account display)
+
 ## [1.8.1] — 2026-07-19 — Phase 0 role/security hardening (pre-Production)
 
 ### Verified

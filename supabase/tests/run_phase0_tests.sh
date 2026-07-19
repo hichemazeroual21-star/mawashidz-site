@@ -45,9 +45,14 @@ pass "existing migration applied once"
 apply_sql mawashi_existing "$ROOT/supabase/migrations/20260718233000_phase0_existing_database.sql"
 pass "existing migration re-run (idempotent) OK"
 
-LEGACY_AFTER=$(psql_db mawashi_existing -Atc "select count(*)::text||':'||coalesce(max(email),'')||':'||coalesce(max(full_name),'') from profiles where id='11111111-1111-1111-1111-111111111111';")
-[[ "$LEGACY_AFTER" == "1:legacy@example.com:مستخدم قديم" ]] || fail "legacy data not preserved: $LEGACY_AFTER"
-pass "legacy row preserved"
+LEGACY_AFTER=$(psql_db mawashi_existing -Atc "select count(*)::text||':'||coalesce(max(email),'')||':'||coalesce(max(full_name),'')||':'||coalesce(max(member_id),'') from profiles where id='11111111-1111-1111-1111-111111111111';")
+echo "$LEGACY_AFTER" | grep -qE '^1:legacy@example.com:مستخدم قديم:MDZ-[A-Z]-[0-9]{6}$' \
+  || fail "legacy data/backfill failed: $LEGACY_AFTER"
+pass "legacy row preserved and member_id backfilled"
+
+NULL_IDS=$(psql_db mawashi_existing -Atc "select count(*) from profiles where member_id is null or btrim(member_id)='';")
+[[ "$NULL_IDS" == "0" ]] || fail "profiles still missing member_id: $NULL_IDS"
+pass "no NULL/blank member_id after backfill"
 
 COLS=$(psql_db mawashi_existing -Atc "select count(*) from information_schema.columns where table_schema='public' and table_name='profiles' and column_name in ('member_id','role','status','wilaya','registration_id');")
 [[ "$COLS" == "5" ]] || fail "missing profile columns (got $COLS)"

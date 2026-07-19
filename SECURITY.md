@@ -1,6 +1,6 @@
 # MawashiDZ Security Notes
 
-Last updated: 2026-07-19 (Phase 0 pre-Production verification)
+Last updated: 2026-07-19 (Phase 0 v1.8.2 — legacy backfill + jwt_role clarity)
 
 ## Frontend role values (verified)
 

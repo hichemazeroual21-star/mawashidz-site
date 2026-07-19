@@ -26,6 +26,8 @@ RLS enabled, **zero** policies (security definer only).
 ### `public.profiles` (added columns)
 `member_id`, `registration_id`, `first_name`, `last_name`, `role`, `wilaya`, `daira`, `commune`, `birth_date`, `invite_code`, `invited_by`, `status`, `updated_at`
 
+**Legacy backfill (Phase 0 §5b):** after counter sync, every profile with `NULL`/blank `member_id` receives a server-allocated sequential ID via `allocate_member_id(mdz_normalize_role(role))`. Idempotent. Required so existing Production rows (which lack `member_id` today) can use MDZ login and account display.
+
 Constraints/indexes:
 - `profiles_member_id_format_chk` — `MDZ-[A-Z]-[0-9]{6}` or NULL
 - unique partial index on `member_id`

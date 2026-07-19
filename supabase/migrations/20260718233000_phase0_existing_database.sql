@@ -1,6 +1,6 @@
 -- ============================================================
 -- MawashiDZ Phase 0 — Migration for EXISTING databases
--- Version: 1.8.0
+-- Version: 1.8.2
 --
 -- Target (verified via REST API on 2026-07-18, project fpjvjfgwbfehhcvdirpy):
 --   profiles:           id, full_name, phone, email, created_at
@@ -257,6 +257,40 @@ set
   updated_at = now();
 
 -- ------------------------------------------------------------
+-- 5b) Backfill member_id for legacy profiles (NULL / blank)
+--     WHY: Production profiles currently have no member_id column.
+--     After ADD COLUMN, existing rows are NULL. Phase 0 must assign
+--     stable sequential IDs so login-by-MDZ and account display work.
+--     Idempotent: only rows with null/blank member_id are touched.
+--     Role defaults via mdz_normalize_role (NULL/unknown → buyer → U).
+-- ------------------------------------------------------------
+update public.profiles
+set member_id = null
+where member_id is not null
+  and btrim(member_id) = '';
+
+do $$
+declare
+  r record;
+  new_id text;
+begin
+  for r in
+    select p.id, p.role
+    from public.profiles p
+    where p.member_id is null
+    order by p.created_at asc nulls last, p.id asc
+  loop
+    new_id := public.allocate_member_id(public.mdz_normalize_role(r.role));
+    update public.profiles
+    set
+      member_id = new_id,
+      updated_at = now()
+    where id = r.id
+      and member_id is null;
+  end loop;
+end $$;
+
+-- ------------------------------------------------------------
 -- 6) resolve_login_identifier — email lookup by MDZ / phone
 --    Returns email or NULL. Does not reveal whether phone vs MDZ matched.
 -- ------------------------------------------------------------
@@ -443,7 +477,10 @@ security definer
 set search_path = public
 as $$
 declare
-  jwt_role text := coalesce(nullif(current_setting('request.jwt.claim.role', true), ''), '');
+  jwt_role text := coalesce(
+    nullif(current_setting('request.jwt.claim.role', true), ''),
+    ''
+  );
 begin
   if tg_op = 'UPDATE' then
     -- service_role (Supabase dashboard / admin RPCs) may update status/role.
