@@ -937,6 +937,7 @@ footer{background:#0b100d}
 .phone-hint{display:block;margin-top:7px;color:#66756c;font-size:.78rem;font-weight:750}
 #registerConfirm.premium-success{display:block;padding:22px;border:1px solid rgba(216,181,92,.48);border-radius:20px;background:linear-gradient(145deg,#0d3325,#16543b);color:#fff;box-shadow:0 18px 45px rgba(7,35,24,.22);position:relative;overflow:hidden}
 #registerConfirm.premium-success:before{content:"";position:absolute;width:150px;height:150px;border-radius:50%;background:rgba(226,199,126,.13);left:-55px;top:-70px}
+#registerConfirm .success-warn{margin:12px 0;padding:10px 12px;border-radius:12px;background:rgba(255,243,205,.95);color:#7a4b00;font-weight:700;font-size:.92rem}
 .success-mark{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:#e2c77e;color:#173627;font-size:1.35rem;font-weight:1000;margin-bottom:12px}
 .success-title{font-size:1.18rem;font-weight:950;margin-bottom:6px}.success-copy{color:rgba(255,255,255,.82);line-height:1.75}.success-id{display:inline-flex;margin-top:12px;padding:8px 12px;border-radius:999px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);font-weight:900}.success-mail{margin-top:10px;color:#e8d79f;font-weight:850}
 
@@ -2146,15 +2147,7 @@ async function supabaseInsert(table, payload, timeoutMs=15000){
   } finally { clearTimeout(timer); }
 }
 
-function duplicateRegistrationMessage(error){
-  const text=`${error?.message||''} ${error?.details||''}`.toLowerCase();
-  if(error?.code==='23505' || error?.status===409){
-    if(text.includes('email')) return 'هذا البريد الإلكتروني مسجل من قبل.';
-    if(text.includes('phone')) return 'رقم الهاتف هذا مسجل من قبل.';
-    return 'هذا البريد الإلكتروني أو رقم الهاتف مسجل من قبل.';
-  }
-  return '';
-}
+/* duplicateRegistrationMessage — see js/registration-flow.mjs */
 
 function cleanPhone(value){ return String(value||'').replace(/[^0-9+]/g,'').slice(0,20); }
 function buildAlgerianMobile(operator, local){
@@ -2275,8 +2268,10 @@ if(birthDateInput){
  birthDateInput.min='1926-01-01';
 }
 
+let registerFormSubmitting=false;
 $('#registerForm').addEventListener('submit', async e=>{
   e.preventDefault();
+  if(registerFormSubmitting) return;
   const form=e.target;
   const submit=document.getElementById('registerSubmit');
   const raw=Object.fromEntries(new FormData(form).entries());
@@ -2351,58 +2346,70 @@ $('#registerForm').addEventListener('submit', async e=>{
     privacy_accepted:checked(form,'privacy_accept'),
     founding_terms_accepted:checked(form,'founder_terms')
   };
+  registerFormSubmitting=true;
   submit.disabled=true; submit.dataset.oldText=submit.textContent; submit.textContent='جاري إرسال الطلب...';
   const confirm=document.getElementById('registerConfirm');
-  let authResult=null;
-  let memberId=null;
+  const email=String(raw.email||'').trim().toLowerCase();
+  const emailData={...payload,registration_id:registrationId,member_id:null,role_label:registrationRoleLabel(raw.role),member_invite_code:memberInviteCode,invited_by:extra.invited_by};
+  let pipelineResult;
   try{
-    authResult=await signUpAccount(String(raw.email||'').trim().toLowerCase(),password,{
-      registration_id:registrationId,role_label:registrationRoleLabel(raw.role),first_name:firstName,last_name:lastName,full_name:fullName,phone,role:raw.role,wilaya:payload.wilaya,daira:extra.daira,commune:extra.commune,birth_date:birthDate,invite_code:memberInviteCode,invited_by:extra.invited_by
+    const flow=await import('./js/registration-flow.mjs');
+    pipelineResult=await flow.runRegistrationPipeline({
+      signUpAccount, memberIdAfterSignup, supabaseInsert, sendRegistrationEmail
+    },{
+      email,password,
+      authMetadata:{
+        registration_id:registrationId,role_label:registrationRoleLabel(raw.role),first_name:firstName,last_name:lastName,full_name:fullName,phone,role:raw.role,wilaya:payload.wilaya,daira:extra.daira,commune:extra.commune,birth_date:birthDate,invite_code:memberInviteCode,invited_by:extra.invited_by
+      },
+      registrationPayload:payload,
+      emailData
     });
-    memberId=await memberIdAfterSignup(authResult);
-    if(memberId){
-      extra.member_id=memberId;
-      extra.member_id_sequential=true;
-      payload.message=JSON.stringify(extra);
-    }
-    if(authResult?.session) saveSession(authResult.session);
-    await supabaseInsert('registrations',payload);
   }catch(error){
-    console.error('Registration database error',error);
-    const authText=String(error?.message||'').toLowerCase();
-    const duplicateMessage=authText.includes('already registered')?'هذا البريد الإلكتروني مرتبط بحساب موجود. يمكنك تسجيل الدخول أو استرجاع كلمة المرور.':duplicateRegistrationMessage(error);
-    if(duplicateMessage){
-      showToast(duplicateMessage);
-      confirm.style.display='block';
-      confirm.textContent=duplicateMessage;
-      submit.disabled=false; submit.textContent=submit.dataset.oldText||'إنشاء الحساب وإرسال الطلب';
-      return;
-    }
+    console.error('Registration pipeline error',error);
     saveRow('mdz_failed_registrations',{...raw,...extra,error:String(error)});
-    const isTimeout=error?.name==='AbortError';
-    const isNetwork=error instanceof TypeError || isTimeout;
-    const message=isNetwork
-      ? 'تعذر الاتصال بالخادم الآن. أعد المحاولة بعد لحظات.'
-      : `تعذر حفظ الطلب (${error?.status||'خطأ غير معروف'}).`;
-    showToast(message);
+    showToast('تعذر الاتصال بالخادم الآن. أعد المحاولة بعد لحظات.');
     confirm.style.display='block';
-    confirm.textContent=`⚠️ ${message} احتفظنا بنسخة مؤقتة على هذا الجهاز.`;
+    confirm.textContent='⚠️ تعذر الاتصال بالخادم الآن. أعد المحاولة بعد لحظات.';
+    registerFormSubmitting=false;
     submit.disabled=false; submit.textContent=submit.dataset.oldText||'إنشاء الحساب وإرسال الطلب';
     return;
   }
 
-  // من هنا التسجيل محفوظ فعليًا. أي فشل لاحق في البريد أو التخزين المحلي لا يغيّر النتيجة.
+  if(!pipelineResult.success){
+    const errMsg=pipelineResult.error?.message||'تعذر حفظ الطلب.';
+    showToast(errMsg);
+    confirm.style.display='block';
+    confirm.textContent=errMsg;
+    if(!pipelineResult.accountCreated){
+      saveRow('mdz_failed_registrations',{...raw,...extra,error:errMsg});
+    }
+    registerFormSubmitting=false;
+    submit.disabled=false; submit.textContent=submit.dataset.oldText||'إنشاء الحساب وإرسال الطلب';
+    return;
+  }
+
+  const authResult=pipelineResult.authResult;
+  let memberId=pipelineResult.memberId;
+  if(memberId){
+    extra.member_id=memberId;
+    extra.member_id_sequential=true;
+    emailData.member_id=memberId;
+  }
+  if(authResult?.session) saveSession(authResult.session);
+  if(pipelineResult.emailWarning) showToast(pipelineResult.emailWarning);
+
   try{ saveRow('mdz_registrations',{...raw,...extra,status:'قيد المراجعة'}); }catch(error){ console.warn(error); }
   try{ refreshStats(); }catch(error){ console.warn('Stats refresh skipped:',error); }
-  const emailData={...payload,registration_id:registrationId,member_id:memberId,role_label:registrationRoleLabel(raw.role),member_invite_code:memberInviteCode,invited_by:extra.invited_by};
-  // نرسل إشعار الإدارة فقط. رسالة المستخدم الوحيدة هي رسالة تأكيد Supabase المخصّصة.
-  void sendRegistrationEmail(emailData).catch(error=>console.error('Admin email error:',error));
 
   confirm.style.display='block';
   confirm.className='full confirm-card premium-success';
   const inviteUrl=`${location.origin}${location.pathname}?ref=${encodeURIComponent(memberInviteCode)}#register`;
-  const memberIdLabel=memberId?`<span dir="ltr">${memberId}</span>`:'سيصلك في رسالة التأكيد وفي حسابك بعد الدخول';
-  confirm.innerHTML=`<div class="success-mark">✓</div><div class="success-title">أهلًا بك ضمن مجتمع MawashiDZ</div><div class="success-copy">تم استلام طلبك بنجاح وهو الآن قيد المراجعة المهنية. رقم الطلب مخصص لمتابعة ملفك، أما كود الدعوة فهو لمشاركة المنصة واحتساب مساهمتك.</div><div class="success-id">رقم عضويتك: ${memberIdLabel}</div><div class="success-id">رقم متابعة الطلب: ${registrationId}</div><div class="auth-status ${authResult?.session?'ok':''}">${authResult?.session?'تم تفعيل جلسة حسابك ويمكنك الدخول الآن.':'افتح رسالة MawashiDZ لتأكيد بريدك وتفعيل الدخول. ستجد فيها صفتك ورقم عضويتك ورقم الطلب.'}</div><div class="invite-panel"><div class="invite-label">كود دعوتك الشخصي</div><div class="invite-code">${memberInviteCode}</div><div class="invite-actions"><button type="button" id="copyInviteCode">نسخ الكود</button><button type="button" id="shareInviteLink">مشاركة رابط الدعوة</button></div></div><div class="success-mail">✉ أرسلنا رسالة تأكيد واحدة إلى ${safeText(raw.email,254)}</div>`;
+  const flowUi=await import('./js/registration-flow.mjs');
+  confirm.innerHTML=flowUi.buildSuccessConfirmHtml({
+    memberId,registrationId,email:raw.email,memberInviteCode,inviteUrl,
+    authSession:authResult?.session,emailWarning:pipelineResult.emailWarning,
+    registrationWarning:pipelineResult.registrationWarning,safeText
+  });
   document.getElementById('copyInviteCode')?.addEventListener('click',async()=>{try{await navigator.clipboard.writeText(memberInviteCode);showToast('تم نسخ كود الدعوة.');}catch{showToast(`كودك: ${memberInviteCode}`);}});
   document.getElementById('shareInviteLink')?.addEventListener('click',async()=>{const shareData={title:'MawashiDZ',text:`سجّل في منصة MawashiDZ باستعمال كود دعوتي: ${memberInviteCode}`,url:inviteUrl};try{if(navigator.share) await navigator.share(shareData);else{await navigator.clipboard.writeText(inviteUrl);showToast('تم نسخ رابط الدعوة.');}}catch(error){if(error?.name!=='AbortError') showToast('تعذر فتح المشاركة الآن.');}});
   showToast(`تم إرسال الطلب — ${registrationId}`);
@@ -2413,6 +2420,7 @@ $('#registerForm').addEventListener('submit', async e=>{
       fillSelect(communeSelect,[],'اختر الدائرة أولاً'); communeSelect.disabled=true; setRole('breeder');
     }catch(error){ console.warn('Form reset skipped:',error); }
   },1400);
+  registerFormSubmitting=false;
   submit.disabled=false; submit.textContent=submit.dataset.oldText||'إنشاء الحساب وإرسال الطلب';
 });
 
