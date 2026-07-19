@@ -1,18 +1,31 @@
 # MawashiDZ
 
-Official website package with multilingual interface, automatic dark mode, and trusted livestock-sector news.
+المنصة الرقمية لقطاع المواشي في الجزائر.
+
+**الإصدار الحالي في الواجهة: v1.9.0 (Phase 1 Auth UI)**
 
 ## Production structure
 
-- `index.html` — الموقع كاملًا (نسخة Production جاهزة للرفع على GitHub Pages أو Netlify)
-- `assets/algeria_cities.json` — التقسيم الإداري الكامل: 58 ولاية، 548 دائرة، 1541 بلدية (مصدر محلي، مع CDN كاحتياط)
-- `netlify.toml` — إعدادات Netlify + تحويل `/api/livestock-news` إلى الدالة
-- `netlify/functions/news.mjs` — دالة جلب أخبار قطاع المواشي (تعمل على Netlify فقط؛ على GitHub Pages يُستعمل الاحتياط داخل الصفحة)
-- `supabase/setup.sql` — ملف إعداد قاعدة البيانات: أرقام العضوية التسلسلية، الملفات الشخصية، الدخول بالبريد/الهاتف/رقم MDZ، جداول التسجيل والتواصل والبلاغات مع RLS
+- `index.html` — الواجهة (تسجيل، دخول، حسابي، الأخبار)
+- `assets/algeria_cities.json` — التقسيم الإداري
+- `netlify.toml` + `netlify/functions/news.mjs` — أخبار القطاع
+- `supabase/` — إعداد قاعدة البيانات (Phase 0 مطبّق على Production)
+- `docs/` — تقارير المراحل وقوالب البريد
 
-## Supabase setup (مطلوب مرة واحدة)
+## Phase 1 — Auth UI (هذا الفرع)
 
-1. إن كانت قاعدة البيانات موجودة مسبقًا (جداول `profiles` / `registrations` …)، شغّل أولًا `supabase/migrations/20260718220000_align_existing_schema.sql` — ترقية idempotent تضيف الأعمدة والدوال الناقصة فقط.
-2. وإلا (مشروع جديد)، أو بعد الترقية، شغّل `supabase/setup.sql` كاملًا.
-2. عرّب قالب «Confirm signup» في Auth → Emails (نموذج جاهز داخل نهاية ملف SQL).
-3. أضف نطاق الموقع في Auth → URL Configuration → Redirect URLs (لاسترجاع كلمة المرور).
+- تسجيل الدخول بالبريد / الهاتف / رقم العضوية
+- جلسة محفوظة + استعادة بعد تأكيد البريد
+- لوحة «حسابي»
+- رقم العضوية من قاعدة البيانات فقط (لا توليد في JavaScript)
+- دليل قالب التأكيد العربي: `docs/auth-email-templates-ar.md`
+
+## خطوات يدوية متبقية (المالك)
+
+1. Supabase → Auth → Emails → Confirm signup: الصق القالب من `docs/auth-email-templates-ar.md`
+2. Redirect URLs: `https://mawashidz.com/**`
+3. مراجعة Preview ثم الموافقة على الدمج/النشر (لا نشر تلقائي من الوكيل)
+
+## Changelog
+
+انظر `CHANGELOG.md`
