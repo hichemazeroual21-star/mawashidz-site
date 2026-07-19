@@ -1,0 +1,26 @@
+{
+  "name": "workspace",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Official website package with multilingual interface, automatic dark mode, and trusted livestock-sector news.",
+  "main": "index.js",
+  "scripts": {
+    "test:db": "node supabase/tests/run-phase0-tests.mjs",
+    "package:review": "bash scripts/package-code-review.sh"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hichemazeroual21-star/mawashidz-site.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/hichemazeroual21-star/mawashidz-site/issues"
+  },
+  "homepage": "https://github.com/hichemazeroual21-star/mawashidz-site#readme",
+  "devDependencies": {
+    "embedded-postgres": "^18.4.0-beta.17",
+    "pg": "^8.22.0"
+  }
+}

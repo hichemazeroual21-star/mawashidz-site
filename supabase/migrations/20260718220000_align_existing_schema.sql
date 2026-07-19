@@ -1,6 +1,7 @@
 -- ============================================================
 -- MawashiDZ — ترقية idempotent للمخطط الحالي (v1.7.1)
 -- شغّل هذا الملف من: Supabase Dashboard → SQL Editor → Run
+-- ثم شغّل: supabase/migrations/20260719000000_phase0_member_id_foundation.sql
 --
 -- تم اكتشاف المخطط الحالي عبر REST API (2026-07-18):
 --   profiles:          id, full_name, phone, email, created_at
@@ -55,7 +56,9 @@ begin
 end;
 $$;
 
-grant execute on function public.allocate_member_id(text) to anon, authenticated;
+revoke all on function public.allocate_member_id(text) from public;
+revoke all on function public.allocate_member_id(text) from anon, authenticated;
+grant execute on function public.allocate_member_id(text) to service_role;
 
 -- ------------------------------------------------------------
 -- 2) ترقية profiles — إضافة الأعمدة الناقصة فقط
