@@ -2389,6 +2389,22 @@ function updateAuthChrome(){
     if(!el) return;
     if(show) el.removeAttribute('hidden'); else el.setAttribute('hidden','');
   });
+  const heroJoin=document.getElementById('heroJoin');
+  if(heroJoin){
+    heroJoin.textContent=authed?'حسابي':'سجّل كعضو مؤسس';
+    heroJoin.onclick=authed?()=>openAccount():()=>openRegister();
+  }
+  const dockMain=document.getElementById('dockMainBtn');
+  if(dockMain){
+    const label=dockMain.querySelector('span');
+    if(authed){
+      dockMain.onclick=()=>openAccount();
+      if(label) label.textContent='حسابي';
+    }else{
+      dockMain.onclick=()=>openRegister();
+      if(label) label.textContent='تسجيل مجاني';
+    }
+  }
 }
 
 function logoutAccount(){
@@ -2401,28 +2417,67 @@ window.logoutAccount=logoutAccount;
 
 function parseAuthRedirect(){
   const hash=location.hash.startsWith('#')?location.hash.slice(1):'';
-  const params=new URLSearchParams(hash.includes('access_token')?hash:location.search.replace(/^\?/,''));
-  const access=params.get('access_token');
-  const refresh=params.get('refresh_token');
-  const type=params.get('type')||'';
-  const errorDesc=params.get('error_description')||params.get('error')||'';
-  return {access,refresh,type,errorDesc,expires_in:params.get('expires_in')};
+  const search=location.search.replace(/^\?/,'');
+  let paramString=search;
+  if(hash&&(hash.includes('access_token')||hash.includes('refresh_token')||hash.includes('type=')||hash.includes('code='))){
+    paramString=hash.replace(/^auth-callback&?/,'').replace(/^&/,'');
+  }else if(hash==='auth-callback'||hash.startsWith('auth-callback&')){
+    paramString=hash.replace(/^auth-callback&?/,'').replace(/^&/,'')||search;
+  }
+  const params=new URLSearchParams(paramString);
+  return {
+    access:params.get('access_token'),
+    refresh:params.get('refresh_token'),
+    type:params.get('type')||'',
+    code:params.get('code'),
+    errorDesc:params.get('error_description')||params.get('error')||'',
+    expires_in:params.get('expires_in'),
+    fromConfirm:hash==='auth-callback'||hash.startsWith('auth-callback')||params.get('type')==='signup'
+  };
+}
+
+async function exchangeAuthCode(code){
+  return authRequest('/token?grant_type=pkce',{
+    method:'POST',
+    body:JSON.stringify({auth_code:code})
+  });
+}
+
+function promptLoginAfterConfirm(message){
+  const state=document.getElementById('loginState');
+  openLogin();
+  if(state){
+    state.className='full login-state is-ok';
+    state.textContent=message;
+  }else showToast(message);
 }
 
 async function handleAuthRedirect(){
-  const {access,refresh,type,errorDesc,expires_in}=parseAuthRedirect();
+  const {access,refresh,type,errorDesc,expires_in,code,fromConfirm}=parseAuthRedirect();
   if(errorDesc){
     showToast(authErrorArabic({message:decodeURIComponent(errorDesc)}));
     history.replaceState(null,'',MDZ_SITE_URL());
     return;
   }
-  if(!access) return;
-  saveSession({
-    access_token:access,
-    refresh_token:refresh,
-    expires_in:expires_in?Number(expires_in):3600,
-    user:null
-  });
+  let sessionPayload=null;
+  if(access){
+    sessionPayload={access_token:access,refresh_token:refresh,expires_in:expires_in?Number(expires_in):3600,user:null};
+  }else if(code){
+    try{
+      const exchanged=await exchangeAuthCode(code);
+      sessionPayload=exchanged;
+    }catch(err){
+      console.warn('Auth code exchange failed:',err);
+      promptLoginAfterConfirm('تم تأكيد بريدك. سجّل الدخول بكلمة المرور التي أنشأتها.');
+      history.replaceState(null,'',MDZ_SITE_URL());
+      return;
+    }
+  }else if(fromConfirm){
+    promptLoginAfterConfirm('تم تأكيد بريدك بنجاح. سجّل الدخول للوصول إلى حسابك.');
+    history.replaceState(null,'',MDZ_SITE_URL());
+    return;
+  }else return;
+  saveSession(sessionPayload);
   history.replaceState(null,'',MDZ_SITE_URL()+'#account');
   showToast(type==='recovery'?'يمكنك الآن تعيين كلمة مرور جديدة من بريدك.':type==='signup'?'تم تأكيد بريدك بنجاح. مرحبًا بك.':'تم تفعيل جلستك.');
   await openAccount();
@@ -2490,6 +2545,7 @@ function openRegister(role='breeder'){
   setRole(role);
 }
 function openLogin(){closeAll();$('#loginModal').classList.add('open')}
+window.openLogin=openLogin;
 function closeModal(id){
   const modal=$('#'+id);
   if(!modal) return;
@@ -3190,7 +3246,7 @@ refreshStats();
 
 <nav class="mobile-dock" aria-label="التنقل السريع للهاتف">
   <a href="#home"><i>⌂</i><span>الرئيسية</span></a>
-  <button class="dock-main" onclick="openRegister()"><i>＋</i><span>تسجيل مجاني</span></button>
+  <button class="dock-main" type="button" id="dockMainBtn" onclick="openRegister()"><i>＋</i><span>تسجيل مجاني</span></button>
   <a href="#contact"><i>✉</i><span>تواصل معنا</span></a>
 </nav>
 
