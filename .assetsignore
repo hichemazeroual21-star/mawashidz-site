@@ -1,0 +1,11 @@
+node_modules/
+.git/
+.wrangler/
+tests/
+docs/
+supabase/
+scripts/
+.github/
+artifacts/
+netlify/
+*.zip
