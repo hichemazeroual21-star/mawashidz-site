@@ -943,6 +943,7 @@ footer{background:#0b100d}
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script src="assets/i18n.js?v=1.8.0"></script>
 <script src="assets/i18n-content.js?v=1.8.0"></script>
+<script src="assets/algeria-location-normalize.js"></script>
 
 <style id="mdz-v10-responsive-hero-footer">
 .hero{
@@ -2497,12 +2498,18 @@ function arValue(item, keys){
   return '';
 }
 
+function locName(value){
+  return typeof normalizeArabicLocationName === 'function'
+    ? normalizeArabicLocationName(value)
+    : String(value || '').trim().replace(/\s+/g, ' ');
+}
+
 function normalizeCity(item){
   return {
     wilayaCode: arValue(item, ['wilaya_code','wilayaCode','wilaya_id','wilayaId','code']),
-    wilaya: arValue(item, ['wilaya_name','wilaya_name_ar','wilaya','wilaya_ar','wilayaName','nameAr','name_ar']),
-    daira: arValue(item, ['daira_name','daira_name_ar','daira','daira_ar','dairaName']),
-    commune: arValue(item, ['commune_name','commune_name_ar','commune','commune_ar','communeName'])
+    wilaya: locName(arValue(item, ['wilaya_name','wilaya_name_ar','wilaya','wilaya_ar','wilayaName','nameAr','name_ar'])),
+    daira: locName(arValue(item, ['daira_name','daira_name_ar','daira','daira_ar','dairaName'])),
+    commune: locName(arValue(item, ['commune_name','commune_name_ar','commune','commune_ar','communeName']))
   };
 }
 
@@ -2512,14 +2519,14 @@ function flattenLocationData(raw){
   for(const item of source){
     const direct=normalizeCity(item);
     if(direct.wilaya && direct.daira && direct.commune){ flat.push(direct); continue; }
-    const wilaya=arValue(item,['name_ar','nameAr','wilaya_name','wilaya_name_ar','name']);
+    const wilaya=locName(arValue(item,['name_ar','nameAr','wilaya_name','wilaya_name_ar','name']));
     const wilayaCode=arValue(item,['wilaya_code','wilayaCode','code','id']);
     const dairas=item?.dairas || item?.districts || [];
     for(const d of dairas){
-      const daira=arValue(d,['name_ar','nameAr','daira_name','daira_name_ar','name']);
+      const daira=locName(arValue(d,['name_ar','nameAr','daira_name','daira_name_ar','name']));
       const communes=d?.communes || d?.municipalities || d?.cities || [];
       for(const c of communes){
-        const commune=arValue(c,['name_ar','nameAr','commune_name','commune_name_ar','name']);
+        const commune=locName(arValue(c,['name_ar','nameAr','commune_name','commune_name_ar','name']));
         if(wilaya && daira && commune) flat.push({wilayaCode,wilaya,daira,commune});
       }
     }
