@@ -1474,7 +1474,7 @@ footer .foot{align-items:start}
     width:calc(100% - 24px);
     display:grid;
     /* LTR: [زر القائمة] [سجّل الآن] [مساحة مرنة تنتهي بالعلامة يمينًا] */
-    grid-template-columns:auto auto minmax(0,1fr);
+    grid-template-columns:auto auto auto minmax(0,1fr);
     grid-template-rows:auto auto;
     align-items:center;
     column-gap:8px;row-gap:8px;
@@ -1482,22 +1482,30 @@ footer .foot{align-items:start}
     min-height:0;
     padding:10px 0 11px;
   }
-  /* أزرار الإجراءات تُوضَع مباشرة داخل شبكة الهيدر (القائمة عمود 1، سجّل الآن عمود 2). */
+  /* أزرار الإجراءات تُوضَع مباشرة داخل شبكة الهيدر (القائمة عمود 1، دخول/تسجيل، العلامة). */
   .top .actions{display:contents}
   .top .actions .btn.ghost{display:none}
+  #headerLoginBtn{
+    display:inline-flex!important;
+    grid-column:2;grid-row:1;
+    min-height:46px;padding:0 10px;margin:0;
+    border-radius:14px;font-size:.78rem;white-space:nowrap;
+    justify-self:start;align-items:center;
+    background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.28);
+  }
+  .top .actions .btn.primary#headerRegisterBtn{
+    grid-column:3;grid-row:1;
+    min-height:46px;padding:0 11px;margin:0;
+    border-radius:14px;font-size:.8rem;white-space:nowrap;
+    justify-self:start;
+  }
   .top .menu-btn{
     grid-column:1;grid-row:1;
     width:46px;height:46px;margin:0;padding:0;
     border-radius:14px;font-size:1.4rem;line-height:1;
   }
-  .top .actions .btn.primary{
-    grid-column:2;grid-row:1;
-    min-height:46px;padding:0 13px;margin:0;
-    border-radius:14px;font-size:.85rem;white-space:nowrap;
-    justify-self:start;
-  }
   .top .brand{
-    grid-column:3;grid-row:1;
+    grid-column:4;grid-row:1;
     justify-self:end;align-self:center;
     display:flex;flex-direction:row;align-items:center;
     direction:rtl;gap:7px;margin:0;max-width:100%;min-width:0;
@@ -2740,6 +2748,12 @@ function wireAccountTabs(box,profile){
  });
 }
 
+async function openLoginOrAccount(){
+ if(isAuthenticated()) return openAccount();
+ openLogin();
+}
+window.openLoginOrAccount=openLoginOrAccount;
+
 async function openAccount(){
  const session=await ensureFreshSession();
  if(!session?.access_token){openLogin();return}
@@ -3366,7 +3380,7 @@ window.addEventListener('DOMContentLoaded',async()=>{
 <nav class="mobile-dock" data-i18n-aria="dockAriaLabel" aria-label="التنقل السريع للهاتف">
   <a href="#home"><i>⌂</i><span data-i18n="dockHome">الرئيسية</span></a>
   <button class="dock-main" id="dockMainBtn" type="button" onclick="openRegister()"><i>＋</i><span data-i18n="dockRegister">تسجيل مجاني</span></button>
-  <button type="button" id="dockProfileBtn" onclick="openAccount()"><i>👤</i><span data-i18n="btnLogin">دخول</span></button>
+  <button type="button" id="dockProfileBtn" onclick="openLoginOrAccount()"><i>👤</i><span data-i18n="btnLogin">دخول</span></button>
   <a href="#contact"><i>✉</i><span data-i18n="dockContact">تواصل معنا</span></a>
 </nav>
 
