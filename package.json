@@ -1,0 +1,11 @@
+{
+  "name": "mawashidz-site",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test:registration": "node tests/registration-flow.test.mjs",
+    "test:assets": "node tests/static-asset-validation.test.mjs",
+    "test:ui-guard": "node tests/registration-ui-guard.test.mjs",
+    "test:unit": "node tests/registration-flow.test.mjs && node tests/static-asset-validation.test.mjs && node tests/registration-ui-guard.test.mjs"
+  }
+}
