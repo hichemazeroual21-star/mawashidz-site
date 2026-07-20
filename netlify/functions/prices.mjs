@@ -1,6 +1,6 @@
 /*
  * MawashiDZ — بورصة المواشي الحية
- * /api/livestock-prices — تحديث كل دقيقة
+ * /api/livestock-prices — تحديث كل ثانية
  */
 import { buildMarketSnapshot } from './market-core.mjs';
 
@@ -17,6 +17,8 @@ export default async function handler(request) {
   return new Response(
     JSON.stringify({
       updatedAt: snapshot.updatedAt,
+      tickBucket: snapshot.tickBucket,
+      secondBucket: snapshot.secondBucket,
       minuteBucket: snapshot.minuteBucket,
       products: snapshot.products,
       cheapestByProduct: snapshot.cheapestByProduct,
@@ -27,7 +29,7 @@ export default async function handler(request) {
       status: 200,
       headers: {
         'Content-Type': 'application/json; charset=utf-8',
-        'Cache-Control': 'public, max-age=30, stale-while-revalidate=60',
+        'Cache-Control': 'public, max-age=0, must-revalidate',
       },
     },
   );

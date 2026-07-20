@@ -1,8 +1,11 @@
-/* MawashiDZ — محرك بورصة المواشي (عميل + fallback بدون Netlify) */
+/* MawashiDZ — محرك بورصة المواشي (عميل + fallback بدون Netlify) — تحديث كل ثانية */
 const MDZ_MARKET_PRODUCTS = [
   { id: 'sheep_meat', category: 'meat', base: 3100, source: 'https://madr.gov.dz', sourceName: 'وزارة الفلاحة' },
   { id: 'beef', category: 'meat', base: 2450, source: 'https://madr.gov.dz', sourceName: 'وزارة الفلاحة' },
   { id: 'goat_meat', category: 'meat', base: 2900, source: 'https://madr.gov.dz', sourceName: 'وزارة الفلاحة' },
+  { id: 'cow_milk', category: 'milk', base: 95, source: 'https://madr.gov.dz', sourceName: 'وزارة الفلاحة' },
+  { id: 'goat_milk', category: 'milk', base: 175, source: 'https://madr.gov.dz', sourceName: 'وزارة الفلاحة' },
+  { id: 'camel_milk', category: 'milk', base: 265, source: 'https://madr.gov.dz', sourceName: 'وزارة الفلاحة' },
   { id: 'barley', category: 'feed', base: 52, source: 'https://madr.gov.dz', sourceName: 'وزارة الفلاحة' },
   { id: 'corn', category: 'feed', base: 46, source: 'https://madr.gov.dz', sourceName: 'وزارة الفلاحة' },
   { id: 'bran', category: 'feed', base: 38, source: 'https://madr.gov.dz', sourceName: 'وزارة الفلاحة' },
@@ -41,31 +44,36 @@ function mdzMarketWilayaFactor(code) {
   return 0.88 + mdzMarketHash(`wilaya-${code}`) * 0.24;
 }
 
-function mdzMarketMinuteDelta(productId, wilayaCode, minuteBucket) {
-  const a = mdzMarketHash(`${productId}-${wilayaCode}-${minuteBucket}`) * Math.PI * 2;
-  const b = mdzMarketHash(`${wilayaCode}-${productId}-${minuteBucket - 1}`) * Math.PI * 2;
-  return Math.sin(a) * 0.008 + Math.sin(b) * 0.005;
+function mdzMarketTickDelta(productId, wilayaCode, tickBucket) {
+  const a = mdzMarketHash(`${productId}-${wilayaCode}-${tickBucket}`) * Math.PI * 2;
+  const b = mdzMarketHash(`${wilayaCode}-${productId}-${tickBucket - 1}`) * Math.PI * 2;
+  return Math.sin(a) * 0.002 + Math.sin(b) * 0.0012;
 }
 
 function mdzMarketRound(value, category) {
-  if (category === 'feed') return Math.round(value);
+  if (category === 'feed' || category === 'milk') return Math.round(value);
   return Math.round(value / 10) * 10;
 }
 
-function buildMdzMarketSnapshot(minuteBucket) {
-  minuteBucket = minuteBucket ?? Math.floor(Date.now() / 60000);
+function mdzMarketUnit(category) {
+  return category === 'milk' ? 'DZD/L' : 'DZD/kg';
+}
+
+function buildMdzMarketSnapshot(tickBucket) {
+  tickBucket = tickBucket ?? Math.floor(Date.now() / 1000);
   const rows = [];
   for (const w of MDZ_MARKET_WILAYAS) {
     for (const p of MDZ_MARKET_PRODUCTS) {
       const factor = mdzMarketWilayaFactor(w.code);
-      const delta = mdzMarketMinuteDelta(p.id, w.code, minuteBucket);
-      const prevDelta = mdzMarketMinuteDelta(p.id, w.code, minuteBucket - 1);
+      const delta = mdzMarketTickDelta(p.id, w.code, tickBucket);
+      const prevDelta = mdzMarketTickDelta(p.id, w.code, tickBucket - 1);
       const price = mdzMarketRound(p.base * factor * (1 + delta), p.category);
       const prevPrice = mdzMarketRound(p.base * factor * (1 + prevDelta), p.category);
       const changePct = prevPrice ? ((price - prevPrice) / prevPrice) * 100 : 0;
       rows.push({
         wilayaCode: w.code, wilaya: w.name, productId: p.id, category: p.category,
-        price, changePct: Math.round(changePct * 100) / 100,
+        price, unit: mdzMarketUnit(p.category),
+        changePct: Math.round(changePct * 100) / 100,
         source: p.source, sourceName: p.sourceName,
       });
     }
@@ -77,8 +85,10 @@ function buildMdzMarketSnapshot(minuteBucket) {
     cheapestByProduct[p.id] = { wilaya: min.wilaya, wilayaCode: min.wilayaCode, price: min.price };
   }
   return {
-    updatedAt: new Date(minuteBucket * 60000).toISOString(),
-    minuteBucket,
+    updatedAt: new Date(tickBucket * 1000).toISOString(),
+    tickBucket,
+    secondBucket: tickBucket,
+    minuteBucket: Math.floor(tickBucket / 60),
     products: MDZ_MARKET_PRODUCTS.map((p) => ({ id: p.id, category: p.category })),
     rows,
     cheapestByProduct,

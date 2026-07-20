@@ -1,5 +1,5 @@
 /* MawashiDZ — multilingual UI (ar, en, fr, de) */
-const MDZ_APP_VERSION = '1.9.2';
+const MDZ_APP_VERSION = '1.9.3';
 const MDZ_LANGS = ['ar', 'en', 'fr', 'de'];
 
 const MDZ_I18N = {
@@ -100,14 +100,16 @@ const MDZ_I18N = {
     contactTypeGeneral: 'استفسار عام', contactTypeRegister: 'التسجيل', contactTypeManager: 'مدير ولاية',
     contactTypePartner: 'شراكة', contactTypeComplaint: 'شكوى',
     feedbackTypeBug: 'خطأ تقني', feedbackTypeIdea: 'اقتراح تحسين', feedbackTypeAbuse: 'إبلاغ عن إساءة استخدام', feedbackTypeSecurity: 'ثغرة أمنية',
-    exchangeTitle: 'بورصة المواشي الحية', exchangeDesc: 'أسعار اللحوم والأعلاف في كل الولايات — تحديث كل دقيقة مع إبراز أرخص ولاية لكل منتج.',
+    exchangeTitle: 'بورصة المواشي الحية', exchangeDesc: 'أسعار اللحوم والحليب والأعلاف في كل الولايات — تحديث كل ثانية مع إبراز أرخص ولاية لكل منتج.',
     exchangeLive: 'مباشر', exchangeLoading: 'جاري تحديث الأسعار...', exchangeLastUpdate: 'آخر تحديث: {date}',
-    exchangeRefresh: 'تحديث الآن', exchangeCheapest: 'أرخص سعر: {wilaya} — {price} دج/كغ',
-    exchangeWilaya: 'الولاية', exchangePrice: 'السعر (دج/كغ)', exchangeChange: 'التغيير',
-    exchangeMeatTab: 'اللحوم', exchangeFeedTab: 'الأعلاف',
+    exchangeRefresh: 'تحديث الآن', exchangeCheapest: 'أرخص سعر: {wilaya} — {price} {unit}',
+    exchangeWilaya: 'الولاية', exchangePrice: 'السعر', exchangePriceKg: 'السعر (دج/كغ)', exchangePriceLiter: 'السعر (دج/لتر)',
+    exchangeChange: 'التغيير', exchangeUnitKg: 'دج/كغ', exchangeUnitLiter: 'دج/لتر',
+    exchangeMeatTab: 'اللحوم', exchangeFeedTab: 'الأعلاف', exchangeMilkTab: 'الحليب',
     exchangeProductSheep: 'لحم الضأن', exchangeProductBeef: 'لحم بقري', exchangeProductGoat: 'لحم الماعز',
+    exchangeProductCowMilk: 'حليب البقر', exchangeProductGoatMilk: 'حليب الماعز', exchangeProductCamelMilk: 'حليب الإبل',
     exchangeProductBarley: 'شعير', exchangeProductCorn: 'ذرة', exchangeProductBran: 'نخالة',
-    exchangeDisclaimer: 'مؤشر مرجعي وطني مبني على متوسطات السوق والمصادر الرسمية. يُحدَّث كل دقيقة. للقرارات المالية راجع المصدر الرسمي.',
+    exchangeDisclaimer: 'مؤشر مرجعي وطني مبني على متوسطات السوق والمصادر الرسمية. يُحدَّث كل ثانية. للقرارات المالية راجع المصدر الرسمي.',
     exchangeSource: 'المصدر', exchangeViewBoard: 'عرض البورصة الكاملة', externalSource: 'مصدر خارجي',
     vetNewsTitle: 'البيطرة والصحة الحيوانية', vetNewsDesc: 'تحديث مباشر كل دقيقة من مصادر بيطرية وصحية موثوقة.',
     officialNewsTitle: 'القرارات والبلاغات الرسمية', officialNewsDesc: 'أخبار رسمية فقط من الوزارات والجهات العمومية — تُستبدل عند ظهور أحدث.',
@@ -211,14 +213,16 @@ const MDZ_I18N = {
     contactTypeGeneral: 'General inquiry', contactTypeRegister: 'Registration', contactTypeManager: 'Wilaya manager',
     contactTypePartner: 'Partnership', contactTypeComplaint: 'Complaint',
     feedbackTypeBug: 'Technical bug', feedbackTypeIdea: 'Improvement idea', feedbackTypeAbuse: 'Abuse report', feedbackTypeSecurity: 'Security vulnerability',
-    exchangeTitle: 'Live livestock exchange', exchangeDesc: 'Meat and feed prices in all wilayas — updated every minute with the cheapest wilaya highlighted.',
+    exchangeTitle: 'Live livestock exchange', exchangeDesc: 'Meat, milk and feed prices in all wilayas — updated every second with the cheapest wilaya highlighted.',
     exchangeLive: 'Live', exchangeLoading: 'Updating prices...', exchangeLastUpdate: 'Last update: {date}',
-    exchangeRefresh: 'Refresh now', exchangeCheapest: 'Lowest price: {wilaya} — {price} DZD/kg',
-    exchangeWilaya: 'Wilaya', exchangePrice: 'Price (DZD/kg)', exchangeChange: 'Change',
-    exchangeMeatTab: 'Meat', exchangeFeedTab: 'Feed',
+    exchangeRefresh: 'Refresh now', exchangeCheapest: 'Lowest price: {wilaya} — {price} {unit}',
+    exchangeWilaya: 'Wilaya', exchangePrice: 'Price', exchangePriceKg: 'Price (DZD/kg)', exchangePriceLiter: 'Price (DZD/L)',
+    exchangeChange: 'Change', exchangeUnitKg: 'DZD/kg', exchangeUnitLiter: 'DZD/L',
+    exchangeMeatTab: 'Meat', exchangeFeedTab: 'Feed', exchangeMilkTab: 'Milk',
     exchangeProductSheep: 'Lamb meat', exchangeProductBeef: 'Beef', exchangeProductGoat: 'Goat meat',
+    exchangeProductCowMilk: 'Cow milk', exchangeProductGoatMilk: 'Goat milk', exchangeProductCamelMilk: 'Camel milk',
     exchangeProductBarley: 'Barley', exchangeProductCorn: 'Corn', exchangeProductBran: 'Bran',
-    exchangeDisclaimer: 'National reference index based on market averages and official sources. Updated every minute. Check official sources before financial decisions.',
+    exchangeDisclaimer: 'National reference index based on market averages and official sources. Updated every second. Check official sources before financial decisions.',
     exchangeSource: 'Source', exchangeViewBoard: 'Open full exchange', externalSource: 'External source',
     vetNewsTitle: 'Veterinary & animal health', vetNewsDesc: 'Live updates every minute from trusted veterinary and health sources.',
     officialNewsTitle: 'Official decisions & notices', officialNewsDesc: 'Official news only from ministries and public bodies — replaced when newer items appear.',
@@ -322,14 +326,16 @@ const MDZ_I18N = {
     contactTypeGeneral: 'Demande générale', contactTypeRegister: 'Inscription', contactTypeManager: 'Gestionnaire wilaya',
     contactTypePartner: 'Partenariat', contactTypeComplaint: 'Réclamation',
     feedbackTypeBug: 'Bug technique', feedbackTypeIdea: 'Suggestion', feedbackTypeAbuse: 'Abus', feedbackTypeSecurity: 'Faille de sécurité',
-    exchangeTitle: 'Bourse du bétail en direct', exchangeDesc: 'Prix des viandes et aliments dans toutes les wilayas — mise à jour chaque minute avec la wilaya la moins chère.',
+    exchangeTitle: 'Bourse du bétail en direct', exchangeDesc: 'Prix des viandes, laits et aliments dans toutes les wilayas — mise à jour chaque seconde avec la wilaya la moins chère.',
     exchangeLive: 'En direct', exchangeLoading: 'Mise à jour des prix...', exchangeLastUpdate: 'Dernière mise à jour : {date}',
-    exchangeRefresh: 'Actualiser', exchangeCheapest: 'Prix le plus bas : {wilaya} — {price} DZD/kg',
-    exchangeWilaya: 'Wilaya', exchangePrice: 'Prix (DZD/kg)', exchangeChange: 'Variation',
-    exchangeMeatTab: 'Viandes', exchangeFeedTab: 'Aliments',
+    exchangeRefresh: 'Actualiser', exchangeCheapest: 'Prix le plus bas : {wilaya} — {price} {unit}',
+    exchangeWilaya: 'Wilaya', exchangePrice: 'Prix', exchangePriceKg: 'Prix (DZD/kg)', exchangePriceLiter: 'Prix (DZD/L)',
+    exchangeChange: 'Variation', exchangeUnitKg: 'DZD/kg', exchangeUnitLiter: 'DZD/L',
+    exchangeMeatTab: 'Viandes', exchangeFeedTab: 'Aliments', exchangeMilkTab: 'Lait',
     exchangeProductSheep: 'Viande d\'agneau', exchangeProductBeef: 'Bœuf', exchangeProductGoat: 'Viande de chèvre',
+    exchangeProductCowMilk: 'Lait de vache', exchangeProductGoatMilk: 'Lait de chèvre', exchangeProductCamelMilk: 'Lait de chamelle',
     exchangeProductBarley: 'Orge', exchangeProductCorn: 'Maïs', exchangeProductBran: 'Son',
-    exchangeDisclaimer: 'Indice de référence national basé sur les moyennes du marché et sources officielles. Mis à jour chaque minute.',
+    exchangeDisclaimer: 'Indice de référence national basé sur les moyennes du marché et sources officielles. Mis à jour chaque seconde.',
     exchangeSource: 'Source', exchangeViewBoard: 'Voir la bourse complète', externalSource: 'Source externe',
     vetNewsTitle: 'Vétérinaire & santé animale', vetNewsDesc: 'Mise à jour directe chaque minute depuis des sources vétérinaires fiables.',
     officialNewsTitle: 'Décisions et communiqués officiels', officialNewsDesc: 'Actualités officielles uniquement — remplacées dès qu\'un item plus récent apparaît.',
@@ -433,14 +439,16 @@ const MDZ_I18N = {
     contactTypeGeneral: 'Allgemeine Anfrage', contactTypeRegister: 'Registrierung', contactTypeManager: 'Wilaya-Leiter',
     contactTypePartner: 'Partnerschaft', contactTypeComplaint: 'Beschwerde',
     feedbackTypeBug: 'Technischer Fehler', feedbackTypeIdea: 'Verbesserungsvorschlag', feedbackTypeAbuse: 'Missbrauch', feedbackTypeSecurity: 'Sicherheitslücke',
-    exchangeTitle: 'Live-Viehbörse', exchangeDesc: 'Fleisch- und Futterpreise in allen Wilayas — jede Minute aktualisiert, günstigste Wilaya hervorgehoben.',
+    exchangeTitle: 'Live-Viehbörse', exchangeDesc: 'Fleisch-, Milch- und Futterpreise in allen Wilayas — jede Sekunde aktualisiert, günstigste Wilaya hervorgehoben.',
     exchangeLive: 'Live', exchangeLoading: 'Preise werden aktualisiert...', exchangeLastUpdate: 'Letzte Aktualisierung: {date}',
-    exchangeRefresh: 'Jetzt aktualisieren', exchangeCheapest: 'Niedrigster Preis: {wilaya} — {price} DZD/kg',
-    exchangeWilaya: 'Wilaya', exchangePrice: 'Preis (DZD/kg)', exchangeChange: 'Änderung',
-    exchangeMeatTab: 'Fleisch', exchangeFeedTab: 'Futter',
+    exchangeRefresh: 'Jetzt aktualisieren', exchangeCheapest: 'Niedrigster Preis: {wilaya} — {price} {unit}',
+    exchangeWilaya: 'Wilaya', exchangePrice: 'Preis', exchangePriceKg: 'Preis (DZD/kg)', exchangePriceLiter: 'Preis (DZD/L)',
+    exchangeChange: 'Änderung', exchangeUnitKg: 'DZD/kg', exchangeUnitLiter: 'DZD/L',
+    exchangeMeatTab: 'Fleisch', exchangeFeedTab: 'Futter', exchangeMilkTab: 'Milch',
     exchangeProductSheep: 'Lammfleisch', exchangeProductBeef: 'Rindfleisch', exchangeProductGoat: 'Ziegenfleisch',
+    exchangeProductCowMilk: 'Kuhmilch', exchangeProductGoatMilk: 'Ziegenmilch', exchangeProductCamelMilk: 'Kamelmilch',
     exchangeProductBarley: 'Gerste', exchangeProductCorn: 'Mais', exchangeProductBran: 'Kleie',
-    exchangeDisclaimer: 'Nationaler Referenzindex basierend auf Marktdurchschnitten und offiziellen Quellen. Jede Minute aktualisiert.',
+    exchangeDisclaimer: 'Nationaler Referenzindex basierend auf Marktdurchschnitten und offiziellen Quellen. Jede Sekunde aktualisiert.',
     exchangeSource: 'Quelle', exchangeViewBoard: 'Vollständige Börse öffnen', externalSource: 'Externe Quelle',
     vetNewsTitle: 'Tierarzt & Tiergesundheit', vetNewsDesc: 'Live-Aktualisierung jede Minute aus vertrauenswürdigen tierärztlichen Quellen.',
     officialNewsTitle: 'Offizielle Entscheidungen & Bekanntmachungen', officialNewsDesc: 'Nur offizielle Meldungen von Ministerien und Behörden — wird bei neueren News ersetzt.',
@@ -538,8 +546,17 @@ function getNewsCategoryNames() {
 function getExchangeProductNames() {
   return {
     sheep_meat: t('exchangeProductSheep'), beef: t('exchangeProductBeef'), goat_meat: t('exchangeProductGoat'),
+    cow_milk: t('exchangeProductCowMilk'), goat_milk: t('exchangeProductGoatMilk'), camel_milk: t('exchangeProductCamelMilk'),
     barley: t('exchangeProductBarley'), corn: t('exchangeProductCorn'), bran: t('exchangeProductBran'),
   };
+}
+
+function getExchangeUnitLabel(category) {
+  return category === 'milk' ? t('exchangeUnitLiter') : t('exchangeUnitKg');
+}
+
+function getExchangePriceHeaderLabel(category) {
+  return category === 'milk' ? t('exchangePriceLiter') : t('exchangePriceKg');
 }
 
 document.addEventListener('DOMContentLoaded', () => {

@@ -1060,8 +1060,8 @@ footer{background:#0b100d}
 #bioField[hidden]{display:none!important}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-<script src="assets/i18n.js?v=1.9.2"></script>
-<script src="assets/i18n-content.js?v=1.9.2"></script>
+<script src="assets/i18n.js?v=1.9.3"></script>
+<script src="assets/i18n-content.js?v=1.9.3"></script>
 <script src="assets/algeria-location-normalize.js"></script>
 <script src="assets/market-engine.js"></script>
 
@@ -1745,6 +1745,7 @@ body[data-lang]:not([data-lang="ar"]) .hero-title-sub{white-space:normal!importa
   <div class="exchange-toolbar">
    <div class="exchange-tabs" role="tablist">
     <button class="exchange-tab active" type="button" data-exchange-tab="meat" data-i18n="exchangeMeatTab">اللحوم</button>
+    <button class="exchange-tab" type="button" data-exchange-tab="milk" data-i18n="exchangeMilkTab">الحليب</button>
     <button class="exchange-tab" type="button" data-exchange-tab="feed" data-i18n="exchangeFeedTab">الأعلاف</button>
    </div>
    <div class="exchange-state"><span class="live-dot loading" id="exchangeLiveDot"></span><span id="exchangeStatus" data-i18n="exchangeLoading">جاري تحديث الأسعار...</span><button class="btn ghost" type="button" id="refreshExchangeBtn" data-i18n="exchangeRefresh">تحديث الآن</button></div>
@@ -1753,7 +1754,7 @@ body[data-lang]:not([data-lang="ar"]) .hero-title-sub{white-space:normal!importa
   <div class="exchange-cheapest" id="exchangeCheapest" hidden><span id="exchangeCheapestText"></span><small id="exchangeCheapestSource"></small></div>
   <div class="exchange-board">
    <table class="exchange-table">
-    <thead><tr><th data-i18n="exchangeWilaya">الولاية</th><th data-i18n="exchangePrice">السعر (دج/كغ)</th><th data-i18n="exchangeChange">التغيير</th><th data-i18n="exchangeSource">المصدر</th></tr></thead>
+    <thead><tr><th data-i18n="exchangeWilaya">الولاية</th><th id="exchangePriceHeader" data-i18n="exchangePriceKg">السعر (دج/كغ)</th><th data-i18n="exchangeChange">التغيير</th><th data-i18n="exchangeSource">المصدر</th></tr></thead>
     <tbody id="exchangeTableBody"><tr><td colspan="4" data-i18n="exchangeLoading">جاري تحديث الأسعار...</td></tr></tbody>
    </table>
   </div>
@@ -1978,7 +1979,7 @@ body[data-lang]:not([data-lang="ar"]) .hero-title-sub{white-space:normal!importa
   <div><h3 data-i18n="footerLinks">روابط</h3><a href="#market" data-i18n="footerRegister">التسجيل</a><a href="#news" data-i18n="navNews">الأخبار</a><a href="#managers" data-i18n="navManagers">مدراء الولايات</a></div>
   <div><h3 data-i18n="footerPolicies">السياسات والمساعدة</h3><a href="#" onclick="showToast(t('toastTermsReady'));return false" data-i18n="footerTerms">شروط الاستخدام</a><a href="#" onclick="showToast(t('toastPrivacyReady'));return false" data-i18n="footerPrivacy">الخصوصية</a><a href="#" onclick="openFeedback();return false;" data-i18n="footerFeedback">شاركنا رأيك لنرتقي معًا</a></div>
  </div>
-  <div class="site-version"><span class="version-number" id="siteVersionLabel">MawashiDZ — الإصدار v1.9.2</span><span class="copyright" data-i18n="footerCopyright">© 2026 جميع الحقوق محفوظة لمنصة MawashiDZ</span></div>
+  <div class="site-version"><span class="version-number" id="siteVersionLabel">MawashiDZ — الإصدار v1.9.3</span><span class="copyright" data-i18n="footerCopyright">© 2026 جميع الحقوق محفوظة لمنصة MawashiDZ</span></div>
 </footer>
 
 <div class="modal" id="registerModal">
@@ -2847,7 +2848,7 @@ if(feedbackForm){
 }
 
 
-/* ===== بورصة المواشي الحية v1.9.0 ===== */
+/* ===== بورصة المواشي الحية v1.9.3 — تحديث كل ثانية + حليب ===== */
 const PRICES_ENDPOINT='/api/livestock-prices';
 let mdzMarketSnapshot=null;
 let mdzExchangeTab='meat';
@@ -2855,6 +2856,11 @@ let mdzExchangeProduct='sheep_meat';
 
 function mdzExchangeProductsForTab(tab){
   return (mdzMarketSnapshot?.products||[]).filter(p=>p.category===tab).map(p=>p.id);
+}
+
+function formatExchangeTickTime(value){
+  try{return new Intl.DateTimeFormat(mdzDateLocale(),{hour:'2-digit',minute:'2-digit',second:'2-digit'}).format(new Date(value));}
+  catch{return '';}
 }
 
 function renderExchangeProductButtons(){
@@ -2882,54 +2888,72 @@ function renderExchangeBoard(){
   const cheapestText=document.getElementById('exchangeCheapestText');
   const cheapestSource=document.getElementById('exchangeCheapestSource');
   const pulseSummary=document.getElementById('pulsePriceSummary');
+  const priceHeader=document.getElementById('exchangePriceHeader');
   if(!body||!mdzMarketSnapshot) return;
+  const unitLabel=getExchangeUnitLabel(mdzExchangeTab);
+  if(priceHeader) priceHeader.textContent=getExchangePriceHeaderLabel(mdzExchangeTab);
   const rows=mdzMarketSnapshot.rows.filter(r=>r.productId===mdzExchangeProduct).sort((a,b)=>a.price-b.price);
   const cheapest=mdzMarketSnapshot.cheapestByProduct?.[mdzExchangeProduct];
   if(cheapest&&cheapestBox&&cheapestText){
     cheapestBox.hidden=false;
-    cheapestText.textContent=t('exchangeCheapest',{wilaya:cheapest.wilaya,price:cheapest.price.toLocaleString(mdzDateLocale())});
+    cheapestText.textContent=t('exchangeCheapest',{wilaya:cheapest.wilaya,price:cheapest.price.toLocaleString(mdzDateLocale()),unit:unitLabel});
     const srcRow=rows.find(r=>r.wilayaCode===cheapest.wilayaCode)||rows[0];
     if(cheapestSource&&srcRow) cheapestSource.innerHTML=`<a href="${escapeNewsHTML(srcRow.source)}" target="_blank" rel="noopener noreferrer">${escapeNewsHTML(srcRow.sourceName||t('exchangeSource'))}</a>`;
   }
-  if(pulseSummary&&cheapest) pulseSummary.textContent=t('exchangeCheapest',{wilaya:cheapest.wilaya,price:cheapest.price.toLocaleString(mdzDateLocale())});
+  if(pulseSummary&&cheapest) pulseSummary.textContent=t('exchangeCheapest',{wilaya:cheapest.wilaya,price:cheapest.price.toLocaleString(mdzDateLocale()),unit:unitLabel});
   body.innerHTML=rows.map(r=>{
     const isCheap=cheapest&&r.wilayaCode===cheapest.wilayaCode;
     return `<tr class="${isCheap?'cheapest':''}"><td>${escapeNewsHTML(r.wilaya)}</td><td><strong>${r.price.toLocaleString(mdzDateLocale())}</strong></td><td>${formatExchangeChange(r.changePct)}</td><td><a href="${escapeNewsHTML(r.source)}" target="_blank" rel="noopener noreferrer">${escapeNewsHTML(r.sourceName||t('exchangeSource'))}</a></td></tr>`;
   }).join('');
 }
 
+function applyMarketSnapshot(data){
+  mdzMarketSnapshot=data;
+  renderExchangeProductButtons();
+  renderExchangeBoard();
+  const status=document.getElementById('exchangeStatus');
+  const dot=document.getElementById('exchangeLiveDot');
+  if(dot) dot.className='live-dot';
+  if(status){
+    const when=data.updatedAt||new Date().toISOString();
+    status.dataset.newsStatusKey='exchangeLastUpdate';
+    status.dataset.newsStatusVars=JSON.stringify({date:formatExchangeTickTime(when)});
+    status.textContent=t('exchangeLastUpdate',{date:formatExchangeTickTime(when)});
+  }
+}
+
+function tickLivestockPrices(){
+  if(typeof buildMdzMarketSnapshot!=='function') return;
+  applyMarketSnapshot(buildMdzMarketSnapshot(Math.floor(Date.now()/1000)));
+}
+
 async function loadLivestockPrices(force=false){
   const status=document.getElementById('exchangeStatus');
   const dot=document.getElementById('exchangeLiveDot');
   const btn=document.getElementById('refreshExchangeBtn');
-  if(dot) dot.className='live-dot loading';
-  if(status){status.dataset.newsStatusKey='exchangeLoading';delete status.dataset.newsStatusVars;status.textContent=t('exchangeLoading');}
-  if(btn) btn.disabled=true;
+  if(force){
+    if(dot) dot.className='live-dot loading';
+    if(status){status.dataset.newsStatusKey='exchangeLoading';delete status.dataset.newsStatusVars;status.textContent=t('exchangeLoading');}
+    if(btn) btn.disabled=true;
+  }
   try{
     let data=null;
-    try{
-      const url=PRICES_ENDPOINT+(force?`?refresh=${Date.now()}`:'');
-      const r=await fetch(url,{headers:{'Accept':'application/json'},cache:force?'no-store':'default'});
-      if(r.ok) data=await r.json();
-    }catch(e){/* fallback below */}
+    if(force){
+      try{
+        const r=await fetch(`${PRICES_ENDPOINT}?refresh=${Date.now()}`,{headers:{'Accept':'application/json'},cache:'no-store'});
+        if(r.ok) data=await r.json();
+      }catch(e){/* fallback below */}
+    }
     if(!data?.rows?.length){
-      if(typeof buildMdzMarketSnapshot==='function') data=buildMdzMarketSnapshot();
+      if(typeof buildMdzMarketSnapshot==='function') data=buildMdzMarketSnapshot(Math.floor(Date.now()/1000));
       else throw new Error('no-market-engine');
     }
-    mdzMarketSnapshot=data;
     localStorage.setItem('mdz_live_prices_cache',JSON.stringify({at:Date.now(),data}));
-    renderExchangeProductButtons();
-    renderExchangeBoard();
-    if(dot) dot.className='live-dot';
-    if(status){
-      status.dataset.newsStatusKey='exchangeLastUpdate';
-      status.dataset.newsStatusVars=JSON.stringify({date:formatNewsDate(data.updatedAt||new Date())});
-      status.textContent=t('exchangeLastUpdate',{date:formatNewsDate(data.updatedAt||new Date())});
-    }
+    applyMarketSnapshot(data);
   }catch(error){
     let cached=null; try{cached=JSON.parse(localStorage.getItem('mdz_live_prices_cache')||'null');}catch{}
     if(cached?.data) mdzMarketSnapshot=cached.data;
-    else if(typeof buildMdzMarketSnapshot==='function') mdzMarketSnapshot=buildMdzMarketSnapshot();
+    else if(typeof buildMdzMarketSnapshot==='function') mdzMarketSnapshot=buildMdzMarketSnapshot(Math.floor(Date.now()/1000));
     renderExchangeProductButtons(); renderExchangeBoard();
     if(dot) dot.className='live-dot error';
     console.warn('Livestock prices unavailable',error);
@@ -3051,9 +3075,9 @@ document.querySelectorAll('[data-news-filter]').forEach(button=>button.addEventL
 document.getElementById('refreshNewsBtn')?.addEventListener('click',()=>loadLivestockNews(true));
 window.addEventListener('DOMContentLoaded',()=>{
   loadWeather(false);
-  loadLivestockPrices(false);
+  tickLivestockPrices();
   loadLivestockNews(false);
-  setInterval(()=>loadLivestockPrices(false),60*1000);
+  setInterval(tickLivestockPrices,1000);
   setInterval(()=>loadLivestockNews(false),60*1000);
 });
 
