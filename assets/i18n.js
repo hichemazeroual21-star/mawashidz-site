@@ -438,6 +438,14 @@ function applyI18n(lang) {
     if (pack[key] != null) el.setAttribute('aria-label', pack[key]);
   });
 
+  const titleEl = document.querySelector('title[data-i18n]');
+  if (titleEl && pack[titleEl.dataset.i18n] != null) titleEl.textContent = pack[titleEl.dataset.i18n];
+
+  const metaDesc = document.querySelector('meta[data-i18n-content]');
+  if (metaDesc && pack[metaDesc.dataset.i18nContent] != null) metaDesc.setAttribute('content', pack[metaDesc.dataset.i18nContent]);
+
+  document.body.dataset.lang = lang;
+
   document.querySelectorAll('[data-lang]').forEach((btn) => {
     const code = btn.dataset.lang;
     btn.classList.toggle('active', code === lang);
