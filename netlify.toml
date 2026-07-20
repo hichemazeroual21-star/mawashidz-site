@@ -10,6 +10,11 @@
   to = "/.netlify/functions/news"
   status = 200
 
+[[redirects]]
+  from = "/api/livestock-prices"
+  to = "/.netlify/functions/prices"
+  status = 200
+
 [[headers]]
   for = "/*"
   [headers.values]

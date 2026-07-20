@@ -1,19 +1,28 @@
 /*
- * MawashiDZ — الأخبار المتخصصة لقطاع المواشي
- * تُستدعى عبر /api/livestock-news (انظر netlify.toml).
- * تجمع أخبارًا عربية مفلترة حسب التصنيف من Google News RSS (الجزائر).
+ * MawashiDZ — أخبار قطاع المواشي والزراعة (مصادر موثوقة + فلترة صارمة)
+ * /api/livestock-news
  */
 
 const CATEGORY_QUERIES = {
-  weather: 'الطقس الجزائر تحذير أرصاد',
-  feed: 'الأعلاف الجزائر أسعار الشعير',
-  livestock: 'المواشي الأغنام الجزائر',
+  weather: 'الطقس الجزائر تحذير أرصاد مربي',
+  feed: 'الأعلاف الجزائر أسعار الشعير الذرة',
+  livestock: 'المواشي الأغنام الأبقار الجزائر سوق',
   health: 'الصحة الحيوانية بيطري الجزائر تلقيح',
-  official: 'وزارة الفلاحة والتنمية الريفية الجزائر',
+  official: 'وزارة الفلاحة والتنمية الريفية الجزائر مواشي',
+  prices: 'أسعار اللحوم الأغنام الجزائر سوق الجملة',
 };
 
-const MAX_PER_CATEGORY = 4;
-const FETCH_TIMEOUT_MS = 8000;
+const TRUSTED_SOURCES = [
+  'madr.gov.dz', 'aps.dz', 'elwatan', 'liberte', 'echorouk', 'ennaharonline',
+  'google', 'woah', 'fao', 'meteo.dz', 'onab', 'interieur.gov.dz',
+];
+
+const LIVESTOCK_KEYWORDS = /مواشي|ماشية|أغنام|أغنام|ضأن|أبقار|بقر|عجول|عجول|ماعز|إبل|جمال|لحوم|لحم|أعلاف|شعير|ذرة|نخالة|فلاحة|زراع|بيطر|حيوان|تلقيح|مربي|مربّ|سلالة|ذبح|جزارة|سوق الجملة|ONAB|الفلاحة|الريف|مرعى|مراعي|أرصاد|طقس|أمطار|حرارة|جفاف/i;
+
+const EXCLUDE_KEYWORDS = /كرة|مباراة|فيديو|مسلسل|فنان|سياسة داخلية|انتخاب|جريمة|حادث مرور|فضيحة/i;
+
+const MAX_PER_CATEGORY = 5;
+const FETCH_TIMEOUT_MS = 9000;
 
 function decodeEntities(value) {
   return String(value || '')
@@ -23,30 +32,48 @@ function decodeEntities(value) {
     .replace(/&gt;/g, '>')
     .replace(/&quot;/g, '"')
     .replace(/&#39;|&apos;/g, "'")
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/\s+/g, ' ')
     .trim();
+}
+
+function isLivestockRelevant(title, description) {
+  const text = `${title} ${description}`;
+  if (EXCLUDE_KEYWORDS.test(text)) return false;
+  return LIVESTOCK_KEYWORDS.test(text);
+}
+
+function trustScore(source, url) {
+  const blob = `${source} ${url}`.toLowerCase();
+  if (TRUSTED_SOURCES.some((s) => blob.includes(s))) return 2;
+  return 1;
 }
 
 function parseRssItems(xml, category) {
   const items = [];
   const blocks = xml.match(/<item>[\s\S]*?<\/item>/g) || [];
-  for (const block of blocks.slice(0, MAX_PER_CATEGORY)) {
+  for (const block of blocks) {
     const pick = (tag) => {
       const m = block.match(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)</${tag}>`));
       return m ? decodeEntities(m[1]) : '';
     };
     const title = pick('title');
     const url = pick('link');
+    const description = pick('description') || pick('content:encoded') || '';
     if (!title || !url) continue;
+    if (!isLivestockRelevant(title, description)) continue;
+    const source = pick('source') || 'Google News';
     items.push({
       category,
       title,
-      description: '',
+      description: description.slice(0, 280),
       url,
-      source: pick('source') || 'Google News',
+      source,
       publishedAt: new Date(pick('pubDate') || Date.now()).toISOString(),
+      trust: trustScore(source, url),
     });
   }
-  return items;
+  return items.slice(0, MAX_PER_CATEGORY);
 }
 
 async function fetchCategory(category, query) {
@@ -56,7 +83,7 @@ async function fetchCategory(category, query) {
     const url = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=ar&gl=DZ&ceid=DZ:ar`;
     const response = await fetch(url, {
       signal: controller.signal,
-      headers: { 'User-Agent': 'MawashiDZ-NewsBot/1.0 (+https://mawashidz.com)' },
+      headers: { 'User-Agent': 'MawashiDZ-NewsBot/1.9 (+https://mawashidz.com)' },
     });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     return parseRssItems(await response.text(), category);
@@ -65,16 +92,31 @@ async function fetchCategory(category, query) {
   }
 }
 
+function dedupeItems(items) {
+  const seen = new Set();
+  return items.filter((item) => {
+    const key = item.title.replace(/\s+/g, ' ').trim().toLowerCase();
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
 export default async function handler() {
   const results = await Promise.allSettled(
     Object.entries(CATEGORY_QUERIES).map(([category, query]) => fetchCategory(category, query)),
   );
-  const items = results
-    .filter((r) => r.status === 'fulfilled')
-    .flatMap((r) => r.value)
-    .sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
+  const items = dedupeItems(
+    results
+      .filter((r) => r.status === 'fulfilled')
+      .flatMap((r) => r.value)
+      .sort((a, b) => {
+        const trustDiff = (b.trust || 0) - (a.trust || 0);
+        if (trustDiff) return trustDiff;
+        return new Date(b.publishedAt) - new Date(a.publishedAt);
+      }),
+  );
 
-  // لا نُرجع نجاحًا وهميًا: عند فشل كل المصادر نعيد 503 ليعرض الموقع حالته الحقيقية.
   if (!items.length) {
     return new Response(JSON.stringify({ error: 'news-sources-unavailable' }), {
       status: 503,
@@ -86,7 +128,7 @@ export default async function handler() {
     status: 200,
     headers: {
       'Content-Type': 'application/json; charset=utf-8',
-      'Cache-Control': 'public, max-age=900, stale-while-revalidate=1800',
+      'Cache-Control': 'public, max-age=300, stale-while-revalidate=600',
     },
   });
 }

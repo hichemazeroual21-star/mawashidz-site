@@ -8,6 +8,8 @@ Official website package with multilingual interface, automatic dark mode, and t
 - `assets/algeria_cities.json` — التقسيم الإداري الكامل: 58 ولاية، 548 دائرة، 1541 بلدية (مصدر محلي، مع CDN كاحتياط)
 - `netlify.toml` — إعدادات Netlify + تحويل `/api/livestock-news` إلى الدالة
 - `netlify/functions/news.mjs` — دالة جلب أخبار قطاع المواشي (تعمل على Netlify فقط؛ على GitHub Pages يُستعمل الاحتياط داخل الصفحة)
+- `netlify/functions/prices.mjs` — بورصة المواشي الحية: أسعار اللحوم والأعلاف لكل الولايات (تحديث كل دقيقة)
+- `assets/market-engine.js` — محرك الأسعار (fallback محلي على GitHub Pages)
 - `supabase/setup.sql` — إعداد قاعدة بيانات **جديدة** (مشروع فارغ)
 - `supabase/migrations/001_compatible_existing_db.sql` — ترحيل **آمن لقاعدة موجودة** (يضيف الناقص فقط)
 - `supabase/migrations/002_user_roles_rls.sql` — تفعيل RLS على `user_roles`

@@ -450,6 +450,25 @@ html[dir="ltr"] .brand-copy{text-align:left}
 .news-item{position:relative;overflow:hidden}.news-item .news-meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px}.news-item .news-category{display:inline-flex;padding:5px 9px;border-radius:999px;background:var(--mint);color:var(--g);font-size:.73rem;font-weight:950}.news-item time{color:var(--muted);font-size:.76rem;font-weight:750}.news-item h3{line-height:1.45}.news-item p{margin-bottom:8px}.news-source{font-size:.8rem;color:#55685c;font-weight:800}.news-empty{padding:24px;text-align:center;background:#fff;border:1px dashed var(--line);border-radius:18px;color:var(--muted)}
 .weather-alert{margin-top:10px;padding:10px 12px;border-radius:12px;background:#fff8df;color:#685419;border:1px solid #ead28b;font-size:.86rem;font-weight:850;line-height:1.6}.weather-alert.safe{background:#eaf7ef;color:#1e6140;border-color:#b9dac6}
 .news-disclaimer{margin-top:12px;color:#d9e6dc;font-size:.78rem;line-height:1.6}
+/* بورصة المواشي الحية */
+#exchange{background:linear-gradient(180deg,#f4faf6 0%,#fff 100%)}
+.exchange-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:0 0 14px}
+.exchange-state{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:.86rem;font-weight:800}
+.exchange-cheapest{background:linear-gradient(135deg,#1d6747,#2f8f62);color:#fff;border-radius:18px;padding:14px 18px;margin:0 0 16px;font-weight:900;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.exchange-cheapest small{opacity:.9;font-weight:700}
+.exchange-tabs,.exchange-products{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.exchange-tab,.exchange-product{border:1px solid var(--line);background:#fff;color:var(--g);padding:9px 13px;border-radius:999px;font:inherit;font-weight:900;cursor:pointer}
+.exchange-tab.active,.exchange-product.active{background:var(--g);color:#fff;border-color:var(--g)}
+.exchange-board{background:#fff;border:1px solid var(--line);border-radius:18px;overflow:hidden}
+.exchange-table{width:100%;border-collapse:collapse;font-size:.9rem}
+.exchange-table th,.exchange-table td{padding:11px 12px;border-bottom:1px solid var(--line);text-align:right}
+.exchange-table th{background:#f3f8f4;color:var(--g);font-size:.78rem}
+.exchange-table tr.cheapest{background:#e8f6ee}
+.exchange-table tr.cheapest td:first-child{font-weight:950;color:var(--g)}
+.exchange-change.up{color:#c0392b;font-weight:900}.exchange-change.down{color:#1d8a4d;font-weight:900}.exchange-change.flat{color:var(--muted)}
+.exchange-disclaimer{margin-top:12px;color:var(--muted);font-size:.78rem;line-height:1.6}
+.exchange-link{display:inline-block;margin-top:10px;color:var(--g2);font-weight:900}
+@media(max-width:620px){.exchange-table{font-size:.82rem}.exchange-table th,.exchange-table td{padding:9px 8px}.exchange-cheapest{font-size:.92rem}}
 @media(max-width:620px){.news-toolbar{align-items:stretch}.news-filters{overflow-x:auto;flex-wrap:nowrap;padding-bottom:4px}.news-filter{flex:0 0 auto}.news-state{justify-content:center}.news-item h3{font-size:1rem}}
 
 
@@ -941,9 +960,10 @@ footer{background:#0b100d}
 #bioField[hidden]{display:none!important}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-<script src="assets/i18n.js?v=1.8.0"></script>
-<script src="assets/i18n-content.js?v=1.8.0"></script>
+<script src="assets/i18n.js?v=1.9.0"></script>
+<script src="assets/i18n-content.js?v=1.9.0"></script>
 <script src="assets/algeria-location-normalize.js"></script>
+<script src="assets/market-engine.js"></script>
 
 <style id="mdz-v10-responsive-hero-footer">
 .hero{
@@ -1284,7 +1304,7 @@ footer .foot{align-items:start}
 </style>
 
 <style id="mdz-v17-header-final">
-/* ===== MawashiDZ v1.8.0 — بنية الهيدر النهائية (مصدر وحيد للتخطيط بدل طبقات الإصلاح السابقة) =====
+/* ===== MawashiDZ v1.9.0 — بنية الهيدر النهائية (مصدر وحيد للتخطيط بدل طبقات الإصلاح السابقة) =====
    Desktop (>920px): شريط أفقي — العلامة يمينًا، الروابط، اللغات، ثم الأزرار يسارًا.
    Tablet (761–920px): نفس الشريط بدون قائمة اللغات.
    Mobile (≤760px): شبكة من صفّين — [قائمة | سجّل الآن | ... | العلامة يمينًا] ثم اللغات وسط الصف الثاني. */
@@ -1390,7 +1410,7 @@ footer .foot{align-items:start}
  <div class="wrap nav">
   <a class="brand" href="#home"><img class="brand-logo" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAKAAAACiCAMAAADx2TYUAAABCGlDQ1BJQ0MgUHJvZmlsZQAAeJxjYGA8wQAELAYMDLl5JUVB7k4KEZFRCuwPGBiBEAwSk4sLGHADoKpv1yBqL+viUYcLcKakFicD6Q9ArFIEtBxopAiQLZIOYWuA2EkQtg2IXV5SUAJkB4DYRSFBzkB2CpCtkY7ETkJiJxcUgdT3ANk2uTmlyQh3M/Ck5oUGA2kOIJZhKGYIYnBncAL5H6IkfxEDg8VXBgbmCQixpJkMDNtbGRgkbiHEVBYwMPC3MDBsO48QQ4RJQWJRIliIBYiZ0tIYGD4tZ2DgjWRgEL7AwMAVDQsIHG5TALvNnSEfCNMZchhSgSKeDHkMyQx6QJYRgwGDIYMZAKbWPz9HbOBQAAAB4FBMVEVeWCAgFhEwLwghKBDJtVI4jkVjAABxcXGbmjIkMBFBLAVdXRVVThhjrDunnUfY24EbcR4A//9PPgqqVQCqVVWAyjz/AAD/AP//fwDfxDrhzmEBUycAAAADSiX12FL552sJRRkGOhb54lnuykbOx1VNaCjUqC8FVBsnShgzVySytlJKqDD883aNmEdyhTfu3GWYpE0xVBswly4AOwBnujDsxTunqEzY1mpneTFXcy8FKhEPZydYtC7atDUsiC+NljoDJxADGAfkuDXLymX89obJu0sDJQ8FGQdyxDUXdSrY01kEJA8EBgCHijUFPCE5oS0ndysAVQCxljJHmTKvuGQDEwQ1ZSm7xWUVZBoAfwAahyxwh0TJmyuoozxPZR3t6oUCIw4pTCMEHAp6lUmSdyRJWBuviSpHXCZJOQttVxe8wlgEMBYA/wA7OwBVVQCKayMIFAI0JgVNhTFjTBVUSBJ9kTwFHAwnGgJGNwt2xEX///8AAP90YxpmfULb4nMjFQAyKggwZh1GNQpWhEVzZiQEIAozJwEqdh5vvEWatFkRCwAPCQAGKQZ/fwDhqzXx0j0RBgAANzcoKABHNgpbRRBGlkJSqEmBZBeOdRuCjUSmfyeorWPnvUL//wADHQwHGgeSfahJAAAAoHRSTlPoGONo/v8CAv+a8QWS/////wF2AwP/AQEC///+AP7+/v7+/v/+/v7+/v/////+/v////8E//////7/8/7//v//0VH+/v/+sm3///+OK/7+//8D/v//MP///wL///7///9v/or//vz+/vT3/94BBAP8FbD/+fj/royw/wEB+///bfH/1f/9WY////9KZQkC/f+IBAaL1f///f//////AcTza+gd4gAAH0RJREFUeNrFXQdj28ix5l0u9aW83ogFdkFAACmCJFRYLVISRcmqllVtS+7d8dk+n32995rkpff81TczuyABEpAoW77DJbIskcDHKd98M7uAU9qxHONn4cvKleU6HMsz8kfHc+bUMZzjNH5ZWZivC85ZmnFRn7+yTb84/e0DPEvgtl8BdCwdHIxAPrdCLxj/9gDKS8+Q6XroQiDnL830TPwNAxy/K9FNT4Nf0wkHYJyeVhE5/k0CVKZbnv55jOliQD5N2qSeEF28XxMx1pcXnhDj0QDKtATTUb4mIxr8CRNgyCdJ7dQRE1abOdB0CITzLIt7AWdiWtLP2SOkduooOTFzJRmdQ7507UIrt/v5DkvEH3Dk3fFjAzh+umc6foBfBa/9wNJNc6ngH/QyADk9P7MyLP0cAlCxw8ylaSHYgTnBRK2jm7pe9FxxaGZjal/aHiptUocVWKhhy/VDwGGAXS+bAM+0bDFUblOxGYZ+UoewCYFjhxNJYQng6UbOF+nhD4jI6YUH5OzxIwGUTLCNXMfYUETX0vVfgv3KLo/m7ZAceUBEphK1yaFR17uI29IzGTBgx2WRa/vOUB+vl9ox9JOKY5OPp+vDglP2m5wEfEU7Yj/mf/5wSIdT1sSndqo/J6hMsEGSPSA/qtbkZEbPFMtRdlmr5UsHUTqLiciPZ/qVRSpCdujYmHNysZNOvpLfAXwZMGEtClB4+XYyI7IsFwcoi27WhCx4aV7EUwT3S+/sJALkrczkJJrQin405rYNo8rT8bHCshViJCcuIpWyCAPcXp5PzAluW4aRTQLIfWsyAxbM6C2RDl+P1wzTLPHEwF0yjUK8QbCgq6wJAC6AY1kixRVN3fCTAAoyIEDUq6J3fpAMopTXzYoP34i1GMHNLdM0PHlVJ5Z+lkMA68k5wPYMLGBJAJnbIQcDy9hrynl7BTxaRQPeV4bvqoW9AQcgQN00DsqiegjgdIKp0b8VAwRA2004Ea9lZtHBIYC8ZBimAf+n2mcSjkFCFDlDhxe1wHUJ2vLnhwFkbAcAlPIGnGmLJ3u4C5BJbzHXK2LdowN/s7Q6gIClRcFEgEUbLvMwFuFhAJlbKjHmFw0EWE0CyF+YnMUUhqNL04wVKmYXoN6xY0IQIqGIAPNlzmqVVgxCdghAxr18Di5loLNyPDGFZAgiFqJBJinXbkuEQI+lBC4UZTy10fbXbMPwYj7DIQAheY0cB7LFs9jJbNGZnKUU0c1CiHiFrQyol5PkF3u/QghtYYOLCgOszaaTspjYk/l3THMXuQLi3VtL1gkdyuEMSpmQFUTLJHi/7KfvSIksAtMAwBqkYXuQJnoWPK0tDxq4BjFcyZIFPYGJxpJdTB7WrV6mA4noiBklYi1eMDjQQ9Uqhpm36wXgI6PA+wnxIBdDDFeRHvDT5Wwh/IelWgLAXBdgCApHD5t3zltFMGwsQPbwsc9FtpD7PCtaCBDqUJ+twy6eZ/2FnBEL1ES2xutZD6qqnVAHyxkZgiinu1cQnqnnCq7wvSVzKZZCedWwyjWBFUyUJMDsDk9w8bh2KXIOfmHXF2TBGviB7VXAzVYCU4tVXQGEeKqqcs78yhLAwwbOzr3zIY8t4fCOYhkZSAL0hL0bjcMDAJbyBVHT0cVAhDkiwlxCHjNblx7GgA/UFd8p+TJ5IXjtndi3CgveY1Su8jRfBYBQyfegrMTTTB9AlrXMnMjCCQCgg/iMKIdE09jqGhBYV3AlRlk3mBOyGCuJLqsxZLHezoqOaYVNmAwQ0h/Uu4A20nIhgOHC8H43Uc2s6sSCxGlzZb522JgmuArPmTrkEATf5bZZzAm7GO0ZDgDoUUhUi0ZJ+Og5qHa1ZGXsW118gHArK9gh0LqZvkRaAqjisVmsiTKcZlXEEnU/wPPwxjZ3LXirZ+C1K9UDmh/ylQSYzxt5w/OTxWVfImdQ7xhl4Vu7/CbyejgIowAj0VmWpHZ1i2crGPqlnYOmBSCvzC5AQJivlGyX08EOs2EJmJrYtobEpOvlJIALPJLEktR2dvjD/FK5kBUHTzOYm1MOzqs/jXau5BWqHx7iZiY4MLVllCDX+R39QIAi0gVhUFVusjRfv5pF9W7vHXwhP0AojyLYE426d8i4qVbzRV34NshOtlNBF3uh4EgACC/gNYr6PYGfEUpJKVfZPdhbzC+R9dDFCJBoZ6l6yBiJe4aVU/5hkDEZbGuysqSyiOQPA+Qf1jhSIBIUUEGtTFFSEIdNgWq7ATyDhH7R8w8bcwH/YQKWq64A7gWAugXipFsv2XwcQO7vljgGrGlcFRxcR7qzfZkfOv7g1b/8bC7AuFS6OcQUzrdk+ltVzpw2XMerZ60uWbNLNGEL2s4AYMqEjwFaBHpuAfikCigMMWKBaHBtb6vdtnJe1R9qSMhbRSRC06zYggN1LNl1r9c5sIVYgC296IFMNfXKjiggCQK+LffwAaGckOAEHZtiNhRVM79NFAqU4Yoq5DAQomqvWSJAoBj4PL4FNOPnilKI3jzCUFJV4eFGY7xADoIaV1vzLSivBX1Sr/IYgFowFEBLQ4skqkDUWIrkUHd4dJxfFkMv8ODUAnMQKyvjV6+iASf1IJ54AsAMxRyH9K9igBRzO3xYcECYha1db8++zIfEyLjdslCMUO5CcgLVBABFHEAUyBndAO0C14M6bJWqGH9DzKgpRXKyT3tn17NdMVSesDXut+5A9wO5i2QNFqyuHQpQz+OnAHPYwPRr/IDSz4LkyBZK7aLkaIR48WKl9DZQMD9M2OyAZBeXIfuzDIkb28Mgi9diADIc9iFAWTkgHe3q43Ipyw6mFyioFVlBikWsKIg0Pzf3s629SBmPGQ5kc+Aj/CC4eAYCEQB2ebAPIAtmQRa2i+9cRse6e7t4XVT7LNZ26Fm/sIUyywBs+OdWuZIPNEN+7iJhTLQj4+exuS3R2go0iFjtupUkClB17tiCYOIbEHk8u5vHuoWdQvwkFMOubXTxGJWtAsQEf3urW/XAjhe30NdrLHYKSMIJJwMuXIPvGsgy8NGRq5iYCU9YJUC+4wqkJqPiMv5+Ow9dDXbvPK6ycb9aljkhtWC7hIlBnZygXymQiJGShscsCPFCkdp7I+czAqhbvnh/D6NeaYUIQDCyBzUH6o8FL4E6h5VIzj2cPj7JFrYAgqHLnKjk9ihtWc+4vu3tVoy5OUQJGOfapVqWDaQbSEk8BbjpKmQLVtaCcHPk5QjAcTX7gJcAP1s6NCPQWBNNG1vRk4LpssAnJE4lujaEOZcqPyTmcN0Yk+cigCMhNncRdAu9MDr/XMKOFSx3GcwDrMtEy8y5gwAvKYBmzgeEAJOVCKCxSw5W9Qs8m61KPlFtyK5XyybPbQBjDaIU7Kg6FjR1pBVgorAk52A2Em/Zx5qcwxRNL2v/N2BByCO97AJtwCXvUB1/we9NJQW/WSgvScFXJMd69iGNB77JtffQkEEqwbtASPfCAXgDSz7Ib14DpXfd0jM0JmPfiQNYBtVY4mscm3es4sHwEegE0OUUOvTsEmhhPlRFY1AtyJAUFPjmolXqOZuJbAvyxPRIwENMTuo0WWc/jAEoygawoIe8Z8N5cjg5obR0a15Ol+KV2tBS1e85lg2zpikNaUiM4IFKbtUmhgQ+g2pn5SVAr0gLLpjFy3JFWAG8ItSUAN8Mgoe/3S7YFPdgpgulJZrYS3RtL5yxw9TbXg+HhpSTTWwLcgUf9xigCVzvQ5ySeEXk6sci3QdQ07aFapdw1fIOmtgh9cnYzp0lNQynz12w+XAyIKEsgnzJLRXVCc2lMtY4pB+Bf+AkM6MkK7+iAL7YLcYA8EImWFaFjPVbVMJzVMLBglYZPvHwYi9R9wD9lCw1YTdq0JjtFtw1ObQD605OymosIkth2gOyCvJmRo5jMbsMnC8LGzpWCxqNIzr2wNSGIgmGxDYJjOcapvU2R/8Z5P2WDLdgMfHV7XCtK+DgG5skZsPHKWHlYlchJXy2tnYs6MLOLpRKPgpPyzTb4CscpoOH1ahU0F6G5x6kUi9pX2un1RCYEdFAx0kjIbMgVQZfYzx97Ac4Wy6CibJJnQgBpBQNVuruad95L5X6QHsj4Bkw803kPxx7tnpL/E76GR2kWoA7gNweA0CbZtVS3EHbfhqAPX8r9dFt7W8EkIwFrrVMFNTUp2aD5Wj2LNAFW6pYjYKRJg0VKGIkeyTLrLz8KHX//hfaczhbwA9Tc4A1fzAHruUd2ckwxp6Z/bprRpAuObhQLW/VIH88XDZFgC9qM/dfTt2+9ir4mjQ1SCxc+BMgjJhj4TDsmYEL/Etf3CVaBeJ2CYq03aFBhgAa/Fp76dqj1Ms3PtD+G4xZRxFbNi1cSuBysBus8DGaFogoQTtpJkI/7r5GHWGJE/4dj3wvUXK4loWUC29CcVODnyMNfq19cONR6tbGyyv/qZ3VpuGl4ryuYxSoyXNBKi3oqUvyqIaFFRB/ycOfetTx7JVCh+cVajtc0ia8f6+sfup5LY++0lHgXeoAgJgcolVEUS0BvgghuHEr9aONt1be/J7MEjmxx+VnHIfpapGYuZVAKvV2PgEk+yJOs0CJZrFUbeFf5ugneVL70B3TiAsAbs0FbYvZXekOLe6JlkxIGoVk6MfIMi+++cX9jfdS792AIHxxXHsFAK7VsBQWC0pu1QKAljptaMwFkLwANp5blPKhEavqUyrYDGEnYdAARi7AT9IxOzub6fhyQQUAZpZs+MhVPejrgGUgR166ceOT1G9ubHyg3UM9w3DZCGt4BXxGAFkEIHQod3ppw9xdBamIfbMoKStJ80EXSg3NFrqLbYUBygMQZmTv0QVI19Tl7AMB3tN+u3/t1dQnfxx5GfdMYZZwt5ORsxmWbYcBBk4xeoMk4H0jDmD5T1e9cluaERDuukBsuTnldhwGKivOTurQWDAnWAuy+VqtmNHpO+o5f619+YeR+6+mZuDru9o9Wey4RyrIE30WlPBM7KaCVX/+l66IzyIBKBcX3TqN3eXODxO3YwDBeX96vIpHobC62lIAMy1BdUCFvs3EYxPx5ZCoKUdeujHyh1+ltLdGbrymvXha+zsGof2/iBBUTBxAaL+MrKQGaOuLRghgLwazTOqVAtoQ3Jz/k1B8VKcvdUCTQXwdcjBTuQkuFiUKQVQqbFo7+30tNbJ/eyW18mh//2U5pyZD4GuW3ASAuETGqPypzQw9gGXlYlf+nomqlPdmMbKpAse2CDCjXxDh5T7gQRQqKochBB9oX94f2b8FevDWxsi1d8Hj23Xivztg5YrP/UgWd5kBJ3NUo4h6zBgLKoBpuU6t6/IzybqGKriN+DJ/lY1HFyASNc5mcBVTzmX+SXttYwSKSEr7zY2RjR9pf5MbF6DedLBJFdlYgBBToMeRVar5BICXmZIBa1m5eca0eiNGrFUYghnK4ECHBABRn9CaONWRldsjI3/+BABCKI4AV3+FRIMBcT2HKBBgNcqDRVOt+2OVa4dYL8KD2UBgwAWNXurLuYOoSirMZEgQRC0IPSXt2IP/ph/8Wnv1xsj+/QUAuHB/ZGTjJTDpspBTJbdQeSxQzRTCAM3zcL0iLf3hthi0XrsTD5By03HEngLYEsFgwm+r3VKtcF3HSoIAt3IYrg6tgr0BJLgPOQIA0ZRAhf+izQilL4RtcxwyBLWSXGxuvGWYWCIgpJjIIZzyakwlCQBijyFXCcxcAFCGJRgwF1nYEB4WYGgg3SAQPtbenIEU2U9p30/9beXWPjn7+9splfgkEHJdNaMAlp+3oCCYGHLiJlnu5mq+B9CLAsRzXKjIyA3iTdBACjyMnmTRKSGynyosUC++o2GK7AP/fQ1t50sbIyP7j8CoqWANRSkMteNFAczVqwbtTCgIQAPf5OoSVDFCM1mmMlatxetEqzLzMVSUg53I3hsdxx0BZHb55hdvrnwEfr326psvAsAr10b2kWm0H5d7lseeRA5xgizOCRe3EhYN+gaAVg8DmO0BhJoWODjTt90abI3aM8Q6NeiFfwhWg9zVvpcCy91+AdLklvbmQrkqgtTCSauKlAAgpw0CUEAuVJFh7rhKz1RiAaalZCPb856DUc9V11i4zyFLr4bmXd5rlBj7+49WwK3av2uv7aM5F7QvVzu9vUNVCtwIwDXcYgFUmLOwyKKnQ0kSA1DtgJMA2WUiq0xG798Wynwd15e6Vy789N3vIfcht9wDgNB8rk7BX29p2vWijEJkLDz7BR4CCOCBqXDHJ6oAE8fYrUQLpmWx62Zx4GDUo/37CRlOhHq7I/32RyvayyNosxkCiJwNAH8BJnzNsrqVChtkWS4DgC5D+tPVpjYImogFS4MAW71a5wRosUr1NdoQTViKu5xjvaZ98mfAN3VbzWbe0D4YmRr5BRTmdze6e0GZi0wdBmi5cs4tF/yNrEhHYnAQIM/1KgnEo1LlOHmJtrLE00HeMNs8/+4KGXDkN9q/EcB72qursxSFK9eMnCqcmPtqZ13XxVwGuokl+S8QM1GA+T6AoGhNqS+Q4spmqA+JxiCyTK7bQObMj1YoAmevrfzXvWC6dX0KbAhRmJJWI4Aevi1EMx0XL0RL0KasrwrgYC0Odsp3Gxn4YBIgiZWwAen0uKOHBWos82OqbSMj74U3OG7MAsRrC//aAe3Be2lMV+u6GKtgQc6Z7yArRACWJcCLWdlqqqSAj9KBl7q7Kl88EVqpoIKTFhcwieVEhl+39I0vn0cOnHrrlTcCgPe0hetTU2DC3/5qwww+DG2iJHEWALyMp3TlrUFImCwOoOFLAd3d71C5TsEqHdxxxVqvbefUktAye00BhPp1/1fXEN/GewshCz5X38AoXH3+LdzaICWP39HN1QBghiyIOssDislvkQaNZrECWPVt2y6Uiwof+lTYwbbqzga08OfVUX5MvhZl6SrazQXf3rqF/u1c/8dXYYD/eNRBLrx9qyMLCMqFstIhgQWJv7hfrRYK2TXJCDExGHToMtcrmMGX2+F2vbtHXe9cDs4u5QRt2Cm/t4oGXK3Py3tz1JT/lfq1DnL3rQ0IZLkHjXY8IKgQQJqkyLXLEEC/H6DEgyu5uFmPBw7u64snpxCguA4e9miuT6l+DTNk6rxbfy4yo56pP78BXDjyxz/q5GQVhLTxsguQ9fLPofAGd8N/xQjNULdJvUClbMtbynMRA4IclMOFSVryQpqWc32BS5/6DciQqY4tpvvuyJmuX0cn7//A6nYRUMPBx11FPbAVm8USNZq0UmnnPFxJl8OrkmL3sB0ty9LLVFOhl6Oij1sw4VeYwZ1VsaZWIRTAr0Dviyoi3BjRac8hk5JwieIRwt6uRm8ZIGGZrcEvarbsk2t2Df+Kh5/FKVtXf/o79uBx4cIFH+FftuTtbqrzAeU3Mlt2RbAK0bXgTJ2Jjf9BG6p9+YwUF/JJmvahxy2Q4DJUcDcIchC+Th3RW8oSDkW3FILUYpmZEelgnM1EAI5r88BxU8g1U0H95Nk2Vjv27IboUu5TCJKyMHVkmAxoQ7EwcF8dtEziAnENmbCywym6l3wxzHLhcJu1+rfz05boX9JidgE6Ml3Hy8/+FJw1rW637gGkEauoWvgSKeJczuVayQH4nDR7ulUK8HAGMlHgjUmBg921kAFD99XNrAHCVgbcPEtOhkiFNtYMWjLGFhsxyzmssdhoPMViDuSwWajfbCsH/2IWt4qx+vYgQDIhd8sZKMoZUyHEgqpGgoyvN8/ExNDi2Nii86TrJNzGDfNutkJUPjUyO5XBKi8WYu7tHNc+xvn+9c7krHQykg3IP8NTAJ3m5th6LMBmgz2B7dKNRgN6x4yx8YjwmX9FfDhyCPZTDNwdO01ThQ4or1ml1R+1i0pzpfn66OjY4N1nDC7z3QY/MjxnEY5G9g4YMPVCHsfLmZGpKdyuABiuxAIchyh0oLkBvp5FJ+N+m482DHWvTJo3mmPN2BsvnMZRV3AAXrMJAB0gQeP8eQNlI+CbnSxTXZhOvL94mhi5YIENM7Stx6pWdEN1n47TGNqVB+yYAw3YWIfPeu4cJB1WaaqjaL/ZTOc6bVxY0Mbj7y+m8RGmsoWJQh1m63z4Vo0hdy06v2uurzs8wbfgiTHEd25RTpeokdUx/nBk46R7RWTAglRO8OMD2QBf4zv180SJUWTO+oFBx/jm6xOvP3SS4QFAcHHalTIHhwFTU7OztApH8/NEF599UCcxLSRC3PRObUVkm7LD+Xebg4V5vef/5gQcr6+rD9Ho+d1ZHxsdk0ezEcxCcDA6gvhqhG8tasAowNPoZEK4mpmdRYQmOTpyQ1Mj3djcXDzTlxmNsWb3PpLfjU589tlokPFBo83PNEdHR08peA5n7h0lu4Ggp2Y7HxE+oJizB92Er83L5WRZUiaVPI6YsDEG1xk98fs+FzpOyMbNz84oG3OnKbtYeNsJeN/Y2KlTY4tp2RPqsskGfFPWBSE3ES30PRei/zEGK3W5DCJtOCURmkuheQpzEODmen+MhcKSn9ns7shvfOgArzQ2TyA8PKDwYI7zLMWPCfwC9iN8aYet/f3BYc9ZWMCOF9u3goXqS65Qhm6ZA3us//PYGOeHCZVe+8udzZMnFb6xhqNWKXbx/mLkl9mpyc4F+TwMVn9w+IMgXlGDYGDs2dmpKX3QyZw3xw67l6ULkYM5T56cmDiBx2YjIEixl6dZY8B/8Aa85szA8ypiHqUxrcbgIA8zEiFwYWijKJi32XRU4HXriOPE2ZApeARwc6dL3+hg7KxAmkxlcvLeBAC4PPhgkhiA23WuVrOu56A7nMJkhl495FRQXooQm+vN3xEpOuvfHVSwCG+C4MExCtwt8YE+41t0u94k8F/mvKvMyqe18aEeRjITfCDhb6ANM8WEm174+u8hrBYJeWMxpqg9nJDmmzip4AESqMHYKiO+v8K5rVW1dQEC8IvhnpYCbbxQtzVwt4Ut9lQx6C773NgAiTMqJQQbhNec+A8Fb6JJ8ADKYvMc4Ku9g/jQfFA+OK3iAb6ZYR/nclqbl5NgmcwZiTAfd1vJGQD4+8ZgVYNys/6Tk9J8Abw0ihiQtw3oxgJ8HaI/2WXPxD4ZJxX/fKj54H51mSqzkzrduTmAsDl2xllfH9wFzte7zn19M4C3TlWkwV1cp9InJyf1891bd5LwJTyx5yyuv2Peow39cgbOhfeWlgYROnKG1gfv/dHXT6LpACUyC7mjIetwg+OTEUycgCwVeuwqXjniI4VWKJUpuzhuJZ6kZw6UBI+tbk5UwQape/L1UVnyqBBvospalPf109L1hd7n5fNJTz5KfijTdHe1BW9jlgjnQhNSSJFG3PZ8Z30USY9Sd0fBc5qjZD7QWMK7KPGVek+XYmJeu3tEC47LFXi1rCXcVTlPA4S8iy+g64h3G6OyaAC8T0FgyXZrVOIbO5cWV+doq4AVui0Q8Z19gsdazYQebsDBiHhHZA9hk4TxQAvVBFFA+DB1pbZYRxlz6hTFn7h6kaaH5etD4jsA4GltO3RvvsPdQoVubpBeZotok1ORLgU9SZoA4G2e6cGjn506Bd0pDuxwu241slv+IHyHPLks/PQAJm7SHZxzHpe1rYkWDANsbCpFNTEqqy6QIThc/mwTVBaH+DNN3N8exjfz5I9WuxsgVOKT19r5vHFRrgZiH3qGRcwnjxOjyrtYiTEg8YdNVIU45MxbtbBUQ3x3n/zZb3clY/fOBn6ey88F65Uh2Y+K+dSpU4hP1Q2oxJ+dxHAcRZmFY5US5G/Rc8P9DNa3r57u6XmvRMgZaNt7Z25uq+9uVErUUxJgwHyfniB4iBAtKtytubyRkzeldlXX9FM/3u9sJJlVPl+ca0duB3Sk+RDfeiC0Hp5U+CY20eHcb89d3LKjQnwIfIdbENr56f6bct7enbtY61rWcZpIIoiveUbd3nFm9OSEZJvR9+mGgmxlrv027/PGpeN6guN8tAZDKO61L14NYqkxJntJ6Nao1YR0WKdad0IKGbqrpVLZ63suIZueOb5HTF7qUwkQ8XuVz3ck3SA+/F9TdcJdlT/xmWRDxq7u9t+wjew31DNFh3wG5sx0H0TO3auf1zA7eubrKS2pFCbWZcjxD69mRTSreH3hWB/SOT5oRECSXQfy644y1D4qaDGlkjm5GcyPnP4nyTCxvK2NHydAacTBh3s1Anwy+iS5KHyfhlvp6PvqM0Nf9UgPil2OGtFpQINxjsx3JjBfE1MD4Y06SdvYuVhe0cafCUCgxBDExuI5OtB8XXKR3HLy9YeJz8ESaL7xZ2NBOO2VevfKCiBOqtI9XYUAT/7k/UTz1a8c8enPR35Ycc/PDkHsms9pgiogbt50kh7vU19+8Iyfpgwffns+DDFQ/UB+J5TU+jTBfExMzxz9ecpHtuA4PnR3oLvji0pqTWwmZMeTwXuiB2bfRcrh0eFlgO+EHA478fC+yUeOL4Q1DpYT1AonRs/Emk/Cu/sNP7T9Uq964UQDEI6OOdxx4uBd0Q5qO57ZU+WXFcQGHOcA4Hrc2FVa7+wTX+TJAeJNW5fqPEC4uH6Gx5aNp4L39P9wAEFEgGknJjPqy9rTHk8HcJzShUfap5Bv8SnJ498qwC5EPnhfJPHK6W/ZggHEmYGmgJ7oexz/wMZx/esa28tdGYGht6Id17//kTqWsxAJfzxPq1ng25Xj8O3xAlSenhZifvvYjEfH/wN2PtP97ISWxAAAAABJRU5ErkJggg==" alt="شعار مواشي ديزاد" aria-label="شعار مواشي ديزاد"><span class="brand-copy"><span>MawashiDZ</span><small class="brand-tagline" data-i18n="brandTagline">المنصة الرقمية الموثوقة لقطاع المواشي في الجزائر</small></span></a>
   <nav class="desktop">
-   <a href="#founding-launch" data-i18n="navFounders">المؤسسون</a><a href="#mdz-passport" data-i18n="navPassport">هوية MDZ</a><a href="#market" data-i18n="navMarket">السوق</a><a href="#how" data-i18n="navHow">كيف تعمل؟</a><a href="#trust-public" data-i18n="navTrust">الثقة</a><a href="#services" data-i18n="navServices">الخدمات</a><a href="#news" data-i18n="navNews">الأخبار</a><a href="#managers" data-i18n="navManagers">مدراء الولايات</a>
+   <a href="#founding-launch" data-i18n="navFounders">المؤسسون</a><a href="#mdz-passport" data-i18n="navPassport">هوية MDZ</a><a href="#market" data-i18n="navMarket">السوق</a><a href="#exchange" data-i18n="navExchange">بورصة المواشي</a><a href="#how" data-i18n="navHow">كيف تعمل؟</a><a href="#trust-public" data-i18n="navTrust">الثقة</a><a href="#services" data-i18n="navServices">الخدمات</a><a href="#news" data-i18n="navNews">الأخبار</a><a href="#managers" data-i18n="navManagers">مدراء الولايات</a>
   </nav>
 
   <div class="header-languages" aria-label="Languages">
@@ -1414,6 +1434,7 @@ footer .foot{align-items:start}
   <div class="menu-grid">
    <a href="#home" onclick="toggleMenu(false)" data-i18n="drawerHome">الرئيسية</a><a href="#founding-launch" onclick="toggleMenu(false)" data-i18n="drawerFounding">التسجيل المؤسس</a>
    <a href="#market" onclick="toggleMenu(false)" data-i18n="drawerMarket">سوق المواشي</a>
+   <a href="#exchange" onclick="toggleMenu(false)" data-i18n="drawerExchange">بورصة المواشي</a>
    <a href="#services" onclick="toggleMenu(false)" data-i18n="drawerServices">البياطرة والأعلاف</a>
    <a href="#news" onclick="toggleMenu(false)" data-i18n="drawerNews">الأخبار والأسعار</a>
    <a href="#managers" onclick="toggleMenu(false)" data-i18n="drawerManagers">مدراء الولايات</a>
@@ -1583,11 +1604,33 @@ footer .foot{align-items:start}
  <div class="wrap">
   <div class="head"><div><h2><span data-i18n="pulseTitle">نبض السوق اليومي</span></h2><p><span data-i18n="pulseDesc">مركز معلومات يعود له الزائر يومياً: أسعار، طقس، صحة وأخبار موثقة.</span></p></div></div>
   <div class="pulse-grid">
-   <div class="pulse-box"><b><span data-i18n="pulse1Title">أسعار الأعلاف</span></b><span><span data-i18n="pulse1P">عرض الأسعار حسب الولاية والمورد وتاريخ التحديث.</span></span></div>
+   <div class="pulse-box"><b><span data-i18n="pulse1Title">أسعار الأعلاف</span></b><span id="pulsePriceSummary" data-i18n="pulse1P">عرض الأسعار حسب الولاية والمورد وتاريخ التحديث.</span><a class="exchange-link" href="#exchange" data-i18n="exchangeViewBoard">عرض البورصة الكاملة</a></div>
    <div class="pulse-box"><b><span data-i18n="pulse2Title">الطقس الزراعي</span></b><span id="weatherText" data-i18n="weatherLoading">جاري تحديث الطقس...</span><div id="weatherAlert" class="weather-alert" style="display:none"></div><button class="btn light" id="weatherUpdateBtn" style="margin-top:12px" onclick="loadWeather(true)" data-i18n="weatherUpdate">تحديث حسب موقعي</button></div>
    <div class="pulse-box"><b><span data-i18n="pulse3Title">تنبيه صحي</span></b><span><span data-i18n="pulse3P">لا يُنشر أي تنبيه إلا مع المصدر والتاريخ والولاية.</span></span></div>
    <div class="pulse-box"><b><span data-i18n="pulse4Title">طلبات السوق</span></b><span><span data-i18n="pulse4P">طلبات شراء وبيع جماعية بعد تفعيل الحسابات.</span></span></div>
   </div>
+ </div>
+</section>
+
+<section id="exchange">
+ <div class="wrap">
+  <div class="head"><div><h2 data-i18n="exchangeTitle">بورصة المواشي الحية</h2><p data-i18n="exchangeDesc">أسعار اللحوم والأعلاف في كل الولايات — تحديث كل دقيقة مع إبراز أرخص ولاية لكل منتج.</p></div></div>
+  <div class="exchange-toolbar">
+   <div class="exchange-tabs" role="tablist">
+    <button class="exchange-tab active" type="button" data-exchange-tab="meat" data-i18n="exchangeMeatTab">اللحوم</button>
+    <button class="exchange-tab" type="button" data-exchange-tab="feed" data-i18n="exchangeFeedTab">الأعلاف</button>
+   </div>
+   <div class="exchange-state"><span class="live-dot loading" id="exchangeLiveDot"></span><span id="exchangeStatus" data-i18n="exchangeLoading">جاري تحديث الأسعار...</span><button class="btn ghost" type="button" id="refreshExchangeBtn" data-i18n="exchangeRefresh">تحديث الآن</button></div>
+  </div>
+  <div class="exchange-products" id="exchangeProducts" aria-label="Products"></div>
+  <div class="exchange-cheapest" id="exchangeCheapest" hidden><span id="exchangeCheapestText"></span><small id="exchangeCheapestSource"></small></div>
+  <div class="exchange-board">
+   <table class="exchange-table">
+    <thead><tr><th data-i18n="exchangeWilaya">الولاية</th><th data-i18n="exchangePrice">السعر (دج/كغ)</th><th data-i18n="exchangeChange">التغيير</th><th data-i18n="exchangeSource">المصدر</th></tr></thead>
+    <tbody id="exchangeTableBody"><tr><td colspan="4" data-i18n="exchangeLoading">جاري تحديث الأسعار...</td></tr></tbody>
+   </table>
+  </div>
+  <p class="exchange-disclaimer" data-i18n="exchangeDisclaimer">مؤشر مرجعي وطني مبني على متوسطات السوق والمصادر الرسمية. يُحدَّث كل دقيقة. للقرارات المالية راجع المصدر الرسمي.</p>
  </div>
 </section>
 
@@ -1602,6 +1645,7 @@ footer .foot{align-items:start}
     <button class="news-filter" type="button" data-news-filter="livestock" data-i18n="newsLivestock">المواشي والأغنام</button>
     <button class="news-filter" type="button" data-news-filter="health" data-i18n="newsHealth">البيطرة والصحة</button>
     <button class="news-filter" type="button" data-news-filter="official" data-i18n="newsOfficial">قرارات رسمية</button>
+    <button class="news-filter" type="button" data-news-filter="prices" data-i18n="newsPrices">أسعار السوق</button>
    </div>
    <div class="news-state"><span class="live-dot loading" id="newsLiveDot"></span><span id="newsStatus" data-i18n="newsLoading">جاري جلب آخر الأخبار...</span><button class="btn ghost" type="button" id="refreshNewsBtn" data-i18n="newsRefresh">تحديث</button></div>
   </div>
@@ -1792,7 +1836,7 @@ footer .foot{align-items:start}
   <div><h3 data-i18n="footerLinks">روابط</h3><a href="#market" data-i18n="footerRegister">التسجيل</a><a href="#news" data-i18n="navNews">الأخبار</a><a href="#managers" data-i18n="navManagers">مدراء الولايات</a></div>
   <div><h3 data-i18n="footerPolicies">السياسات والمساعدة</h3><a href="#" onclick="showToast(t('toastTermsReady'));return false" data-i18n="footerTerms">شروط الاستخدام</a><a href="#" onclick="showToast(t('toastPrivacyReady'));return false" data-i18n="footerPrivacy">الخصوصية</a><a href="#" onclick="openFeedback();return false;" data-i18n="footerFeedback">شاركنا رأيك لنرتقي معًا</a></div>
  </div>
-  <div class="site-version"><span class="version-number" id="siteVersionLabel">MawashiDZ — الإصدار v1.8.0</span><span class="copyright" data-i18n="footerCopyright">© 2026 جميع الحقوق محفوظة لمنصة MawashiDZ</span></div>
+  <div class="site-version"><span class="version-number" id="siteVersionLabel">MawashiDZ — الإصدار v1.9.0</span><span class="copyright" data-i18n="footerCopyright">© 2026 جميع الحقوق محفوظة لمنصة MawashiDZ</span></div>
 </footer>
 
 <div class="modal" id="registerModal">
@@ -2106,8 +2150,11 @@ function refreshDynamicI18n(){
   if(dock) dock.setAttribute('aria-label',t('dockAriaLabel'));
   if(typeof mdzWeatherLast!=='undefined'&&mdzWeatherLast) renderWeather(mdzWeatherLast.j,mdzWeatherLast.label);
   if(typeof mdzNewsItems!=='undefined'&&mdzNewsItems.length) renderLivestockNews();
+  if(typeof mdzMarketSnapshot!=='undefined'&&mdzMarketSnapshot) { renderExchangeProductButtons(); renderExchangeBoard(); }
   const status=document.getElementById('newsStatus');
   if(status&&status.dataset.newsStatusKey) status.textContent=t(status.dataset.newsStatusKey,JSON.parse(status.dataset.newsStatusVars||'{}'));
+  const exStatus=document.getElementById('exchangeStatus');
+  if(exStatus&&exStatus.dataset.newsStatusKey) exStatus.textContent=t(exStatus.dataset.newsStatusKey,JSON.parse(exStatus.dataset.newsStatusVars||'{}'));
   updateRoleFields(document.getElementById('roleInput')?.value||'breeder');
   syncAuthHeader();
 }
@@ -2655,7 +2702,105 @@ if(feedbackForm){
 }
 
 
-/* ===== الأخبار الآلية المتخصصة v1.2.0 ===== */
+/* ===== بورصة المواشي الحية v1.9.0 ===== */
+const PRICES_ENDPOINT='/api/livestock-prices';
+let mdzMarketSnapshot=null;
+let mdzExchangeTab='meat';
+let mdzExchangeProduct='sheep_meat';
+
+function mdzExchangeProductsForTab(tab){
+  return (mdzMarketSnapshot?.products||[]).filter(p=>p.category===tab).map(p=>p.id);
+}
+
+function renderExchangeProductButtons(){
+  const wrap=document.getElementById('exchangeProducts'); if(!wrap) return;
+  const names=getExchangeProductNames();
+  const ids=mdzExchangeProductsForTab(mdzExchangeTab);
+  if(!ids.includes(mdzExchangeProduct)) mdzExchangeProduct=ids[0]||'sheep_meat';
+  wrap.innerHTML=ids.map(id=>`<button type="button" class="exchange-product${id===mdzExchangeProduct?' active':''}" data-exchange-product="${id}">${escapeNewsHTML(names[id]||id)}</button>`).join('');
+  wrap.querySelectorAll('[data-exchange-product]').forEach(btn=>btn.addEventListener('click',()=>{
+    mdzExchangeProduct=btn.dataset.exchangeProduct; renderExchangeProductButtons(); renderExchangeBoard();
+  }));
+}
+
+function formatExchangeChange(pct){
+  const n=Number(pct)||0;
+  if(Math.abs(n)<0.01) return `<span class="exchange-change flat">0%</span>`;
+  const cls=n>0?'up':'down';
+  const sign=n>0?'+':'';
+  return `<span class="exchange-change ${cls}">${sign}${n.toFixed(2)}%</span>`;
+}
+
+function renderExchangeBoard(){
+  const body=document.getElementById('exchangeTableBody');
+  const cheapestBox=document.getElementById('exchangeCheapest');
+  const cheapestText=document.getElementById('exchangeCheapestText');
+  const cheapestSource=document.getElementById('exchangeCheapestSource');
+  const pulseSummary=document.getElementById('pulsePriceSummary');
+  if(!body||!mdzMarketSnapshot) return;
+  const rows=mdzMarketSnapshot.rows.filter(r=>r.productId===mdzExchangeProduct).sort((a,b)=>a.price-b.price);
+  const cheapest=mdzMarketSnapshot.cheapestByProduct?.[mdzExchangeProduct];
+  if(cheapest&&cheapestBox&&cheapestText){
+    cheapestBox.hidden=false;
+    cheapestText.textContent=t('exchangeCheapest',{wilaya:cheapest.wilaya,price:cheapest.price.toLocaleString(mdzDateLocale())});
+    const srcRow=rows.find(r=>r.wilayaCode===cheapest.wilayaCode)||rows[0];
+    if(cheapestSource&&srcRow) cheapestSource.innerHTML=`<a href="${escapeNewsHTML(srcRow.source)}" target="_blank" rel="noopener noreferrer">${escapeNewsHTML(srcRow.sourceName||t('exchangeSource'))}</a>`;
+  }
+  if(pulseSummary&&cheapest) pulseSummary.textContent=t('exchangeCheapest',{wilaya:cheapest.wilaya,price:cheapest.price.toLocaleString(mdzDateLocale())});
+  body.innerHTML=rows.map(r=>{
+    const isCheap=cheapest&&r.wilayaCode===cheapest.wilayaCode;
+    return `<tr class="${isCheap?'cheapest':''}"><td>${escapeNewsHTML(r.wilaya)}</td><td><strong>${r.price.toLocaleString(mdzDateLocale())}</strong></td><td>${formatExchangeChange(r.changePct)}</td><td><a href="${escapeNewsHTML(r.source)}" target="_blank" rel="noopener noreferrer">${escapeNewsHTML(r.sourceName||t('exchangeSource'))}</a></td></tr>`;
+  }).join('');
+}
+
+async function loadLivestockPrices(force=false){
+  const status=document.getElementById('exchangeStatus');
+  const dot=document.getElementById('exchangeLiveDot');
+  const btn=document.getElementById('refreshExchangeBtn');
+  if(dot) dot.className='live-dot loading';
+  if(status){status.dataset.newsStatusKey='exchangeLoading';delete status.dataset.newsStatusVars;status.textContent=t('exchangeLoading');}
+  if(btn) btn.disabled=true;
+  try{
+    let data=null;
+    try{
+      const url=PRICES_ENDPOINT+(force?`?refresh=${Date.now()}`:'');
+      const r=await fetch(url,{headers:{'Accept':'application/json'},cache:force?'no-store':'default'});
+      if(r.ok) data=await r.json();
+    }catch(e){/* fallback below */}
+    if(!data?.rows?.length){
+      if(typeof buildMdzMarketSnapshot==='function') data=buildMdzMarketSnapshot();
+      else throw new Error('no-market-engine');
+    }
+    mdzMarketSnapshot=data;
+    localStorage.setItem('mdz_live_prices_cache',JSON.stringify({at:Date.now(),data}));
+    renderExchangeProductButtons();
+    renderExchangeBoard();
+    if(dot) dot.className='live-dot';
+    if(status){
+      status.dataset.newsStatusKey='exchangeLastUpdate';
+      status.dataset.newsStatusVars=JSON.stringify({date:formatNewsDate(data.updatedAt||new Date())});
+      status.textContent=t('exchangeLastUpdate',{date:formatNewsDate(data.updatedAt||new Date())});
+    }
+  }catch(error){
+    let cached=null; try{cached=JSON.parse(localStorage.getItem('mdz_live_prices_cache')||'null');}catch{}
+    if(cached?.data) mdzMarketSnapshot=cached.data;
+    else if(typeof buildMdzMarketSnapshot==='function') mdzMarketSnapshot=buildMdzMarketSnapshot();
+    renderExchangeProductButtons(); renderExchangeBoard();
+    if(dot) dot.className='live-dot error';
+    console.warn('Livestock prices unavailable',error);
+  }finally{if(btn) btn.disabled=false;}
+}
+
+document.querySelectorAll('[data-exchange-tab]').forEach(button=>button.addEventListener('click',()=>{
+  document.querySelectorAll('[data-exchange-tab]').forEach(x=>x.classList.remove('active'));
+  button.classList.add('active');
+  mdzExchangeTab=button.dataset.exchangeTab||'meat';
+  renderExchangeProductButtons();
+  renderExchangeBoard();
+}));
+document.getElementById('refreshExchangeBtn')?.addEventListener('click',()=>loadLivestockPrices(true));
+
+/* ===== الأخبار الآلية المتخصصة v1.9.0 ===== */
 const NEWS_ENDPOINT='/api/livestock-news';
 let mdzNewsItems=[];
 let mdzNewsFilter='all';
@@ -2699,7 +2844,13 @@ document.querySelectorAll('[data-news-filter]').forEach(button=>button.addEventL
  document.querySelectorAll('[data-news-filter]').forEach(x=>x.classList.remove('active'));button.classList.add('active');mdzNewsFilter=button.dataset.newsFilter;renderLivestockNews();
 }));
 document.getElementById('refreshNewsBtn')?.addEventListener('click',()=>loadLivestockNews(true));
-window.addEventListener('DOMContentLoaded',()=>{loadWeather(false);loadLivestockNews(false);setInterval(()=>loadLivestockNews(false),30*60*1000);});
+window.addEventListener('DOMContentLoaded',()=>{
+  loadWeather(false);
+  loadLivestockPrices(false);
+  loadLivestockNews(false);
+  setInterval(()=>loadLivestockPrices(false),60*1000);
+  setInterval(()=>loadLivestockNews(false),5*60*1000);
+});
 
 </script>
 
