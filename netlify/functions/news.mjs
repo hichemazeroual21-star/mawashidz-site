@@ -7,21 +7,33 @@ const CATEGORY_QUERIES = {
   weather: 'الطقس الجزائر تحذير أرصاد مربي',
   feed: 'الأعلاف الجزائر أسعار الشعير الذرة',
   livestock: 'المواشي الأغنام الأبقار الجزائر سوق',
-  health: 'الصحة الحيوانية بيطري الجزائر تلقيح',
-  official: 'وزارة الفلاحة والتنمية الريفية الجزائر مواشي',
+  health: 'الصحة الحيوانية بيطري الجزائر تلقيح وباء',
+  official: 'وزارة الفلاحة والتنمية الريفية الجزائر مواشي قرار',
   prices: 'أسعار اللحوم الأغنام الجزائر سوق الجملة',
 };
 
-const TRUSTED_SOURCES = [
-  'madr.gov.dz', 'aps.dz', 'elwatan', 'liberte', 'echorouk', 'ennaharonline',
-  'google', 'woah', 'fao', 'meteo.dz', 'onab', 'interieur.gov.dz',
+const OFFICIAL_DOMAINS = [
+  'madr.gov.dz', 'aps.dz', 'interieur.gov.dz', 'joradp.dz', 'ons.dz',
+  'el-mouradia.dz', 'premier-ministre.gov.dz', 'finance.gov.dz', 'douane.gov.dz',
 ];
 
-const LIVESTOCK_KEYWORDS = /مواشي|ماشية|أغنام|أغنام|ضأن|أبقار|بقر|عجول|عجول|ماعز|إبل|جمال|لحوم|لحم|أعلاف|شعير|ذرة|نخالة|فلاحة|زراع|بيطر|حيوان|تلقيح|مربي|مربّ|سلالة|ذبح|جزارة|سوق الجملة|ONAB|الفلاحة|الريف|مرعى|مراعي|أرصاد|طقس|أمطار|حرارة|جفاف/i;
+const HEALTH_TRUSTED = [
+  'woah.org', 'fao.org', 'madr.gov.dz', 'aps.dz', 'ons.dz', 'who.int',
+];
 
-const EXCLUDE_KEYWORDS = /كرة|مباراة|فيديو|مسلسل|فنان|سياسة داخلية|انتخاب|جريمة|حادث مرور|فضيحة/i;
+const TRUSTED_SOURCES = [
+  ...OFFICIAL_DOMAINS, 'woah', 'fao', 'meteo.dz', 'onab',
+];
 
-const MAX_PER_CATEGORY = 5;
+const LIVESTOCK_KEYWORDS = /مواشي|ماشية|أغنام|ضأن|أبقار|بقر|ماعز|إبل|لحوم|لحم|أعلاف|شعير|ذرة|نخالة|فلاحة|زراع|بيطر|حيوان|تلقيح|مربي|سلالة|ذبح|جزارة|سوق الجملة|ONAB|الفلاحة|الريف|مرعى|أرصاد|طقس|أمطار|حرارة|جفاف|وباء|مرض|لقاح/i;
+
+const HEALTH_KEYWORDS = /بيطر|صحة حيوان|تلقيح|لقاح|وباء|مرض|حيوان|ماشية|مواشي|WOAH|FAO|إنفلونزا|جمرة|طاعون/i;
+
+const OFFICIAL_KEYWORDS = /وزارة|قرار|مرسوم|بلاغ|رسمي|فلاحة|تنمية ريفية|حكومة|مجلس|ولاية|تعميم/i;
+
+const EXCLUDE_KEYWORDS = /كرة|مباراة|فيديو|مسلسل|فنان|انتخاب|جريمة|حادث مرور|فضيحة/i;
+
+const MAX_PER_CATEGORY = 6;
 const FETCH_TIMEOUT_MS = 9000;
 
 function decodeEntities(value) {
@@ -37,6 +49,11 @@ function decodeEntities(value) {
     .trim();
 }
 
+function domainIn(url, source, domains) {
+  const blob = `${url} ${source}`.toLowerCase();
+  return domains.some((d) => blob.includes(d));
+}
+
 function isLivestockRelevant(title, description) {
   const text = `${title} ${description}`;
   if (EXCLUDE_KEYWORDS.test(text)) return false;
@@ -45,6 +62,8 @@ function isLivestockRelevant(title, description) {
 
 function trustScore(source, url) {
   const blob = `${source} ${url}`.toLowerCase();
+  if (OFFICIAL_DOMAINS.some((d) => blob.includes(d))) return 4;
+  if (HEALTH_TRUSTED.some((d) => blob.includes(d))) return 3;
   if (TRUSTED_SOURCES.some((s) => blob.includes(s))) return 2;
   return 1;
 }
@@ -71,6 +90,7 @@ function parseRssItems(xml, category) {
       source,
       publishedAt: new Date(pick('pubDate') || Date.now()).toISOString(),
       trust: trustScore(source, url),
+      official: domainIn(url, source, OFFICIAL_DOMAINS),
     });
   }
   return items.slice(0, MAX_PER_CATEGORY);
@@ -102,20 +122,40 @@ function dedupeItems(items) {
   });
 }
 
+function sortNews(items) {
+  return [...items].sort((a, b) => {
+    const trustDiff = (b.trust || 0) - (a.trust || 0);
+    if (trustDiff) return trustDiff;
+    return new Date(b.publishedAt) - new Date(a.publishedAt);
+  });
+}
+
+function buildStreams(items) {
+  const health = sortNews(items.filter((item) => {
+    const text = `${item.title} ${item.description}`;
+    return item.category === 'health' || HEALTH_KEYWORDS.test(text);
+  }));
+  const official = sortNews(items.filter((item) => {
+    const text = `${item.title} ${item.description}`;
+    return item.official && OFFICIAL_KEYWORDS.test(text);
+  }));
+  return {
+    health: health.slice(0, 5),
+    official: official.slice(0, 5),
+    healthFeatured: health[0] || null,
+    officialFeatured: official[0] || null,
+  };
+}
+
 export default async function handler() {
   const results = await Promise.allSettled(
     Object.entries(CATEGORY_QUERIES).map(([category, query]) => fetchCategory(category, query)),
   );
-  const items = dedupeItems(
+  const items = dedupeItems(sortNews(
     results
       .filter((r) => r.status === 'fulfilled')
-      .flatMap((r) => r.value)
-      .sort((a, b) => {
-        const trustDiff = (b.trust || 0) - (a.trust || 0);
-        if (trustDiff) return trustDiff;
-        return new Date(b.publishedAt) - new Date(a.publishedAt);
-      }),
-  );
+      .flatMap((r) => r.value),
+  ));
 
   if (!items.length) {
     return new Response(JSON.stringify({ error: 'news-sources-unavailable' }), {
@@ -124,11 +164,17 @@ export default async function handler() {
     });
   }
 
-  return new Response(JSON.stringify({ updatedAt: new Date().toISOString(), items }), {
+  const streams = buildStreams(items);
+
+  return new Response(JSON.stringify({
+    updatedAt: new Date().toISOString(),
+    items,
+    streams,
+  }), {
     status: 200,
     headers: {
       'Content-Type': 'application/json; charset=utf-8',
-      'Cache-Control': 'public, max-age=300, stale-while-revalidate=600',
+      'Cache-Control': 'public, max-age=60, stale-while-revalidate=120',
     },
   });
 }

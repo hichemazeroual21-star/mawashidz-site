@@ -1,5 +1,5 @@
 /* MawashiDZ — multilingual UI (ar, en, fr, de) */
-const MDZ_APP_VERSION = '1.9.0';
+const MDZ_APP_VERSION = '1.9.1';
 const MDZ_LANGS = ['ar', 'en', 'fr', 'de'];
 
 const MDZ_I18N = {
@@ -109,6 +109,9 @@ const MDZ_I18N = {
     exchangeProductBarley: 'شعير', exchangeProductCorn: 'ذرة', exchangeProductBran: 'نخالة',
     exchangeDisclaimer: 'مؤشر مرجعي وطني مبني على متوسطات السوق والمصادر الرسمية. يُحدَّث كل دقيقة. للقرارات المالية راجع المصدر الرسمي.',
     exchangeSource: 'المصدر', exchangeViewBoard: 'عرض البورصة الكاملة', externalSource: 'مصدر خارجي',
+    vetNewsTitle: 'البيطرة والصحة الحيوانية', vetNewsDesc: 'تحديث مباشر كل دقيقة من مصادر بيطرية وصحية موثوقة.',
+    officialNewsTitle: 'القرارات والبلاغات الرسمية', officialNewsDesc: 'أخبار رسمية فقط من الوزارات والجهات العمومية — تُستبدل عند ظهور أحدث.',
+    specialNewsEmpty: 'لا يوجد خبر جديد في هذه الفئة حالياً.', specialNewsLive: 'مباشر — تحديث كل دقيقة',
     langName: { ar: 'العربية', en: 'English', fr: 'Français', de: 'Deutsch' },
   },
   en: {
@@ -217,6 +220,9 @@ const MDZ_I18N = {
     exchangeProductBarley: 'Barley', exchangeProductCorn: 'Corn', exchangeProductBran: 'Bran',
     exchangeDisclaimer: 'National reference index based on market averages and official sources. Updated every minute. Check official sources before financial decisions.',
     exchangeSource: 'Source', exchangeViewBoard: 'Open full exchange', externalSource: 'External source',
+    vetNewsTitle: 'Veterinary & animal health', vetNewsDesc: 'Live updates every minute from trusted veterinary and health sources.',
+    officialNewsTitle: 'Official decisions & notices', officialNewsDesc: 'Official news only from ministries and public bodies — replaced when newer items appear.',
+    specialNewsEmpty: 'No new item in this category right now.', specialNewsLive: 'Live — updates every minute',
     langName: { ar: 'العربية', en: 'English', fr: 'Français', de: 'Deutsch' },
   },
   fr: {
@@ -325,6 +331,9 @@ const MDZ_I18N = {
     exchangeProductBarley: 'Orge', exchangeProductCorn: 'Maïs', exchangeProductBran: 'Son',
     exchangeDisclaimer: 'Indice de référence national basé sur les moyennes du marché et sources officielles. Mis à jour chaque minute.',
     exchangeSource: 'Source', exchangeViewBoard: 'Voir la bourse complète', externalSource: 'Source externe',
+    vetNewsTitle: 'Vétérinaire & santé animale', vetNewsDesc: 'Mise à jour directe chaque minute depuis des sources vétérinaires fiables.',
+    officialNewsTitle: 'Décisions et communiqués officiels', officialNewsDesc: 'Actualités officielles uniquement — remplacées dès qu\'un item plus récent apparaît.',
+    specialNewsEmpty: 'Aucune nouvelle dans cette catégorie pour le moment.', specialNewsLive: 'En direct — chaque minute',
     langName: { ar: 'العربية', en: 'English', fr: 'Français', de: 'Deutsch' },
   },
   de: {
@@ -433,6 +442,9 @@ const MDZ_I18N = {
     exchangeProductBarley: 'Gerste', exchangeProductCorn: 'Mais', exchangeProductBran: 'Kleie',
     exchangeDisclaimer: 'Nationaler Referenzindex basierend auf Marktdurchschnitten und offiziellen Quellen. Jede Minute aktualisiert.',
     exchangeSource: 'Quelle', exchangeViewBoard: 'Vollständige Börse öffnen', externalSource: 'Externe Quelle',
+    vetNewsTitle: 'Tierarzt & Tiergesundheit', vetNewsDesc: 'Live-Aktualisierung jede Minute aus vertrauenswürdigen tierärztlichen Quellen.',
+    officialNewsTitle: 'Offizielle Entscheidungen & Bekanntmachungen', officialNewsDesc: 'Nur offizielle Meldungen von Ministerien und Behörden — wird bei neueren News ersetzt.',
+    specialNewsEmpty: 'Derzeit keine neue Meldung in dieser Kategorie.', specialNewsLive: 'Live — jede Minute',
     langName: { ar: 'العربية', en: 'English', fr: 'Français', de: 'Deutsch' },
   },
 };
@@ -457,7 +469,8 @@ function t(key, vars) {
 function applyI18n(lang) {
   const pack = MDZ_I18N[lang] || MDZ_I18N.ar;
   document.documentElement.lang = lang;
-  document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+  /* ثبّت اتجاه الهيكل (RTL) حتى لا يتبدل شكل الصفحة عند اختيار EN/FR/DE */
+  document.documentElement.dir = 'rtl';
 
   document.querySelectorAll('[data-i18n]').forEach((el) => {
     const key = el.dataset.i18n;
