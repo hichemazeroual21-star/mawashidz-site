@@ -1,0 +1,251 @@
+================================================================================
+HANDOFF CLAUDE — PROGRAMME 90 JOURS DE-DZ
+Date: 20 juillet 2026 | Auteur: Cursor (pour Hichem)
+INSTRUCTION: Lire ce document en entier. Executer Section 6. Ne pas reevaluer la strategie.
+================================================================================
+
+A) MESSAGE D'OUVERTURE (Hichem colle ca en premier dans Claude)
+--------------------------------------------------------------------------------
+Claude, tu es le responsable verification et redaction allemande de notre equipe.
+Voici le handoff complet de Cursor. Lis tout. Execute les 5 livrables de la Section 6.
+Regles: pas de changement de strategie, pas d'emails inventes, textes clients en allemand,
+reponses a Hichem en francais ou arabe. Qualite cible: 9,5/10 minimum.
+--------------------------------------------------------------------------------
+
+
+B) IDENTITE PROJET
+--------------------------------------------------------------------------------
+CEO / decideur final : Hichem (Deutsch-Algerier, chauffeur en Allemagne)
+Relocation         : Jijel, Algerie — septembre 2026
+Horizon            : 20 juillet → 12 octobre 2026 (90 jours)
+Objectif unique    : PREMIER CLIENT PAYANT (mission terrain executee)
+Projet leader      : Mediation / execution terrain Allemagne ↔ Algerie
+PAS le focus 90j   : MawashiDZ, plateforme voyage, agents AI, "4 millions"
+
+Equipe AI:
+- Hichem  → appels, decisions, terrain, relations (non delegable)
+- Cursor  → recherche, listes prospects, scripts, tableaux
+- ChatGPT → redaction DE, offres, preparation appels
+- Claude  → verification faits/chiffres, PDF/offres DE, detection contradictions
+
+Regle d'or: On ne demande plus "l'idee est-elle bonne?". La reponse vient du telephone.
+
+
+C) OFFRE (PIVOT VALIDE — NE PAS MODIFIER)
+--------------------------------------------------------------------------------
+ON NE VEND PAS:
+- Etude de marche, conseil entree marche, rapports strategiques
+→ Raison: MEP (Etat allemand, 250-1500 EUR participation) + AHK font ca moins cher
+→ AHK: Marktforschung, Partneridentifikation — mais PAS visites usine terrain
+
+ON VEND:
+"Ihr Ansprechpartner vor Ort in Algerien"
+Services: Lieferantenbesuche | Werksbesichtigungen | Dolmetschen |
+           Dokumenten- und Behordennachverfolgung
+Langue: allemand | Presence: physique en Algerie
+
+Douleur client: fournisseur/partenaire en DZ ne repond pas, usine non verifiee,
+paperasse incomprise, vol manager = 1500-2500 EUR + 3 jours.
+
+Differentiation honnete (3/3 rares):
+1. Allemand courant (attentes, facturation, communication B2B DE)
+2. Present physiquement en Algerie (pas bureau Berlin)
+3. Moins cher qu'un vol manager pour la meme mission
+
+
+D) GRILLE TARIFAIRE
+--------------------------------------------------------------------------------
+Service                          | Livrable                              | Prix EUR
+Lieferanten-Check                | Visite + 15 photos + video + rapport 2p| 450-700
+Werksbesuch / Audit-Begleitung   | 1 jour usine + rapport + Q&R          | 600-900/j
+Dolmetschen (Meeting/Behorde)    | Interpretation + PV allemand          | 300-450/0.5j
+Dokumenten-Nachverfolgung        | Suivi dossier + update hebdo          | 400/mois
+Vor-Ort-Retainer                 | 2 jours/mois sur demande              | 900-1200/m
+Frais deplacement                | Carburant/hotel — factures separees   | reel
+
+Premier client: Pilotauftrag 350-450 EUR fixe recommande (objectif Referenz, pas marge).
+Jamais gratuit. Meme 200 EUR > 0 EUR (zero enseigne que le temps n'a pas de valeur).
+
+
+E) SOURCES PROSPECTS (ORDRE DE PRIORITE)
+--------------------------------------------------------------------------------
+1. Catalogues German Pavilion (MEILLEURE) — entreprises ayant PAYE stand + voyage
+   - Djazagro 2026: 11 exposants DE (german-pavilion.com)
+   - plast alger 2026: 11 exposants DE
+   - Batimatec 2025: 8 DE mais noms non publics dans PDF officiel
+   - SIEE Pollutec / Pharmex: pas de pavilion DE public complet
+2. AHK Algerien Mitgliederverzeichnis (~450 membres, acces membres seulement)
+3. Afrika-Verein der deutschen Wirtschaft (pas d'annuaire par pays public)
+4. Delegation automobile AHK/BMWE juin 2026 (presse seulement)
+5. LinkedIn: Algerien + Vertrieb/Einkauf/Export, 20-300 employes
+
+EXCLURE: Siemens, Thyssenkrupp, RWE, Linde, Coperion, Reifenhäuser groupe,
+         Testo (~3700), RKW (~2700), Reichhart (~850), INFICON, ARI-Armaturen
+FILTRE: 20-300 employes, activite Algerie documentee (salon, deal, distributeur, bureau local)
+
+
+F) LISTE PROSPECTS CURSOR — 13 LIGNES VERIFIEES (CSV)
+--------------------------------------------------------------------------------
+Regles respectees: chaque ligne a URL preuve + telephone + email publie (zero invention).
+
+company | website | emp | industry | evidence | url | date | contact | role | phone | email | warmth | hook
+CHOCOTECH GmbH | chocotech.de/en | 80 | Food machinery | DJAZAGRO 2026 B-064 | djazagro.german-pavilion.com/en/sites/exhibitors/137439 | 2026-04-12 | Paulo Coco | Area Sales Manager | +49 3943 5506-68 | paulo.coco@chocotech.de | 5 | Exhibited DJAZAGRO 2026 booth B-064
+PD Technik Maschinenbau | pd-technik.eu | 25 | Industrial distribution | DJAZAGRO 2026 + NA representation | djazagro.german-pavilion.com/en/sites/exhibitors/137454 | 2026-04-12 | switchboard | General | +49 40 380381-80 | contact@pd-technik.net | 5 | Exhibited DJAZAGRO 2026, represents DE products in North Africa
+MSG Dichtungswerk | msgermany.de | 40 | Mechanical seals | DJAZAGRO 2026 + bureau Blida | djazagro.german-pavilion.com/en/sites/exhibitors/137451 | 2026-04-12 | Veronique Piriou | Directeur | +49 173 3445353 | veronique.piriou@msgermany.de | 5 | Exhibited DJAZAGRO 2026, pavilion lists Algeria office Blida
+SOLLICH KG | sollich.com | 250 | Confectionery machinery | DJAZAGRO 2026 B-064 + contact DZ | djazagro.german-pavilion.com/en/sites/exhibitors/137460 | 2026-04-12 | Ulrich von Dosky | Regional Sales Manager | +49 5222 950280 | ulrich.vondosky@sollich.com | 5 | Exhibited DJAZAGRO 2026, profile lists Algeria phone
+Wagner Pflanzen-Technik | wagner-machines.de | 35 | Agricultural machinery | DJAZAGRO 2026 C-075 | djazagro.german-pavilion.com/en/sites/exhibitors/137466 | 2026-04-12 | Stefan Hirl | MD | +49 1520 9378245 | stefan.hirl@w-p-t.biz | 5 | Exhibited DJAZAGRO 2026 booth C-075
+Gunter Kunststoffmaschinen | guenter-kunststoffmaschinen.de | 80 | Plastic film machinery | plast alger 2026 A-J20 | plast-alger.german-pavilion.com/en/sites/exhibitors/135798 | 2026-03-30 | Martin Heinrich | Sales | +49 375 30345-0 | mhe@guenter-kunststoffmaschinen.de | 5 | Exhibited plast alger 2026 booth A-J20
+IPT Pruftechnik | iptnet.org | 60 | Plastics testing | plast alger 2026 A-H21 | plast-alger.german-pavilion.com/en/sites/exhibitors/135816 | 2026-03-30 | Amadou Ba | MD | +49 8237 966405 | amadou.ba@iptnet.org | 5 | Exhibited plast alger 2026 booth A-H21
+KUHNE GmbH | kuhne-group.com | 150 | Extrusion lines | plast alger 2026 + contact Alger | plast-alger.german-pavilion.com/en/sites/exhibitors/135807 | 2026-03-30 | Gerhard Brock | Area Sales Manager | +49 2241 902 112 | brock@kuhne-group.com | 5 | Exhibited plast alger 2026, Algiers contact on profile
+MAINCOR Rohrsysteme | maincor.de/en | 120 | Plastic pipes/machinery | plast alger 2026 A-G22 | plast-alger.german-pavilion.com/en/sites/exhibitors/135789 | 2026-03-30 | Tobias Kuhn | MD | +49 9527 9516141 | tobias.kuhn@maincor.de | 5 | Exhibited plast alger 2026 booth A-G22
+MAK Germany | makg.de | 40 | Chemicals/plastics trading | plast alger 2026 A-H23 | plast-alger.german-pavilion.com/en/sites/exhibitors/135810 | 2026-03-30 | Danial Shamon | Project Manager | +49 40 5559100 | shamon@mak-germany.com | 5 | Exhibited plast alger 2026 booth A-H23
+Schobertechnologies | schobertechnologies.com | 90 | Packaging converting | plast alger 2026 A-H22 | plast-alger.german-pavilion.com/en/sites/exhibitors/135792 | 2026-03-30 | Gerald Glaas | Sales Director | +49 7042 790181 | info@schobertechnologies.de | 5 | Exhibited plast alger 2026 booth A-H22
+moviniti GmbH | moviniti.app/en | 10 | Production logistics SW | AHK auto delegation Jun 2026 + DZ project mid-2026 | moviniti.app/en/legal-notice | 2026-06-28 | Alexander Reichhart | MD | +49 69 989 723 444 | beratung@moviniti.app | 5 | First Algeria project mid-2026 (Oran/Purem)
+Allod Werkstoff | allod.com/en | 120 | TPE/automotive materials | Named in DE auto delegation Algeria Jun 2026 | echoroukonline.com/german-auto-delegation-explores-algerias-growing-automotive-industry | 2026-06-28 | Tijana Metz | HQ contact | +49 9843 980890 | information@allod.com | 4 | Named in German automotive delegation Algeria June 2026
+
+TOP 3 SECTEURS (activite DE-DZ verifiee):
+1. Agroalimentaire/confiserie — Djazagro 2026: 11 exposants pavilion DE
+2. Plastiques/emballage — plast alger 2026: 11 exposants pavilion DE
+3. Automobile/pharma — delegation AHK juin 2026
+
+LEADS CHAUDS (douleur execution terrain):
+- MSG Dichtungswerk (bureau Blida) — HOT
+- KUHNE GmbH (contact Alger) — HOT
+- moviniti GmbH (deploiement Oran mi-2026) — HOT
+- SOLLICH/CHOCOTECH (suivi post-salon lignes confiserie) — HOT
+
+IMPASSES (13/40 seulement — ne pas gonfler):
+- AHK annuaire: membres seulement
+- Batimatec 2025: 8 DE sans noms publics
+- SIEE Pollutec/Pharmex: pas de catalogues DE complets
+- Grandes entreprises exclues par filtre employes
+
+
+G) SCRIPT APPEL (45 sec — ALLEMAND — NE PAS VENDRE)
+--------------------------------------------------------------------------------
+"Guten Tag Herr/Frau [X], mein Name ist [Hichem].
+Ich habe gesehen, dass Sie auf der [Djazagro/plast alger] ausgestellt haben.
+Ich bin Deutsch-Algerier und ab September dauerhaft in Algerien.
+Kurze Frage: Wenn Sie dort einen Lieferanten oder Partner prufen mussen —
+wer macht das aktuell fur Sie vor Ort?"
+
+Reponses:
+- "Wir fliegen selbst" → CHAUD — demander cout
+- "Wir haben jemanden" → demander satisfaction + derniere visite
+- "Keine Aktivitat in Algerien" → remercier, raccrocher 20 sec
+
+Objectif appel 1: confirmer DOULEUR. Pas vendre.
+
+
+H) PLANNING 90 JOURS
+--------------------------------------------------------------------------------
+Hypothese: 8-10h/semaine | BLOQUER 3h appels/semaine (11h30-13h00 CET)
+
+Sem 1-2 (21 juil-3 aout)  : offre fixe | PDF DE | LinkedIn DE | liste | script | calendrier
+Sem 3-5 (4-24 aout)       : 40 appels | 8-10/sem | email J+0 | log verbatim | revue a 20
+Sem 6-8 (25 aout-14 sept) : Pilotauftrag | 50% acompte | demenagement Jijel | facturation
+Sem 9-12 (15 sept-12 oct) : 1ere mission payee qualite max | Referenz DE | rappel "pas maintenant"
+
+CRITERE KILL (12 octobre 2026):
+- SUCCES = 1 mission payee executee (meme 300 EUR)
+- PARTIEL = 3 entreprises confirment douleur + demandent offre → +30 jours
+- ECHEC = moins apres 40 appels → ABANDONNER (ne pas "ameliorer le marketing")
+Si reponse recurrente "wir haben AHK" / "wir haben jemanden" → idee morte, info precieuse.
+
+
+I) FACTURATION (AVANT SEPTEMBRE)
+--------------------------------------------------------------------------------
+Client allemand = facture deductible (Vorsteuerabzug).
+Options:
+1. Kleinunternehmer §19 UStG en Allemagne — le plus simple au demarrage
+2. Auto-entrepreneur algerien — complique pour client DE
+3. Compte allemand existant
+
+Action: consultation Steuerberater unique (~100-150 EUR) avant septembre.
+Cursor/Claude ne sont PAS Steuerberater.
+
+
+J) BLOCAGE CRITIQUE — DECISION HICHEM EN ATTENTE
+--------------------------------------------------------------------------------
+Probleme: entreprises DE repondent 8h00-17h00 CET = meme creneau que travail chauffeur.
+Sans solution, programme mort semaine 3.
+
+Hichem doit choisir:
+A) 3h fixes/semaine (11h30-13h CET) + demi-journee conge/2 semaines → GO semaine 3
+B) Appels en pause seulement (non garanti) → GO risque eleve
+C) Impossible actuellement → reporter honnetement
+
+Claude/Cursor ne peuvent PAS repondre a la place de Hichem.
+
+
+K) EVALUATION CURSOR (REFERENCE QUALITE)
+--------------------------------------------------------------------------------
+Programme global     : 9,1/10
+Pivot offre terrain  : 9,5/10
+Source salons        : 9,5/10
+Blocage horaires     : 10/10 (diagnostic)
+Facturation          : 8,5/10
+Tarifs               : 8,5/10
+Critere kill         : 9,5/10
+Script appel         : 9,0/10
+
+Ecarts vers 9,5+ global:
+- Hichem confirme creneaux appels (point J)
+- Steuerberater consulte
+- PDF offre DE livre (ta tache 1)
+- Prix Pilot fixe (ta tache 2)
+
+
+================================================================================
+L) SECTION 6 — LIVRABLES CLAUDE (EXECUTER MAINTENANT — 5 SORTIES)
+================================================================================
+
+LIVRABLE 1 — VALIDATION TARIF
+Comparer Pilot 350-450 EUR avec marche allemand pour "Lieferantenprufung vor Ort"
+(execution terrain, PAS Beratung). Recommander prix fixe unique (ex: 399 EUR netto).
+Format: tableau 3 colonnes (notre prix | fourchette marche | verdict).
+
+LIVRABLE 2 — PDF 1 PAGE (TEXTE ALLEMAND PRET A IMPRIMER)
+Structure obligatoire:
+- Kopfzeile: "Ihr Ansprechpartner vor Ort in Algerien"
+- Subline: Lieferantenbesuche | Werksbesichtigungen | Dolmetschen | Behordennachverfolgung
+- Tabelle 5 services + prix (Section D)
+- Block "Warum wir": Deutsch + physisch in DZ + gunstiger als Geschaftsreise
+- Block "Uber mich": Deutsch-Algerier, ab September 2026 standig in Jijel/Algerien
+- Platzhalter: [Telefon] [E-Mail] [LinkedIn]
+- Fusszeile: "Pilotauftrag ab 399 EUR — erste Mission mit schriftlicher Referenz"
+Ton: B2B allemand direct, zero marketing creux, Sie-Form.
+
+LIVRABLE 3 — EMAIL SUIVI POST-APPEL (ALLEMAND)
+Template 6-8 lignes apres appel ou interet confirme.
+Variables: [Anrede] [Messe] [Name] [Telefon].
+Inclure proposition Pilotauftrag sans pression.
+
+LIVRABLE 4 — 5 QUESTIONS STEUERBERATER (ALLEMAND)
+Questions precises pour consultation unique avant septembre:
+Kleinunternehmer §19 vs auto-entrepreneur DZ vs compte DE existant.
+Impact Vorsteuerabzug client, USt, Rechnungsformat, Gewerbeanmeldung.
+
+LIVRABLE 5 — ORDRE D'APPEL 1-13
+Classer les 13 entreprises du CSV par priorite d'appel.
+Pour chaque: rang | entreprise | score 1-10 | justification 1 ligne | hook personnalise DE.
+
+REGLES LIVRABLES:
+- Zero email invente (utiliser CSV Section F uniquement)
+- Ne pas changer strategie (terrain, pas conseil)
+- Ne pas reevaluer "bonne/mauvaise idee"
+- Reponses a Hichem: francais ou arabe | Textes clients: allemand
+- Qualite minimum equipe: 9,5/10 — pas de generalites, que du concret actionnable
+
+
+M) ANTI-ERREUR FICHIER VIDE
+--------------------------------------------------------------------------------
+Si upload fichier echoue:
+1. NE PAS uploader de fichier
+2. Copier-coller TOUT ce document .txt dans le chat Claude
+3. Commencer par le message Section A
+4. Terminer par: "Execute les 5 livrables Section L maintenant."
+
+================================================================================
+FIN HANDOFF — Version TXT UTF-8 — 20 juillet 2026
+================================================================================
