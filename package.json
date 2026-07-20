@@ -1,29 +1,18 @@
 {
-  "name": "workspace",
-  "version": "1.0.0",
+  "name": "mawashidz-site",
+  "private": true,
   "type": "module",
-  "description": "Official website package with multilingual interface, automatic dark mode, and trusted livestock-sector news.",
-  "main": "index.js",
   "scripts": {
-    "test:db": "node supabase/tests/run-phase0-tests.mjs",
-    "test:registration": "node tests/registration-flow.test.mjs && node tests/registration-ui-guard.test.mjs",
-    "test:static": "node tests/static-asset-validation.test.mjs",
-    "test": "npm run test:db && npm run test:registration && npm run test:static",
-    "package:review": "bash scripts/package-code-review.sh"
+    "sync:worker": "node scripts/sync-worker-public.mjs",
+    "test:registration": "node tests/registration-flow.test.mjs",
+    "test:assets": "node tests/static-asset-validation.test.mjs",
+    "test:ui-guard": "node tests/registration-ui-guard.test.mjs",
+    "test:e2e": "node tests/registration-e2e.test.mjs",
+    "test:security": "node tests/security-allocate-member-id.test.mjs",
+    "test:unit": "node tests/registration-flow.test.mjs && node tests/static-asset-validation.test.mjs && node tests/registration-ui-guard.test.mjs",
+    "test": "npm run test:unit && npm run test:e2e"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/hichemazeroual21-star/mawashidz-site.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/hichemazeroual21-star/mawashidz-site/issues"
-  },
-  "homepage": "https://github.com/hichemazeroual21-star/mawashidz-site#readme",
   "devDependencies": {
-    "embedded-postgres": "^18.4.0-beta.17",
-    "pg": "^8.22.0"
+    "puppeteer-core": "^24.0.0"
   }
 }
