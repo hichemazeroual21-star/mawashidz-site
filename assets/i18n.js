@@ -1,5 +1,5 @@
 /* MawashiDZ — multilingual UI (ar, en, fr, de) */
-const MDZ_APP_VERSION = '1.9.3';
+const MDZ_APP_VERSION = '1.10.0';
 const MDZ_LANGS = ['ar', 'en', 'fr', 'de'];
 
 const MDZ_I18N = {
@@ -114,6 +114,26 @@ const MDZ_I18N = {
     vetNewsTitle: 'البيطرة والصحة الحيوانية', vetNewsDesc: 'تحديث مباشر كل دقيقة من مصادر بيطرية وصحية موثوقة.',
     officialNewsTitle: 'القرارات والبلاغات الرسمية', officialNewsDesc: 'أخبار رسمية فقط من الوزارات والجهات العمومية — تُستبدل عند ظهور أحدث.',
     specialNewsEmpty: 'لا يوجد خبر جديد في هذه الفئة حالياً.', specialNewsLive: 'مباشر — تحديث كل دقيقة',
+    btnLogout: 'تسجيل الخروج', headerMgrDash: 'لوحة الولاية', headerAdminDash: 'لوحة الإدارة',
+    acctTabProfile: 'الملف', acctTabRequest: 'الطلب', acctTabInvites: 'الدعوات', acctTabSecurity: 'الأمان',
+    acctStepSubmitted: 'تم الإرسال', acctStepReview: 'قيد المراجعة', acctStepApproved: 'مقبول / موثّق',
+    acctProgressAria: 'تقدم حالة الطلب', acctRequestNote: 'يتم مراجعة طلبك من الفريق المختص. ستصلك إشعارات عند تغيير الحالة.',
+    acctInvitesNote: 'شارك كود دعوتك لبناء شبكة موثوقة داخل MawashiDZ.', acctSecurityNote: 'لحماية حسابك، لا تشارك كلمة المرور مع أي شخص.',
+    acctFullName: 'الاسم الكامل', acctMemberId: 'رقم العضوية', acctRole: 'الصفة', acctStatus: 'الحالة', acctRegId: 'رقم الطلب',
+    acctMemberPending: 'سيصلك بعد التأكيد', acctDefaultName: 'عضو MawashiDZ',
+    mgrDashTitle: 'لوحة مدير الولاية', mgrDashDesc: 'متابعة طلبات التسجيل في ولاية {wilaya}.', mgrDashPending: 'طلبات مسجّلة', mgrDashNote: 'الموافقة النهائية تتم عبر فريق الإدارة المركزي.',
+    adminDashTitle: 'لوحة الإدارة', adminDashDesc: 'نظرة عامة على التسجيلات والأدوار.', adminStatTotal: 'إجمالي الطلبات', adminDashNote: 'لتفعيل البيانات الحية شغّل migration 003_dashboard_rls.sql في Supabase.',
+    dashEmptyQueue: 'لا توجد طلبات في هذه القائمة حالياً.', dashSourceLive: 'بيانات مباشرة من Supabase', dashSourceLocal: 'عرض من النسخة المحلية (بانتظار صلاحيات القراءة)',
+    dashNoAccess: 'ليس لديك صلاحية الوصول إلى هذه اللوحة.', policyTermsTitle: 'شروط الاستخدام', policyPrivacyTitle: 'سياسة الخصوصية', policyClose: 'إغلاق',
+    policyTermsBody: 'منصة MawashiDZ مخصّصة لقطاع المواشي في الجزائر. التسجيل مجاني في مرحلة الأعضاء المؤسسين ويخضع للمراجعة. تلتزم المنصة بحماية بياناتك وعدم نشر المعلومات الحساسة للعامة دون موافقتك.',
+    policyPrivacyBody: 'نستخدم بياناتك فقط لمراجعة الطلب والتواصل المهني وتقديم الخدمات. لا نبيع بياناتك لأطراف ثالثة. يمكنك طلب تصحيح أو حذف بياناتك عبر قناة التواصل الرسمية.',
+    succOpenAccount: 'فتح حسابي', statusPending: 'قيد المراجعة', statusApproved: 'مقبول / موثّق', statusRejected: 'مرفوض', statusSuspended: 'موقوف',
+    authErrInvalid: 'بيانات الدخول غير صحيحة.', authErrUnconfirmed: 'يجب تأكيد البريد الإلكتروني أولًا.', authErrRate: 'محاولات كثيرة. انتظر قليلًا.',
+    authErrNotFound: 'لم نعثر على حساب مطابق.', authErrSession: 'انتهت الجلسة. سجّل الدخول من جديد.', authErrGeneric: 'تعذر إتمام العملية الآن.',
+    authErrProfile: 'تعذر تحميل الملف الشخصي', authErrProfileMissing: 'الملف الشخصي غير موجود بعد. أكّد بريدك أو أعد المحاولة.',
+    authConfirmOk: 'تم تأكيد بريدك. سجّل الدخول للمتابعة.', authConfirmLogin: 'تم تأكيد بريدك. سجّل الدخول بكلمة المرور.',
+    authRecoveryOk: 'يمكنك الآن تعيين كلمة مرور جديدة من بريدك.', authSessionOk: 'تم تفعيل جلستك.',
+    errNetwork: 'تعذر الاتصال بالخادم.', errSaveFailed: 'تعذر حفظ الطلب', errLocalBackup: 'تم حفظ نسخة محلية.', errEmailExists: 'لا يمكن إكمال التسجيل بهذه البيانات.',
     langName: { ar: 'العربية', en: 'English', fr: 'Français', de: 'Deutsch' },
   },
   en: {
@@ -227,6 +247,26 @@ const MDZ_I18N = {
     vetNewsTitle: 'Veterinary & animal health', vetNewsDesc: 'Live updates every minute from trusted veterinary and health sources.',
     officialNewsTitle: 'Official decisions & notices', officialNewsDesc: 'Official news only from ministries and public bodies — replaced when newer items appear.',
     specialNewsEmpty: 'No new item in this category right now.', specialNewsLive: 'Live — updates every minute',
+    btnLogout: 'Log out', headerMgrDash: 'Wilaya panel', headerAdminDash: 'Admin panel',
+    acctTabProfile: 'Profile', acctTabRequest: 'Request', acctTabInvites: 'Invites', acctTabSecurity: 'Security',
+    acctStepSubmitted: 'Submitted', acctStepReview: 'Under review', acctStepApproved: 'Approved',
+    acctProgressAria: 'Request progress', acctRequestNote: 'Your request is being reviewed by our team.',
+    acctInvitesNote: 'Share your invite code to grow the MawashiDZ network.', acctSecurityNote: 'Never share your password with anyone.',
+    acctFullName: 'Full name', acctMemberId: 'Member ID', acctRole: 'Role', acctStatus: 'Status', acctRegId: 'Request ID',
+    acctMemberPending: 'Pending confirmation', acctDefaultName: 'MawashiDZ member',
+    mgrDashTitle: 'Wilaya manager panel', mgrDashDesc: 'Registrations in {wilaya}.', mgrDashPending: 'Registered requests', mgrDashNote: 'Final approval is done by the central admin team.',
+    adminDashTitle: 'Admin panel', adminDashDesc: 'Overview of registrations and roles.', adminStatTotal: 'Total requests', adminDashNote: 'Run migration 003_dashboard_rls.sql in Supabase for live data.',
+    dashEmptyQueue: 'No requests in this queue.', dashSourceLive: 'Live data from Supabase', dashSourceLocal: 'Local cache (awaiting read permissions)',
+    dashNoAccess: 'You do not have access to this panel.', policyTermsTitle: 'Terms of use', policyPrivacyTitle: 'Privacy policy', policyClose: 'Close',
+    policyTermsBody: 'MawashiDZ serves Algeria\'s livestock sector. Founding registration is free and subject to review. Sensitive data is not published without your consent.',
+    policyPrivacyBody: 'We use your data only to review requests and provide services. We do not sell your data. Contact us to correct or delete your data.',
+    succOpenAccount: 'Open my account', statusPending: 'Under review', statusApproved: 'Approved', statusRejected: 'Rejected', statusSuspended: 'Suspended',
+    authErrInvalid: 'Invalid login credentials.', authErrUnconfirmed: 'Please confirm your email first.', authErrRate: 'Too many attempts. Wait a moment.',
+    authErrNotFound: 'No matching account found.', authErrSession: 'Session expired. Please log in again.', authErrGeneric: 'Could not complete the operation.',
+    authErrProfile: 'Could not load profile', authErrProfileMissing: 'Profile not found yet. Confirm your email or try again.',
+    authConfirmOk: 'Email confirmed. Log in to continue.', authConfirmLogin: 'Email confirmed. Log in with your password.',
+    authRecoveryOk: 'You can set a new password from your email.', authSessionOk: 'Your session is active.',
+    errNetwork: 'Could not reach the server.', errSaveFailed: 'Could not save request', errLocalBackup: 'Saved locally.', errEmailExists: 'Cannot register with these details.',
     langName: { ar: 'العربية', en: 'English', fr: 'Français', de: 'Deutsch' },
   },
   fr: {
@@ -516,7 +556,8 @@ function applyI18n(lang) {
   });
 
   if (typeof refreshDynamicI18n === 'function') refreshDynamicI18n();
-  if (typeof syncAuthHeader === 'function') syncAuthHeader();
+  if (typeof updateAuthChrome === 'function') updateAuthChrome();
+  else if (typeof syncAuthHeader === 'function') syncAuthHeader();
   const versionEl = document.getElementById('siteVersionLabel');
   if (versionEl && pack.siteVersion) versionEl.textContent = t('siteVersion', { version: MDZ_APP_VERSION });
 }

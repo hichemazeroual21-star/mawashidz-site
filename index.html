@@ -1005,6 +1005,7 @@ footer{background:#0b100d}
 #registerConfirm.premium-success:before{content:"";position:absolute;width:150px;height:150px;border-radius:50%;background:rgba(226,199,126,.13);left:-55px;top:-70px}
 .success-mark{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:#e2c77e;color:#173627;font-size:1.35rem;font-weight:1000;margin-bottom:12px}
 .success-title{font-size:1.18rem;font-weight:950;margin-bottom:6px}.success-copy{color:rgba(255,255,255,.82);line-height:1.75}.success-id{display:inline-flex;margin-top:12px;padding:8px 12px;border-radius:999px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);font-weight:900}.success-mail{margin-top:10px;color:#e8d79f;font-weight:850}
+.success-warn{margin:12px 0;padding:10px 12px;border-radius:12px;background:rgba(255,243,205,.95);color:#7a4b00;font-weight:700;font-size:.92rem}
 
 /* Verified identity fields */
 #registerModal .identity-field input[type="date"]{color-scheme:dark;min-height:48px}
@@ -1029,6 +1030,45 @@ footer{background:#0b100d}
 .invite-actions{display:flex;gap:8px;margin-top:9px}.invite-actions button{flex:1;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.1);color:#fff;border-radius:10px;padding:9px;font-weight:850;cursor:pointer}
 .invite-actions button:hover{background:rgba(255,255,255,.16)}
 @media(max-width:480px){#registerModal .consent-card{padding:11px 12px;grid-template-columns:25px 1fr;gap:10px}.invite-actions{display:grid}.success-id{font-size:.82rem}}
+#registerModal.is-success .tabs,#registerModal.is-success .field,#registerModal.is-success .role-fields,#registerModal.is-success .consent-stack,#registerModal.is-success .notice:not(.auth-status),#registerModal.is-success #registerSubmit,#registerModal.is-success .role-section-title{display:none!important}
+#registerModal.is-success #registerConfirm.premium-success{display:block!important;margin-top:0}
+.member-status-pill{display:inline-flex;margin-top:8px;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.14);font-weight:850;font-size:.86rem}
+.member-name{margin:14px 0 6px;font-size:1.25rem}.member-role{margin:0;opacity:.9;font-weight:750}
+#loginModal .modal-box,#accountModal .modal-box,#managerDashModal .modal-box,#adminDashModal .modal-box{width:min(560px,96vw)}
+#accountModal .modal-box{width:min(620px,96vw)}
+#loginModal .login-state{min-height:1.4em;font-weight:800;color:#5c4a18}
+#loginModal .login-state.is-error{color:#9b1c1c}#loginModal .login-state.is-ok{color:#0f6a49}
+.acct-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px}
+.acct-tab{border:1px solid #d3e1d8;background:#f4f8f5;color:#1b3d2e;border-radius:999px;padding:8px 14px;font-weight:850;cursor:pointer;font-size:.84rem}
+.acct-tab.on{background:linear-gradient(145deg,#0d5a3e,#11744f);color:#fff;border-color:transparent}
+.acct-progress{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}
+.acct-progress-step{display:grid;gap:4px;justify-items:center;text-align:center;padding:10px 6px;border-radius:12px;background:#eef4f0;border:1px solid #d7e4dc;opacity:.55}
+.acct-progress-step span{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:#fff;font-weight:950}
+.acct-progress-step.done,.acct-progress-step.active{opacity:1}
+.acct-progress-step.active{border-color:#16835b;background:#e8f5ee}
+.acct-tab-note,.dash-note{color:#5a6d62;font-size:.84rem;line-height:1.65;margin:8px 0 0}
+.acct-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+.dash-hero{padding:16px 18px;border-radius:18px;color:#fff;margin-bottom:12px}
+.dash-hero.manager{background:linear-gradient(135deg,#0f3f2e,#1a6b4d)}
+.dash-hero.admin{background:linear-gradient(135deg,#17304a,#245d8a)}
+.dash-hero h3{margin:0 0 6px;font-size:1.15rem}.dash-hero p{margin:0;opacity:.9;line-height:1.6;font-size:.9rem}
+.dash-source{display:inline-flex;margin-top:8px;padding:4px 10px;border-radius:999px;background:rgba(255,255,255,.14);font-size:.76rem;font-weight:800}
+.dash-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:12px}
+.dash-stats.admin{grid-template-columns:repeat(4,minmax(0,1fr))}
+.dash-stats article{padding:12px;border-radius:14px;background:#fff;border:1px solid #d7e4dc;text-align:center}
+.dash-stats strong{display:block;font-size:1.35rem;color:#123326}.dash-stats span{display:block;margin-top:4px;color:#667c70;font-size:.8rem;font-weight:750}
+.dash-table-wrap{overflow:auto;border:1px solid #d7e4dc;border-radius:14px;background:#fff}
+.dash-table{width:100%;border-collapse:collapse;font-size:.84rem}
+.dash-table th,.dash-table td{padding:10px 12px;border-bottom:1px solid #e8efea;text-align:right}
+.dash-table th{background:#f4f8f5;color:#1b3d2e;font-weight:900}
+.dash-empty{padding:24px;text-align:center;color:#667c70;font-weight:750}
+#headerActions .btn[hidden],#drawerAccountLink[hidden],#drawerLogoutLink[hidden],#drawerLoginLink[hidden],#drawerRegisterLink[hidden],#headerMgrDashBtn[hidden],#headerAdminDashBtn[hidden]{display:none!important}
+.policy-modal .modal-box{max-width:min(640px,96vw)}
+.policy-body{max-height:52vh;overflow:auto;line-height:1.75;color:#2a4035;font-size:.92rem}
+.hero-card{box-shadow:0 24px 60px rgba(8,35,24,.18)}
+.hero .eyebrow{letter-spacing:.02em}
+footer .foot a:hover{color:#e2c77e}
+@media(max-width:620px){.dash-stats,.dash-stats.admin{grid-template-columns:repeat(2,minmax(0,1fr))}}
 
 @media(max-width:620px){.algeria-phone{grid-template-columns:auto 1fr}.algeria-phone input{grid-column:1/-1}.algeria-phone .country-code{min-height:50px}}
 
@@ -1547,9 +1587,13 @@ body[data-lang]:not([data-lang="ar"]) .hero-title-sub{white-space:normal!importa
     <button type="button" data-lang="fr">FR</button>
     <button type="button" data-lang="de">DE</button>
   </div>
-  <div class="actions">
-   <button class="btn ghost" id="headerAuthBtn" type="button" onclick="openAccount()" data-i18n="btnLogin">دخول</button>
-   <button class="btn primary" onclick="openRegister()" data-i18n="btnRegister">سجّل الآن</button>
+  <div class="actions" id="headerActions">
+   <button class="btn ghost" type="button" id="headerLoginBtn" onclick="openLogin()" data-i18n="btnLogin">دخول</button>
+   <button class="btn primary" type="button" id="headerRegisterBtn" onclick="openRegister()" data-i18n="btnRegister">سجّل الآن</button>
+   <button class="btn ghost" type="button" id="headerAccountBtn" onclick="openAccount()" hidden data-i18n="btnProfile">حسابي</button>
+   <button class="btn ghost" type="button" id="headerMgrDashBtn" onclick="openManagerDashboard()" hidden data-i18n="headerMgrDash">لوحة الولاية</button>
+   <button class="btn ghost" type="button" id="headerAdminDashBtn" onclick="openAdminDashboard()" hidden data-i18n="headerAdminDash">لوحة الإدارة</button>
+   <button class="btn primary" type="button" id="headerLogoutBtn" onclick="logoutAccount()" hidden data-i18n="btnLogout">تسجيل الخروج</button>
    <button class="menu-btn" onclick="toggleMenu(true)" data-i18n-aria="menuLabel" aria-label="القائمة">☰</button>
   </div>
  </div>
@@ -1567,7 +1611,12 @@ body[data-lang]:not([data-lang="ar"]) .hero-title-sub{white-space:normal!importa
    <a href="#news" onclick="toggleMenu(false)" data-i18n="drawerNews">الأخبار والأسعار</a>
    <a href="#managers" onclick="toggleMenu(false)" data-i18n="drawerManagers">مدراء الولايات</a>
    <a href="#how" onclick="toggleMenu(false)" data-i18n="drawerHow"><span data-i18n="howTitle">كيف تعمل المنصة؟</span></a><a href="#trust-public" onclick="toggleMenu(false)" data-i18n="drawerTrust"><span data-i18n="trustTitle">الثقة والشفافية</span></a><a href="#animal-life" onclick="toggleMenu(false)" data-i18n="drawerAnimal">هوية الحيوان وQR</a><a href="#eid" onclick="toggleMenu(false)" data-i18n="drawerEid">قسم الأضاحي</a><a href="#identity" onclick="toggleMenu(false)" data-i18n="drawerIdentity">بطاقات الأعضاء</a>
-   <a href="#account" onclick="toggleMenu(false);openAccount();return false" data-i18n="btnProfile">حسابي</a>
+   <a href="#login" id="drawerLoginLink" onclick="toggleMenu(false);openLogin();return false" data-i18n="drawerLogin">تسجيل الدخول</a>
+   <a href="#register" id="drawerRegisterLink" onclick="toggleMenu(false);openRegister();return false" data-i18n="btnRegister">سجّل الآن</a>
+   <a href="#account" id="drawerAccountLink" onclick="toggleMenu(false);openAccount();return false" hidden data-i18n="btnProfile">حسابي</a>
+   <a href="#manager-dash" id="drawerMgrDashLink" onclick="toggleMenu(false);openManagerDashboard();return false" hidden data-i18n="headerMgrDash">لوحة الولاية</a>
+   <a href="#admin-dash" id="drawerAdminDashLink" onclick="toggleMenu(false);openAdminDashboard();return false" hidden data-i18n="headerAdminDash">لوحة الإدارة</a>
+   <a href="#logout" id="drawerLogoutLink" onclick="toggleMenu(false);logoutAccount();return false" hidden data-i18n="btnLogout">تسجيل الخروج</a>
    <a href="#contact" onclick="toggleMenu(false)" data-i18n="drawerContact">اتصل بنا</a>
   </div>
  </aside>
@@ -1977,9 +2026,9 @@ body[data-lang]:not([data-lang="ar"]) .hero-title-sub{white-space:normal!importa
  <div class="wrap foot">
   <div><img src="data:image/png;base64,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" alt="شعار مواشي ديزاد" aria-label="شعار مواشي ديزاد" style="width:86px"><h3>مواشي ديزاد</h3><p data-i18n="footerDesc">الثقة الرقمية لقطاع المواشي — التسجيل المسبق للأعضاء المؤسسين مفتوح الآن.</p></div>
   <div><h3 data-i18n="footerLinks">روابط</h3><a href="#market" data-i18n="footerRegister">التسجيل</a><a href="#news" data-i18n="navNews">الأخبار</a><a href="#managers" data-i18n="navManagers">مدراء الولايات</a></div>
-  <div><h3 data-i18n="footerPolicies">السياسات والمساعدة</h3><a href="#" onclick="showToast(t('toastTermsReady'));return false" data-i18n="footerTerms">شروط الاستخدام</a><a href="#" onclick="showToast(t('toastPrivacyReady'));return false" data-i18n="footerPrivacy">الخصوصية</a><a href="#" onclick="openFeedback();return false;" data-i18n="footerFeedback">شاركنا رأيك لنرتقي معًا</a></div>
+  <div><h3 data-i18n="footerPolicies">السياسات والمساعدة</h3><a href="#terms" onclick="openPolicyModal('termsModal');return false" data-i18n="footerTerms">شروط الاستخدام</a><a href="#privacy" onclick="openPolicyModal('privacyModal');return false" data-i18n="footerPrivacy">الخصوصية</a><a href="#" onclick="openFeedback();return false;" data-i18n="footerFeedback">شاركنا رأيك لنرتقي معًا</a></div>
  </div>
-  <div class="site-version"><span class="version-number" id="siteVersionLabel">MawashiDZ — الإصدار v1.9.3</span><span class="copyright" data-i18n="footerCopyright">© 2026 جميع الحقوق محفوظة لمنصة MawashiDZ</span></div>
+  <div class="site-version"><span class="version-number" id="siteVersionLabel">MawashiDZ — الإصدار v1.10.0</span><span class="copyright" data-i18n="footerCopyright">© 2026 جميع الحقوق محفوظة لمنصة MawashiDZ</span></div>
 </footer>
 
 <div class="modal" id="registerModal">
@@ -2098,6 +2147,36 @@ body[data-lang]:not([data-lang="ar"]) .hero-title-sub{white-space:normal!importa
  </div>
 </div>
 
+<div class="modal" id="managerDashModal">
+ <div class="modal-box">
+  <div class="modal-top"><h2 data-i18n="mgrDashTitle">لوحة مدير الولاية</h2><button class="close" onclick="closeModal('managerDashModal')">✕</button></div>
+  <div id="managerDashContent" class="member-dashboard"><div class="notice" data-i18n="accountLoading">جاري التحميل...</div></div>
+ </div>
+</div>
+
+<div class="modal" id="adminDashModal">
+ <div class="modal-box">
+  <div class="modal-top"><h2 data-i18n="adminDashTitle">لوحة الإدارة</h2><button class="close" onclick="closeModal('adminDashModal')">✕</button></div>
+  <div id="adminDashContent" class="member-dashboard"><div class="notice" data-i18n="accountLoading">جاري التحميل...</div></div>
+ </div>
+</div>
+
+<div class="modal policy-modal" id="termsModal">
+ <div class="modal-box">
+  <div class="modal-top"><h2 data-i18n="policyTermsTitle">شروط الاستخدام</h2><button class="close" onclick="closeModal('termsModal')">✕</button></div>
+  <div class="policy-body" data-i18n="policyTermsBody">منصة MawashiDZ مخصّصة لقطاع المواشي في الجزائر. التسجيل مجاني في مرحلة الأعضاء المؤسسين ويخضع للمراجعة. تلتزم المنصة بحماية بياناتك وعدم نشر المعلومات الحساسة للعامة دون موافقتك.</div>
+  <button class="btn primary" type="button" onclick="closeModal('termsModal')" data-i18n="policyClose">إغلاق</button>
+ </div>
+</div>
+
+<div class="modal policy-modal" id="privacyModal">
+ <div class="modal-box">
+  <div class="modal-top"><h2 data-i18n="policyPrivacyTitle">سياسة الخصوصية</h2><button class="close" onclick="closeModal('privacyModal')">✕</button></div>
+  <div class="policy-body" data-i18n="policyPrivacyBody">نستخدم بياناتك فقط لمراجعة الطلب والتواصل المهني وتقديم الخدمات. لا نبيع بياناتك لأطراف ثالثة. يمكنك طلب تصحيح أو حذف بياناتك عبر قناة التواصل الرسمية.</div>
+  <button class="btn primary" type="button" onclick="closeModal('privacyModal')" data-i18n="policyClose">إغلاق</button>
+ </div>
+</div>
+
 <button class="feedback-fab" id="feedbackFab" onclick="openFeedback()" data-i18n="feedbackFab">💡 شاركنا رأيك لنرتقي معًا</button>
 <div class="modal" id="feedbackModal">
  <div class="modal-box">
@@ -2164,6 +2243,8 @@ const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_kl5En74g9tnPW6JDpf3wDA_wQ573fB9
 const SUPABASE_REST = `${SUPABASE_URL}/rest/v1`;
 const SUPABASE_AUTH = `${SUPABASE_URL}/auth/v1`;
 const MDZ_SESSION_KEY='mdz_auth_session';
+const MDZ_SITE_URL=()=>`${location.origin}${location.pathname}`;
+let mdzUserRoles=[];
 const ROLE_PREFIX={breeder:'F',vet:'V',feed:'S',buyer:'U',manager:'W',ambassador:'B',partner:'P'};
 function generateMemberId(role){
  const d=new Date(), date=String(d.getFullYear()).slice(-2)+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0');
@@ -2187,14 +2268,67 @@ async function allocateMemberId(role){
  }catch(error){ console.warn('Sequential member id unavailable, using fallback format:',error); }
  return {id:generateMemberId(role),sequential:false};
 }
-function saveSession(session){if(session)localStorage.setItem(MDZ_SESSION_KEY,JSON.stringify(session));else localStorage.removeItem(MDZ_SESSION_KEY)}
+function saveSession(session){
+ if(session?.access_token){
+  const packed={
+   access_token:session.access_token,
+   refresh_token:session.refresh_token||null,
+   expires_at:session.expires_at||(session.expires_in?Math.floor(Date.now()/1000)+Number(session.expires_in):null),
+   user:session.user||null
+  };
+  localStorage.setItem(MDZ_SESSION_KEY,JSON.stringify(packed));
+ }else localStorage.removeItem(MDZ_SESSION_KEY);
+ updateAuthChrome();
+}
 function getSession(){try{return JSON.parse(localStorage.getItem(MDZ_SESSION_KEY)||'null')}catch{return null}}
+function isAuthenticated(){return Boolean(getSession()?.access_token)}
+function memberIdFromAuthResult(authResult){
+ const fromUser=authResult?.user?.user_metadata?.member_id;
+ if(typeof fromUser==='string'&&/^MDZ-[A-Z]-\d{6}$/.test(fromUser)) return fromUser;
+ return null;
+}
+async function memberIdAfterSignup(authResult){
+ const direct=memberIdFromAuthResult(authResult);
+ if(direct) return direct;
+ const token=authResult?.session?.access_token||authResult?.access_token;
+ if(!token) return null;
+ try{
+  const profile=await fetchMyProfile(token);
+  if(profile?.member_id) return profile.member_id;
+ }catch(e){console.warn('member_id lookup skipped',e)}
+ return null;
+}
+function authErrorArabic(error){
+ const raw=String(error?.message||error||'').toLowerCase();
+ if(raw.includes('invalid login')||raw.includes('invalid_grant')||raw.includes('invalid credentials')) return t('authErrInvalid');
+ if(raw.includes('email not confirmed')||raw.includes('not confirmed')) return t('authErrUnconfirmed');
+ if(raw.includes('too many')||raw.includes('rate')||error?.status===429) return t('authErrRate');
+ if(raw.includes('user not found')||raw.includes('لم نعثر')) return t('authErrNotFound');
+ if(raw.includes('network')||error?.name==='TypeError') return t('errNetwork');
+ if(raw.includes('jwt')||raw.includes('expired')||raw.includes('session')) return t('authErrSession');
+ return t('authErrGeneric');
+}
+async function refreshSession(refreshToken){
+ return authRequest('/token?grant_type=refresh_token',{method:'POST',body:JSON.stringify({refresh_token:refreshToken})});
+}
+async function ensureFreshSession(){
+ let session=getSession();
+ if(!session?.access_token) return null;
+ const now=Math.floor(Date.now()/1000);
+ if(session.expires_at&&session.expires_at>now+30) return session;
+ if(!session.refresh_token){saveSession(null);return null}
+ try{const renewed=await refreshSession(session.refresh_token);saveSession(renewed);return getSession()}
+ catch{saveSession(null);return null}
+}
 async function authRequest(path,options={}){
  const response=await fetch(`${SUPABASE_AUTH}${path}`,{...options,headers:{apikey:SUPABASE_PUBLISHABLE_KEY,'Content-Type':'application/json',...(options.headers||{})}});
  let data={};try{data=await response.json()}catch{}
  if(!response.ok){const e=new Error(data.msg||data.error_description||data.message||`HTTP ${response.status}`);e.status=response.status;throw e}return data;
 }
-async function signUpAccount(email,password,metadata){return authRequest('/signup',{method:'POST',body:JSON.stringify({email,password,data:metadata})})}
+async function signUpAccount(email,password,metadata){
+ const redirect=encodeURIComponent(MDZ_SITE_URL()+'#auth-callback');
+ return authRequest(`/signup?redirect_to=${redirect}`,{method:'POST',body:JSON.stringify({email,password,data:metadata})});
+}
 async function signInAccount(email,password){return authRequest('/token?grant_type=password',{method:'POST',body:JSON.stringify({email,password})})}
 async function resolveLoginEmail(identifier){
  const clean=String(identifier||'').trim(); if(clean.includes('@')) return clean.toLowerCase();
@@ -2203,7 +2337,21 @@ async function resolveLoginEmail(identifier){
  const email=await r.json(); if(!email) throw new Error('لم نعثر على حساب مطابق لهذه البيانات.'); return String(email);
 }
 async function fetchMyProfile(token){
- const r=await fetch(`${SUPABASE_REST}/profiles?select=*&limit=1`,{headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:`Bearer ${token}`}});if(!r.ok)throw new Error('تعذر تحميل الملف الشخصي');const rows=await r.json();return rows[0]||null;
+ const r=await fetch(`${SUPABASE_REST}/profiles?select=*&limit=1`,{headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:`Bearer ${token}`}});
+ if(r.status===401||r.status===403) throw new Error(t('authErrSession'));
+ if(!r.ok) throw new Error(t('authErrProfile'));
+ const rows=await r.json();return rows[0]||null;
+}
+async function fetchMyRoles(token){
+ try{
+  const r=await fetch(`${SUPABASE_REST}/user_roles?select=role`,{headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:`Bearer ${token}`}});
+  if(!r.ok) return [];
+  return (await r.json()).map(x=>String(x.role||'').toLowerCase()).filter(Boolean);
+ }catch{return []}
+}
+function statusLabelArabic(status){
+ const key=({pending:'statusPending',approved:'statusApproved',active:'statusApproved',rejected:'statusRejected',suspended:'statusSuspended'})[String(status||'').toLowerCase()]||'statusPending';
+ return t(key);
 }
 
 
@@ -2266,10 +2414,25 @@ function checked(form,name){ const el=form.querySelector(`[name="${name}"]`); re
 function selectedValues(form,name){ return [...form.querySelectorAll(`[name="${name}"]:checked`)].map(x=>x.value); }
 
 function toggleMenu(v){$('#drawer').classList.toggle('open',v)}
-function openRegister(role='breeder'){closeAll();$('#registerModal').classList.add('open');setRole(role)}
+function openRegister(role='breeder'){
+ closeAll();
+ const modal=$('#registerModal');
+ modal.classList.remove('is-success');
+ const confirm=document.getElementById('registerConfirm');
+ if(confirm){confirm.className='full confirm-card';confirm.style.display='none';confirm.innerHTML=''}
+ modal.classList.add('open');
+ setRole(role);
+}
 function openLogin(){closeAll();$('#loginModal').classList.add('open')}
-function closeModal(id){$('#'+id).classList.remove('open')}
-function closeAll(){$$('.modal').forEach(m=>m.classList.remove('open'))}
+window.openLogin=openLogin;
+function openPolicyModal(id){closeAll();document.getElementById(id)?.classList.add('open')}
+function closeModal(id){
+ const modal=$('#'+id);
+ if(!modal) return;
+ modal.classList.remove('open');
+ if(id==='registerModal') modal.classList.remove('is-success');
+}
+function closeAll(){$$('.modal').forEach(m=>{m.classList.remove('open');if(m.id==='registerModal') m.classList.remove('is-success')})}
 function openManager(){openRegister('manager')}
 function openContact(){document.querySelector('#contact').scrollIntoView({behavior:'smooth'})}
 function openFeedback(){closeAll();$('#feedbackModal').classList.add('open')}
@@ -2300,7 +2463,7 @@ function refreshDynamicI18n(){
   const exStatus=document.getElementById('exchangeStatus');
   if(exStatus&&exStatus.dataset.newsStatusKey) exStatus.textContent=t(exStatus.dataset.newsStatusKey,JSON.parse(exStatus.dataset.newsStatusVars||'{}'));
   updateRoleFields(document.getElementById('roleInput')?.value||'breeder');
-  syncAuthHeader();
+  updateAuthChrome();
 }
 
 function mdzDateLocale(){return ({ar:'ar-DZ',en:'en-GB',fr:'fr-DZ',de:'de-DE'})[getMawashiLanguage()]||'ar-DZ';}
@@ -2458,11 +2621,13 @@ function describeRegistrationError(error){
     : `${t('errSaveFailed')} (${error?.status||'?'})`};
 }
 
-function renderRegistrationSuccess({confirmBox,ids,email,hasSession}){
+function renderRegistrationSuccess({confirmBox,ids,email,hasSession,warnings=[]}){
   const inviteUrl=`${location.origin}${location.pathname}?ref=${encodeURIComponent(ids.memberInviteCode)}#register`;
+  const memberLabel=ids.memberId?`<span dir="ltr">${ids.memberId}</span>`:t('acctMemberPending');
+  const warnHtml=warnings.map(w=>`<div class="success-warn">⚠️ ${safeText(w,400)}</div>`).join('');
   confirmBox.style.display='block';
   confirmBox.className='full confirm-card premium-success';
-  confirmBox.innerHTML=`<div class="success-mark">✓</div><div class="success-title">${t('succTitle')}</div><div class="success-copy">${t('succCopy')}</div><div class="success-id">${t('succMemberId')} <span dir="ltr">${ids.memberId}</span></div><div class="success-id">${t('succRegId')} ${ids.registrationId}</div><div class="auth-status ${hasSession?'ok':''}">${hasSession?t('succAuthOk'):t('succAuthPending')}</div><div class="invite-panel"><div class="invite-label">${t('succInviteLabel')}</div><div class="invite-code">${ids.memberInviteCode}</div><div class="invite-actions"><button type="button" id="copyInviteCode">${t('succCopyCode')}</button><button type="button" id="shareInviteLink">${t('succShareLink')}</button></div></div><div class="success-mail">✉ ${t('succMail')} ${safeText(email,254)}</div>`;
+  confirmBox.innerHTML=`<div class="success-mark">✓</div><div class="success-title">${t('succTitle')}</div><div class="success-copy">${t('succCopy')}</div><div class="success-id">${t('succMemberId')} ${memberLabel}</div><div class="success-id">${t('succRegId')} ${ids.registrationId}</div>${warnHtml}<div class="auth-status ${hasSession?'ok':''}">${hasSession?t('succAuthOk'):t('succAuthPending')}</div><div class="invite-panel"><div class="invite-label">${t('succInviteLabel')}</div><div class="invite-code">${ids.memberInviteCode}</div><div class="invite-actions"><button type="button" id="copyInviteCode">${t('succCopyCode')}</button><button type="button" id="shareInviteLink">${t('succShareLink')}</button>${hasSession?`<button type="button" id="openAccountAfterSignup">${t('succOpenAccount')}</button>`:''}</div></div><div class="success-mail">✉ ${t('succMail')} ${safeText(email,254)}</div>`;
   document.getElementById('copyInviteCode')?.addEventListener('click',async()=>{try{await navigator.clipboard.writeText(ids.memberInviteCode);showToast(t('toastCopyInvite'));}catch{showToast(`كودك: ${ids.memberInviteCode}`);}});
   document.getElementById('shareInviteLink')?.addEventListener('click',async()=>{const shareData={title:'MawashiDZ',text:t('shareInviteText',{code:ids.memberInviteCode}),url:inviteUrl};try{if(navigator.share) await navigator.share(shareData);else{await navigator.clipboard.writeText(inviteUrl);showToast(t('toastCopyLink'));}}catch(error){if(error?.name!=='AbortError') showToast(t('toastShareFail'));}});
 }
@@ -2475,64 +2640,67 @@ function resetRegistrationForm(form){
   }catch(error){ console.warn('Form reset skipped:',error); }
 }
 
+let registerFormSubmitting=false;
 $('#registerForm').addEventListener('submit', async e=>{
   e.preventDefault();
+  if(registerFormSubmitting) return;
   const form=e.target;
   const submit=document.getElementById('registerSubmit');
   const confirmBox=document.getElementById('registerConfirm');
   const raw=Object.fromEntries(new FormData(form).entries());
-
   const valid=validateRegistrationInput(raw);
   if(valid.error){
     showToast(valid.error);
     document.getElementById(valid.focus)?.focus();
     return;
   }
-
-  /* رقم العضوية يُخصّص بعد نجاح كل التحقق حتى لا تُستهلك أرقام تسلسلية على طلبات ناقصة. */
-  const allocation=await allocateMemberId(raw.role);
   const ids={
     registrationId:makeRegistrationId(),
-    memberId:allocation.id,
-    sequential:allocation.sequential,
+    memberId:null,
     memberInviteCode:makeMemberInviteCode(valid.lastName||valid.firstName)
   };
   const {extra,payload}=buildRegistrationRecords({raw,form,valid,ids});
-
+  registerFormSubmitting=true;
   submit.disabled=true; submit.dataset.oldText=submit.textContent; submit.textContent=t('registerSending');
-  const restoreSubmit=()=>{submit.disabled=false; submit.textContent=submit.dataset.oldText||t('registerSubmit');};
-
-  let authResult=null;
+  const restoreSubmit=()=>{registerFormSubmitting=false;submit.disabled=false;submit.textContent=submit.dataset.oldText||t('registerSubmit')};
+  const email=String(raw.email||'').trim().toLowerCase();
   try{
-    authResult=await signUpAccount(String(raw.email||'').trim().toLowerCase(),valid.password,{
-      member_id:ids.memberId,registration_id:ids.registrationId,role_label:registrationRoleLabel(raw.role),
-      first_name:valid.firstName,last_name:valid.lastName,full_name:valid.fullName,phone:valid.phone,
-      role:raw.role,wilaya:payload.wilaya,daira:extra.daira,commune:extra.commune,
-      birth_date:valid.birthDate,invite_code:ids.memberInviteCode,invited_by:extra.invited_by
+    const flow=await import('./js/registration-flow.mjs');
+    const pipelineResult=await flow.runRegistrationPipeline({
+      signUpAccount,memberIdAfterSignup,supabaseInsert,sendRegistrationEmail
+    },{
+      email,password:valid.password,
+      authMetadata:{
+        registration_id:ids.registrationId,role_label:registrationRoleLabel(raw.role),
+        first_name:valid.firstName,last_name:valid.lastName,full_name:valid.fullName,phone:valid.phone,
+        role:raw.role,wilaya:payload.wilaya,daira:extra.daira,commune:extra.commune,
+        birth_date:valid.birthDate,invite_code:ids.memberInviteCode,invited_by:extra.invited_by
+      },
+      registrationPayload:payload,
+      emailData:{...payload,...ids,registration_id:ids.registrationId,member_id:null,role_label:registrationRoleLabel(raw.role),member_invite_code:ids.memberInviteCode,invited_by:extra.invited_by}
     });
-    if(authResult?.session) saveSession(authResult.session);
-    await supabaseInsert('registrations',payload);
+    if(!pipelineResult.success){
+      showToast(pipelineResult.error?.message||t('authErrGeneric'));
+      confirmBox.style.display='block';
+      confirmBox.textContent=pipelineResult.error?.message||t('authErrGeneric');
+      restoreSubmit();
+      return;
+    }
+    if(pipelineResult.authResult?.access_token||pipelineResult.authResult?.session) saveSession(pipelineResult.authResult.session||pipelineResult.authResult);
+    ids.memberId=pipelineResult.memberId||ids.memberId;
+    try{saveRow('mdz_registrations',{...raw,...extra,status:t('statusPending'),member_id:ids.memberId})}catch(err){console.warn(err)}
+    renderRegistrationSuccess({confirmBox,ids,email,hasSession:Boolean(getSession()?.access_token),warnings:[pipelineResult.registrationWarning,pipelineResult.emailWarning].filter(Boolean)});
+    document.getElementById('registerModal')?.classList.add('is-success');
+    document.getElementById('openAccountAfterSignup')?.addEventListener('click',()=>openAccount());
+    showToast(t('toastRegisterOk',{id:ids.registrationId}));
+    setTimeout(()=>resetRegistrationForm(form),1400);
+    updateAuthChrome();
   }catch(error){
-    console.error('Registration database error',error);
-    const failure=describeRegistrationError(error);
-    if(!failure.duplicate) saveRow('mdz_failed_registrations',{...raw,...extra,error:String(error)});
-    showToast(failure.message);
-    confirmBox.style.display='block';
-    confirmBox.textContent=failure.duplicate?failure.message:`⚠️ ${failure.message} ${t('errLocalBackup')}`;
+    console.error('Registration pipeline error',error);
+    saveRow('mdz_failed_registrations',{...raw,...extra,error:String(error)});
+    showToast(t('authErrGeneric'));
     restoreSubmit();
-    return;
-  }
-
-  // من هنا التسجيل محفوظ فعليًا. أي فشل لاحق في البريد أو التخزين المحلي لا يغيّر النتيجة.
-  try{ saveRow('mdz_registrations',{...raw,...extra,status:'قيد المراجعة'}); }catch(error){ console.warn(error); }
-  // نرسل إشعار الإدارة فقط. رسالة المستخدم الوحيدة هي رسالة تأكيد Supabase المخصّصة.
-  void sendRegistrationEmail({...payload,...ids,registration_id:ids.registrationId,member_id:ids.memberId,role_label:registrationRoleLabel(raw.role),member_invite_code:ids.memberInviteCode,invited_by:extra.invited_by})
-    .catch(error=>console.error('Admin email error:',error));
-
-  renderRegistrationSuccess({confirmBox,ids,email:raw.email,hasSession:Boolean(authResult?.session)});
-  showToast(t('toastRegisterOk',{id:ids.registrationId}));
-  setTimeout(()=>resetRegistrationForm(form),1400);
-  restoreSubmit();
+  }finally{restoreSubmit()}
 });
 
 
@@ -2541,42 +2709,154 @@ passwordInput?.addEventListener('input',()=>{const v=passwordInput.value;let sco
 
 document.getElementById('loginForm')?.addEventListener('submit',async e=>{
  e.preventDefault();const form=e.target,btn=document.getElementById('loginSubmit'),state=document.getElementById('loginState');const raw=Object.fromEntries(new FormData(form).entries());
- btn.disabled=true;btn.textContent=t('loginChecking');state.textContent='';
- try{const email=await resolveLoginEmail(raw.identifier);const result=await signInAccount(email,String(raw.password||''));saveSession(result);syncAuthHeader();state.textContent=t('toastLoginSuccess');state.style.color='var(--primary)';closeModal('loginModal');await openAccount();showToast(t('toastLoginOk'));}
- catch(err){state.textContent=String(err.message||t('loginFailGeneric'));state.style.color='#b42318'}finally{btn.disabled=false;btn.textContent=t('loginSubmit')}
+ btn.disabled=true;btn.textContent=t('loginChecking');state.className='full login-state';state.textContent='';
+ try{const email=await resolveLoginEmail(raw.identifier);const result=await signInAccount(email,String(raw.password||''));saveSession(result);state.className='full login-state is-ok';state.textContent=t('toastLoginSuccess');closeModal('loginModal');form.reset();await openAccount();showToast(t('toastLoginOk'));}
+ catch(err){state.className='full login-state is-error';state.textContent=authErrorArabic(err)}finally{btn.disabled=false;btn.textContent=t('loginSubmit')}
 });
 
 document.getElementById('forgotPasswordBtn')?.addEventListener('click',async()=>{
  const id=document.getElementById('loginIdentifier')?.value.trim();if(!id){showToast(t('toastEnterEmail'));return}
- try{const email=await resolveLoginEmail(id);await authRequest('/recover',{method:'POST',body:JSON.stringify({email,redirect_to:location.href.split('#')[0]})});showToast(t('toastRecoverSent'))}catch(e){showToast(e.message||t('toastRecoverFail'))}
+ try{const email=await resolveLoginEmail(id);await authRequest('/recover',{method:'POST',body:JSON.stringify({email,redirect_to:MDZ_SITE_URL()+'#auth-callback'})});showToast(t('toastRecoverSent'))}catch(e){showToast(t('toastRecoverSent'))}
 });
 
-async function openAccount(){
- const session=getSession();if(!session?.access_token){openLogin();return}
- closeAll();document.getElementById('accountModal').classList.add('open');const box=document.getElementById('accountContent');box.innerHTML=`<div class="notice">${t('accountLoading')}</div>`;
- try{const p=await fetchMyProfile(session.access_token);if(!p)throw new Error('الملف الشخصي غير موجود. شغّل ملف إعداد قاعدة البيانات المرفق.');
- box.innerHTML=`<div class="member-hero"><span class="member-id-chip">${safeText(p.member_id,40)}</span><h2 style="margin:14px 0 4px">${safeText(p.full_name,180)}</h2><p style="margin:0;opacity:.85">${t('accountOf')} ${registrationRoleLabel(p.role)} · ${p.status==='approved'?t('accountApproved'):t('accountPending')}</p></div><div class="member-data-grid"><div class="member-data"><small>${t('phone')}</small><b dir="ltr">${safeText(p.phone,30)}</b></div><div class="member-data"><small>${t('wilaya')}</small><b>${safeText(p.wilaya,120)}</b></div><div class="member-data"><small>${t('daira')}</small><b>${safeText(p.daira,120)}</b></div><div class="member-data"><small>${t('commune')}</small><b>${safeText(p.commune,120)}</b></div></div><button class="btn ghost" type="button" id="logoutBtn">${t('logoutBtn')}</button>`;
- document.getElementById('logoutBtn').onclick=()=>{saveSession(null);closeModal('accountModal');syncAuthHeader();showToast(t('toastLogout'))};
- }catch(e){box.innerHTML=`<div class="notice">${safeText(e.message,500)}</div>`}
- syncAuthHeader();
+let mdzAccountProfile=null;
+const accountHelpers=()=>({safeText,registrationRoleLabel,statusLabel:statusLabelArabic});
+
+function wireInviteActions(profile){
+ const code=profile?.invite_code;
+ if(!code) return;
+ document.getElementById('copyInviteCode')?.addEventListener('click',async()=>{try{await navigator.clipboard.writeText(code);showToast(t('toastCopyInvite'));}catch{showToast(code)}});
+ document.getElementById('shareInviteLink')?.addEventListener('click',async()=>{
+  const url=`${location.origin}${location.pathname}?ref=${encodeURIComponent(code)}#register`;
+  try{if(navigator.share) await navigator.share({title:'MawashiDZ',text:t('shareInviteText',{code}),url});else{await navigator.clipboard.writeText(url);showToast(t('toastCopyLink'));}}catch(err){if(err?.name!=='AbortError') showToast(t('toastShareFail'))}
+ });
 }
-function syncAuthHeader(){
- const session=getSession();
- const loggedIn=Boolean(session?.access_token);
- const btn=document.getElementById('headerAuthBtn');
- if(btn){
-   btn.textContent=t(loggedIn?'btnProfile':'btnLogin');
-   btn.setAttribute('aria-label',btn.textContent);
- }
- const dockProfile=document.getElementById('dockProfileBtn');
- if(dockProfile){
-   const label=dockProfile.querySelector('[data-i18n],span');
-   if(label) label.textContent=t(loggedIn?'btnProfile':'btnLogin');
-   dockProfile.setAttribute('aria-label',t(loggedIn?'btnProfile':'btnLogin'));
+
+function wireAccountTabs(box,profile){
+ box.querySelectorAll('[data-acct-tab]').forEach(btn=>{
+  btn.addEventListener('click',async()=>{
+   const tab=btn.dataset.acctTab;
+   box.querySelectorAll('.acct-tab').forEach(t=>{t.classList.toggle('on',t.dataset.acctTab===tab);t.setAttribute('aria-selected',t.dataset.acctTab===tab?'true':'false')});
+   const panel=document.getElementById('acctPanel');
+   if(!panel) return;
+   const dash=await import('./js/mdz-dashboards.mjs');
+   panel.innerHTML=`<div class="member-hero"><span class="member-id-chip" dir="ltr">${safeText(profile.member_id,40)||'—'}</span><h2 class="member-name">${safeText(profile.full_name,180)}</h2><p class="member-role">${t('accountOf')} ${registrationRoleLabel(profile.role)}</p><span class="member-status-pill">${statusLabelArabic(profile.status)}</span></div>${dash.renderAccountPanel(t,profile,tab,accountHelpers())}`;
+   wireInviteActions(profile);
+   document.getElementById('acctForgotBtn')?.addEventListener('click',()=>document.getElementById('forgotPasswordBtn')?.click());
+  });
+ });
+}
+
+async function openAccount(){
+ const session=await ensureFreshSession();
+ if(!session?.access_token){openLogin();return}
+ closeAll();
+ document.getElementById('accountModal').classList.add('open');
+ const box=document.getElementById('accountContent');
+ box.innerHTML=`<div class="notice">${t('accountLoading')}</div>`;
+ try{
+  const p=await fetchMyProfile(session.access_token);
+  if(!p) throw new Error(t('authErrProfileMissing'));
+  mdzAccountProfile=p;
+  mdzUserRoles=await fetchMyRoles(session.access_token);
+  const dash=await import('./js/mdz-dashboards.mjs');
+  box.innerHTML=dash.renderAccountDashboard(t,p,accountHelpers());
+  document.getElementById('logoutBtn').onclick=()=>logoutAccount();
+  wireAccountTabs(box,p);
+  wireInviteActions(p);
+  updateAuthChrome();
+ }catch(e){
+  box.innerHTML=`<div class="notice">${safeText(authErrorArabic(e),500)}</div><button class="btn primary" type="button" id="reloginBtn">${t('btnLogin')}</button>`;
+  document.getElementById('reloginBtn')?.addEventListener('click',()=>{closeModal('accountModal');openLogin()});
  }
 }
 window.openAccount=openAccount;
-window.syncAuthHeader=syncAuthHeader;
+
+async function openManagerDashboard(){
+ const session=await ensureFreshSession();
+ if(!session?.access_token){openLogin();return}
+ mdzUserRoles=await fetchMyRoles(session.access_token);
+ const dash=await import('./js/mdz-dashboards.mjs');
+ if(!dash.hasManagerAccess(mdzUserRoles, mdzAccountProfile?.role)){showToast(t('dashNoAccess'));return}
+ closeAll();
+ document.getElementById('managerDashModal').classList.add('open');
+ const box=document.getElementById('managerDashContent');
+ box.innerHTML=`<div class="notice">${t('accountLoading')}</div>`;
+ const profile=mdzAccountProfile||await fetchMyProfile(session.access_token);
+ const data=await dash.loadManagerData(session.access_token,SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY,profile?.wilaya);
+ box.innerHTML=dash.renderManagerDashboard(t,{wilaya:profile?.wilaya,rows:data.rows,source:data.source,safeText,registrationRoleLabel});
+}
+
+async function openAdminDashboard(){
+ const session=await ensureFreshSession();
+ if(!session?.access_token){openLogin();return}
+ const dash=await import('./js/mdz-dashboards.mjs');
+ mdzUserRoles=mdzUserRoles.length?mdzUserRoles:await fetchMyRoles(session.access_token);
+ if(!dash.hasAdminAccess(mdzUserRoles)){showToast(t('dashNoAccess'));return}
+ closeAll();
+ document.getElementById('adminDashModal').classList.add('open');
+ const box=document.getElementById('adminDashContent');
+ box.innerHTML=`<div class="notice">${t('accountLoading')}</div>`;
+ const data=await dash.loadAdminData(session.access_token,SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY);
+ box.innerHTML=dash.renderAdminDashboard(t,{stats:data.stats,rows:data.rows,source:data.source,safeText,registrationRoleLabel});
+}
+window.openManagerDashboard=openManagerDashboard;
+window.openAdminDashboard=openAdminDashboard;
+
+function updateAuthChrome(){
+ const authed=isAuthenticated();
+ const map=[
+  ['headerLoginBtn',!authed],['headerRegisterBtn',!authed],['headerAccountBtn',authed],['headerLogoutBtn',authed],
+  ['drawerLoginLink',!authed],['drawerRegisterLink',!authed],['drawerAccountLink',authed],['drawerLogoutLink',authed]
+ ];
+ map.forEach(([id,show])=>{const el=document.getElementById(id);if(!el)return;if(show) el.removeAttribute('hidden');else el.setAttribute('hidden','')});
+ const showMgr=dashRoleFlag('manager');
+ const showAdmin=dashRoleFlag('admin');
+ ['headerMgrDashBtn','drawerMgrDashLink'].forEach(id=>{const el=document.getElementById(id);if(!el)return;if(showMgr) el.removeAttribute('hidden');else el.setAttribute('hidden','')});
+ ['headerAdminDashBtn','drawerAdminDashLink'].forEach(id=>{const el=document.getElementById(id);if(!el)return;if(showAdmin) el.removeAttribute('hidden');else el.setAttribute('hidden','')});
+ const heroJoin=document.getElementById('heroJoin');
+ if(heroJoin){heroJoin.textContent=t(authed?'btnProfile':'heroJoin');heroJoin.onclick=authed?()=>openAccount():()=>openRegister()}
+ const dockMain=document.getElementById('dockMainBtn');
+ if(dockMain){const label=dockMain.querySelector('span');if(authed){dockMain.onclick=()=>openAccount();if(label) label.textContent=t('btnProfile')}else{dockMain.onclick=()=>openRegister();if(label) label.textContent=t('dockRegister')}}
+ const dockProfile=document.getElementById('dockProfileBtn');
+ if(dockProfile){const label=dockProfile.querySelector('[data-i18n],span');if(label) label.textContent=t(authed?'btnProfile':'btnLogin');dockProfile.setAttribute('aria-label',t(authed?'btnProfile':'btnLogin'))}
+}
+function dashRoleFlag(kind){
+ if(kind==='admin') return mdzUserRoles.some(r=>['admin','founder','super_admin'].includes(r));
+ return mdzUserRoles.some(r=>['wilaya_manager','manager','wilaya_mgr','admin','founder','super_admin'].includes(r))||String(mdzAccountProfile?.role||'').toLowerCase()==='manager';
+}
+function logoutAccount(){
+ saveSession(null);mdzAccountProfile=null;mdzUserRoles=[];
+ closeAll();showToast(t('toastLogout'));
+ if(location.hash==='#account'||location.hash==='#auth-callback') history.replaceState(null,'',location.pathname+location.search);
+}
+window.logoutAccount=logoutAccount;
+
+function parseAuthRedirect(){
+ const hash=location.hash.startsWith('#')?location.hash.slice(1):'';
+ const search=location.search.replace(/^\?/,'');
+ let paramString=search;
+ if(hash&&(hash.includes('access_token')||hash.includes('refresh_token')||hash.includes('type=')||hash.includes('code='))) paramString=hash.replace(/^auth-callback&?/,'').replace(/^&/,'');
+ else if(hash==='auth-callback'||hash.startsWith('auth-callback&')) paramString=hash.replace(/^auth-callback&?/,'').replace(/^&/,'')||search;
+ const params=new URLSearchParams(paramString);
+ return {access:params.get('access_token'),refresh:params.get('refresh_token'),type:params.get('type')||'',code:params.get('code'),errorDesc:params.get('error_description')||params.get('error')||'',expires_in:params.get('expires_in'),fromConfirm:hash==='auth-callback'||hash.startsWith('auth-callback')||params.get('type')==='signup'};
+}
+async function exchangeAuthCode(code){return authRequest('/token?grant_type=pkce',{method:'POST',body:JSON.stringify({auth_code:code})})}
+function promptLoginAfterConfirm(message){const state=document.getElementById('loginState');openLogin();if(state){state.className='full login-state is-ok';state.textContent=message}else showToast(message)}
+async function handleAuthRedirect(){
+ const {access,refresh,type,errorDesc,expires_in,code,fromConfirm}=parseAuthRedirect();
+ if(errorDesc){showToast(authErrorArabic({message:decodeURIComponent(errorDesc)}));history.replaceState(null,'',MDZ_SITE_URL());return}
+ let sessionPayload=null;
+ if(access) sessionPayload={access_token:access,refresh_token:refresh,expires_in:expires_in?Number(expires_in):3600,user:null};
+ else if(code){try{sessionPayload=await exchangeAuthCode(code)}catch(err){console.warn(err);promptLoginAfterConfirm(t('authConfirmLogin'));history.replaceState(null,'',MDZ_SITE_URL());return}}
+ else if(fromConfirm){promptLoginAfterConfirm(t('authConfirmOk'));history.replaceState(null,'',MDZ_SITE_URL());return}
+ else return;
+ saveSession(sessionPayload);
+ history.replaceState(null,'',MDZ_SITE_URL()+'#account');
+ showToast(type==='recovery'?t('authRecoveryOk'):type==='signup'?t('authConfirmOk'):t('authSessionOk'));
+ await openAccount();
+}
+window.syncAuthHeader=updateAuthChrome;
 
 const contactPhoneLocal=document.getElementById('contactPhoneLocal');
 if(contactPhoneLocal){
@@ -3073,7 +3353,14 @@ document.querySelectorAll('[data-news-filter]').forEach(button=>button.addEventL
  document.querySelectorAll('[data-news-filter]').forEach(x=>x.classList.remove('active'));button.classList.add('active');mdzNewsFilter=button.dataset.newsFilter;renderLivestockNews();
 }));
 document.getElementById('refreshNewsBtn')?.addEventListener('click',()=>loadLivestockNews(true));
-window.addEventListener('DOMContentLoaded',()=>{
+window.addEventListener('DOMContentLoaded',async()=>{
+  updateAuthChrome();
+  await handleAuthRedirect();
+  const session=await ensureFreshSession();
+  if(session){
+    mdzUserRoles=await fetchMyRoles(session.access_token);
+    if(location.hash==='#account'||location.hash==='#auth-callback') await openAccount();
+  }
   loadWeather(false);
   tickLivestockPrices();
   loadLivestockNews(false);
@@ -3085,7 +3372,7 @@ window.addEventListener('DOMContentLoaded',()=>{
 
 <nav class="mobile-dock" data-i18n-aria="dockAriaLabel" aria-label="التنقل السريع للهاتف">
   <a href="#home"><i>⌂</i><span data-i18n="dockHome">الرئيسية</span></a>
-  <button class="dock-main" onclick="openRegister()"><i>＋</i><span data-i18n="dockRegister">تسجيل مجاني</span></button>
+  <button class="dock-main" id="dockMainBtn" type="button" onclick="openRegister()"><i>＋</i><span data-i18n="dockRegister">تسجيل مجاني</span></button>
   <button type="button" id="dockProfileBtn" onclick="openAccount()"><i>👤</i><span data-i18n="btnLogin">دخول</span></button>
   <a href="#contact"><i>✉</i><span data-i18n="dockContact">تواصل معنا</span></a>
 </nav>
