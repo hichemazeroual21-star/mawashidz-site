@@ -2253,19 +2253,9 @@ function generateMemberId(role){
  return `MDZ-${ROLE_PREFIX[role]||'U'}-${date}-${x}`;
 }
 async function allocateMemberId(role){
- /* رقم عضوية تسلسلي دائم (MDZ-F-000001) يُخصّص من قاعدة البيانات لضمان عدم التكرار.
-    عند غياب دالة قاعدة البيانات (قبل تشغيل supabase/setup.sql) نستعمل الصيغة العشوائية القديمة كخطة بديلة. */
- try{
-  const r=await fetch(`${SUPABASE_REST}/rpc/allocate_member_id`,{
-   method:'POST',
-   headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:`Bearer ${SUPABASE_PUBLISHABLE_KEY}`,'Content-Type':'application/json'},
-   body:JSON.stringify({member_role:String(role||'buyer')})
-  });
-  if(r.ok){
-   const value=await r.json();
-   if(typeof value==='string' && /^MDZ-[A-Z]-\d{6}$/.test(value)) return {id:value,sequential:true};
-  }
- }catch(error){ console.warn('Sequential member id unavailable, using fallback format:',error); }
+ /* تخصيص تسلسلي من السيرفر فقط (handle_new_user). هذه الدالة للاختبار/أدوات داخلية —
+    لا تُستدعى من مسار التسجيل العام (REVOKE EXECUTE لـ anon على الإنتاج). */
+ console.warn('allocateMemberId: client RPC disabled on production; member_id is assigned server-side');
  return {id:generateMemberId(role),sequential:false};
 }
 function saveSession(session){
@@ -2661,9 +2651,7 @@ $('#registerForm').addEventListener('submit', async e=>{
     sequential:false,
     memberInviteCode:makeMemberInviteCode(valid.lastName||valid.firstName)
   };
-  const allocated=await allocateMemberId(raw.role);
-  ids.memberId=allocated.id;
-  ids.sequential=allocated.sequential;
+  /* member_id يُخصَّص على السيرفر عبر handle_new_user — لا RPC من الواجهة (أمن Phase 0) */
   const {extra,payload}=buildRegistrationRecords({raw,form,valid,ids});
   registerFormSubmitting=true;
   submit.disabled=true; submit.dataset.oldText=submit.textContent; submit.textContent=t('registerSending');
@@ -2676,7 +2664,7 @@ $('#registerForm').addEventListener('submit', async e=>{
     },{
       email,password:valid.password,
       authMetadata:{
-        member_id:ids.memberId,registration_id:ids.registrationId,role_label:registrationRoleLabel(raw.role),
+        registration_id:ids.registrationId,role_label:registrationRoleLabel(raw.role),
         first_name:valid.firstName,last_name:valid.lastName,full_name:valid.fullName,phone:valid.phone,
         role:raw.role,wilaya:payload.wilaya,daira:extra.daira,commune:extra.commune,
         birth_date:valid.birthDate,invite_code:ids.memberInviteCode,invited_by:extra.invited_by

@@ -39,7 +39,8 @@ assert.match(html, /runRegistrationPipeline/, 'index.html must reference runRegi
 assert.match(html, /registerFormSubmitting/, 'index.html must include double-submit guard');
 assert.match(html, /import\('\.\/js\/registration-flow\.mjs'\)/, 'index.html must dynamic-import registration-flow.mjs');
 assert.match(html, /updateAuthChrome/, 'index.html must use updateAuthChrome');
-assert.match(html, /await allocateMemberId\(raw\.role\)/, 'index.html must allocate member_id before signup');
+assert.match(html, /member_id يُخصَّص على السيرفر/, 'registration must rely on server-side member_id allocation');
+assert.ok(!/await allocateMemberId\(raw\.role\)/.test(html), 'registration must not call allocateMemberId RPC from browser');
 const payloadBlock = html.match(/const payload=\{[\s\S]*?founding_terms_accepted:checked\(form,'founder_terms'\)\s*\}/);
 assert.ok(payloadBlock && !payloadBlock[0].includes('member_id:ids.memberId'),
   'registrations REST payload must not send member_id/registration_id as top-level columns (PGRST204 on legacy DB)');
