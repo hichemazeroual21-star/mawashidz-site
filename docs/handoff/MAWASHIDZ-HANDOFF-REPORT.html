@@ -1,0 +1,130 @@
+<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><title>MawashiDZ Handoff Report</title><style>@page{margin:18mm 15mm}body{font-family:Segoe UI,Tahoma,Arial,sans-serif;line-height:1.55;color:#1a1a1a;max-width:900px;margin:0 auto;padding:24px;font-size:13px}h1{font-size:22px;border-bottom:2px solid #1f6b4a;padding-bottom:8px}h2{font-size:17px;margin-top:24px;color:#1f6b4a}h3{font-size:14px;margin-top:18px}blockquote{background:#f4f8f6;border-right:4px solid #1f6b4a;margin:16px 0;padding:12px 16px}table{width:100%;border-collapse:collapse;margin:12px 0;font-size:12px}th,td{border:1px solid #ccc;padding:6px 8px;text-align:right}th{background:#eef5f1}code,pre{font-family:Consolas,monospace;background:#f5f5f5;direction:ltr;text-align:left}pre{padding:10px;white-space:pre-wrap;font-size:11px}ul{padding-right:20px}hr{border:none;border-top:1px solid #ddd;margin:20px 0}</style></head><body><h1>تقرير تسليم MawashiDZ — للمراجعة والتوجيه</h1>
+<blockquote><strong>الغرض:</strong> تقرير مفصل لكل ما تم إنجازه على مشروع MawashiDZ حتى الآن، مع طلب صريح من Opus 4.8 (أو أي نموذج Claude) لمراجعة الحالة وإصدار أوامر بالإضافات أو التحسينات التالية.</blockquote>
+>
+<blockquote><strong>تاريخ التقرير:</strong> 20 يوليو 2026  </blockquote>
+<blockquote><strong>الإصدار:</strong> v1.8.0  </blockquote>
+<blockquote><strong>الفرع:</strong> <code>cursor/fix-mawashidz-index-6004</code>  </blockquote>
+<blockquote><strong>PR:</strong> #3 — https://github.com/hichemazeroual21-star/mawashidz-site/pull/3</blockquote>
+<hr>
+<h2>1. هوية المشروع</h2>
+<table><thead><tr><th>البند</th><th>القيمة</th></tr></thead><tbody><tr><td><strong>الاسم</strong></td><td>MawashiDZ (مواشي ديزاد)</td></tr><tr><td><strong>النوع</strong></td><td>موقع SPA أحادي الصفحة (HTML/CSS/JS بدون إطار عمل)</td></tr><tr><td><strong>الإصدار الحالي</strong></td><td><strong>v1.8.0</strong></td></tr><tr><td><strong>المستودع</strong></td><td><code>hichemazeroual21-star/mawashidz-site</code></td></tr><tr><td><strong>الفرع النشط</strong></td><td><code>cursor/fix-mawashidz-index-6004</code></td></tr><tr><td><strong>آخر commit</strong></td><td><code>6aa6cae</code> — Fix Arabic wilaya, daira, and commune names</td></tr><tr><td><strong>النشر</strong></td><td>GitHub Pages + Netlify (دالة أخبار على Netlify فقط)</td></tr></tbody></table>
+<hr>
+<h2>2. بنية الملفات</h2>
+<p>``<code><br>/workspace/<br>├── index.html                    # الواجهة الكاملة (~2713 سطر)<br>├── assets/<br>│   ├── i18n.js                   # نواة الترجمة AR/EN/FR/DE (~497 سطر)<br>│   ├── i18n-content.js           # ترجمات الأقسام الطويلة (~891 سطر)<br>│   ├── algeria_cities.json       # 1541 بلدية / 548 دائرة / 58 ولاية (صيغة مسطحة)<br>│   └── algeria-location-normalize.js  # تصحيح الأسماء العربية<br>├── scripts/<br>│   └── build-algeria-cities.mjs  # إعادة بناء JSON من المصدر الرسمي<br>├── netlify/<br>│   ├── netlify.toml<br>│   └── functions/news.mjs        # RSS أخبار المواشي<br>└── supabase/<br>    ├── setup.sql                 # قاعدة جديدة<br>    ├── migrations/001_compatible_existing_db.sql<br>    ├── migrations/002_user_roles_rls.sql<br>    └── introspect.mjs / probe-columns.mjs<br></code>`<code></p>
+<hr>
+<h2>3. سجل التعديلات (بالترتيب الزمني)</h2>
+<h3>المرحلة 1 — إصلاح البنية الأساسية (</code>97a7478<code>)</h3>
+<ul><li>إصلاح تسلسل CSS (cascade) وإعادة بناء الهيدر</li>
+<li>إصلاح أخطاء JS</li>
+<li>تسجيل حسب الدور (موال / بيطري / تاجر أعلاف / مشتري / مدير ولاية…)</li>
+<li>أرقام عضوية تسلسلية </code>MDZ-V-000001<code></li>
+<li>تحسين الصور</li>
+</ul>
+<h3>المرحلة 2 — إصلاحات ما بعد الاختبار (</code>1d25617<code>)</h3>
+<ul><li>Grid الهيدر عند 320–360px</li>
+<li>إصلاح </code>maxlength<code> لحقل هاتف الاتصال</li>
+<li>z-index للـ drawer والـ modals</li>
+<li>تدرج RTL في الـ hero</li>
+<li>README</li>
+</ul>
+<h3>المرحلة 3 — Supabase (</code>c9328d8<code>, </code>1d5dc29<code>)</h3>
+<ul><li></code>001_compatible_existing_db.sql<code> — ترحيل idempotent لقاعدة موجودة</li>
+<li></code>002_user_roles_rls.sql<code> — RLS على </code>user_roles<code></li>
+<li>أدوات فحص: </code>introspect.mjs<code>, </code>probe-columns.mjs<code></li>
+</ul>
+<h3>المرحلة 4 — i18n كامل (</code>1f5b472<code>, </code>ebe69bd<code>)</h3>
+<ul><li><strong></code>assets/i18n.js<code></strong>: ~100 مفتاح × 4 لغات (واجهة، toasts، نماذج، أخبار، طقس)</li>
+<li><strong></code>assets/i18n-content.js<code></strong>: ~220 مفتاح × 4 لغات (أقسام المحتوى الطويلة)</li>
+<li><strong></code>index.html<code></strong>: 403 مفتاح </code>data-i18n<code> + 3 </code>data-i18n-html<code> + 3 </code>data-i18n-aria<code></li>
+<li></code>applyI18n()<code> يحدّث النصوص الديناميكية (طقس، تسجيل، أخبار، حالة المواقع)</li>
+<li>إزالة الخلط بين العربية/الإنجليزية/الفرنسية عند التبديل</li>
+</ul>
+<h3>المرحلة 5 — v1.8.0 (</code>8b9e41a<code>)</h3>
+<ul><li>رفع الإصدار من v1.7.1 → <strong>v1.8.0</strong></li>
+<li>Cache-bust: </code>i18n.js?v=1.8.0<code>, </code>i18n-content.js?v=1.8.0<code></li>
+<li>زر </code>#headerAuthBtn<code> → </code>openAccount()<code> (دخول أو بروفيل حسب الجلسة)</li>
+<li></code>syncAuthHeader()<code> يبدّل بين </code>btnLogin<code> و </code>btnProfile<code></li>
+<li>زر بروفيل في mobile dock (</code>#dockProfileBtn<code>)</li>
+<li>تصغير أزرار اللغة (~26px بدل ~30px)</li>
+</ul>
+<h3>المرحلة 6 — تصحيح الأسماء العربية (</code>6aa6cae<code>) — الأحدث</h3>
+<ul><li><strong></code>algeria-location-normalize.js<code></strong>: خريطة تصحيح + قواعد عامة</li>
+<li><strong></code>build-algeria-cities.mjs<code></strong>: إعادة بناء من </code>othmanus/algeria-cities<code></li>
+<li><strong></code>algeria_cities.json<code></strong>: صيغة مسطحة مصححة (كانت متداخلة)</li>
+<li><strong></code>locName()<code></strong> في </code>index.html<code> يطبّق التصحيح عند التحميل (يشمل CDN fallback)</li>
+</ul>
+<strong>إحصائيات الفرع vs main:</strong> +2890 / −891 سطر عبر 14 ملفًا.
+<hr>
+<h2>4. الأنظمة الفرعية بالتفصيل</h2>
+<h3>4.1 نظام الترجمة (i18n)</h3>
+<p></code>`<code>javascript<br>// assets/i18n.js<br>const MDZ_APP_VERSION = '1.8.0';<br>const MDZ_LANGS = ['ar', 'en', 'fr', 'de'];<br>const MDZ_I18N = { ar: {...}, en: {...}, fr: {...}, de: {...} };</p>
+<p>function t(key, vars) { ... }<br>function applyI18n() { ... }  // يحدّث data-i18n + placeholders + aria + HTML<br>function setLang(lang) { ... } // يحفظ في localStorage ويستدعي applyI18n<br></code>`<code></p>
+<ul><li><strong>الواجهة القصيرة</strong> → </code>i18n.js<code></li>
+<li><strong>الفقرات الطويلة</strong> (كيف تعمل، الثقة، الأضاحي، بطاقات الأعضاء…) → </code>i18n-content.js<code> عبر </code>MDZ_CONTENT_I18N<code></li>
+<li><strong>الاتجاه:</strong> </code>ar<code> → RTL، الباقي → LTR</li>
+<li><strong>ما لم يُترجم بعد:</strong> بعض placeholders ثابتة (</code>example@email.com<code>, </code>00 00 00 00<code>, أسماء مشغّلي الهاتف Ooredoo/Mobilis/Djezzy)</li>
+</ul>
+<h3>4.2 التقسيم الإداري الجزائري</h3>
+<p></code>`<code>javascript<br>const ALGERIA_CITIES_URLS = [<br>  './assets/algeria_cities.json',           // أولوية<br>  'https://cdn.jsdelivr.net/gh/othmanus/algeria-cities@master/json/algeria_cities.json',<br>  'https://raw.githubusercontent.com/othmanus/algeria-cities/refs/heads/master/json/algeria_cities.json'<br>];<br></code>`<code></p>
+<p><strong>شروط القبول:</strong> ≥58 ولاية، ≥500 دائرة، ≥1500 بلدية — وإلا </code>FALLBACK_WILAYAS<code> (58 ولاية فقط، الدائرة/البلدية "يُحدد لاحقًا").</p>
+<p><strong>التصحيحات العربية المطبّقة:</strong><br><table><thead><tr><th>قبل</th><th>بعد</th></tr></thead><tbody><tr><td></code> الشلف<code></td><td></code>الشلف<code></td></tr><tr><td></code> بجاية<code></td><td></code>بجاية<code></td></tr><tr><td></code>اقبلي<code></td><td></code>أقبلي<code></td></tr><tr><td></code>سيدي امحمد<code></td><td></code>سيدي أمحمد<code></td></tr><tr><td></code>ايت تيزي<code></td><td></code>آيت تيزي<code></td></tr><tr><td></code>انقوسة<code></td><td></code>النقوسة<code></td></tr><tr><td></code>سيدي  خالد<code></td><td></code>سيدي خالد<code></td></tr><tr><td></code>ابن عكنون<code></td><td></code>بن عكنون<code></td></tr></tbody></table><br><strong>ملاحظة:</strong> بعض التصحيحات قد تحتاج مراجعة لغوية (مثل </code>إغرام<code> vs </code>آغرام<code>، </code>أقبيل<code>، </code>أبلعة<code>) — المصدر الرسمي ONS يحتوي نفس الأخطاء.</p>
+<h3>4.3 Supabase</h3>
+<table><thead><tr><th>المكوّن</th><th>التفاصيل</th></tr></thead><tbody><tr><td><strong>URL</strong></td><td></code>https://fpjvjfgwbfehhcvdirpy.supabase.co<code></td></tr><tr><td><strong>المفتاح</strong></td><td>publishable key مضمّن في </code>index.html<code></td></tr><tr><td><strong>Auth</strong></td><td>signup / signin / password recovery</td></tr><tr><td><strong>RPC</strong></td><td></code>allocate_member_id<code>, </code>resolve_login_identifier<code></td></tr><tr><td><strong>جداول</strong></td><td></code>registrations<code>, </code>profiles<code>, </code>contacts<code>, </code>feedback<code>, </code>user_roles<code></td></tr><tr><td><strong>الجلسة</strong></td><td></code>localStorage<code> → </code>mdz_auth_session<code></td></tr></tbody></table>
+<strong>تدفق التسجيل:</strong>
+<p>1. التحقق من الحقول حسب الدور<br>2. </code>signUpAccount()<code> → Supabase Auth<br>3. </code>allocateMemberId()<code> → </code>MDZ-V-000001<code> (تسلسلي) أو عشوائي fallback<br>4. </code>supabaseInsert('registrations', payload)<code><br>5. إشعار إداري عبر EmailJS (اختياري — التسجيل ينجح حتى لو فشل EmailJS)</p>
+<p><strong>حقول حسب الدور:</strong></p>
+<ul><li>بيطري: </code>vet_license<code>, </code>vet_specialty<code>, </code>vet_experience_years<code></li>
+<li>موال: حقول المزرعة</li>
+<li>مشتري: إخفاء </code>bio<code>/</code>professional<code></li>
+<li>كل الأدوار: ولاية/دائرة/بلدية بدون بادئة رقمية (</code>المدية<code> وليس </code>26 - المدية<code>)</li>
+</ul>
+<h3>4.4 الأخبار والطقس</h3>
+<ul><li><strong>Netlify:</strong> </code>/api/livestock-news<code> → </code>news.mjs<code> (Google News RSS مفلتر)</li>
+<li><strong>GitHub Pages:</strong> fallback داخل الصفحة (مصادر ثابتة)</li>
+<li><strong>الطقس:</strong> Open-Meteo API حسب موقع المستخدم</li>
+<li><strong>التصنيفات:</strong> الطقس، الأعلاف، المواشي، البيطرة، قرارات رسمية</li>
+</ul>
+<h3>4.5 الواجهة والتجربة</h3>
+<ul><li><strong>Dark mode</strong> تلقائي (</code>prefers-color-scheme<code>)</li>
+<li><strong>Mobile dock</strong> سفلي (رئيسية، تسجيل، تواصل، بروفيل)</li>
+<li><strong>Hero</strong> responsive مع </code>object-position<code> مختلف للموبايل/الديسكتوب</li>
+<li><strong>QR</strong> عام للموقع + QR عضو/حيوان (مستقبلي)</li>
+<li><strong>Modals:</strong> تسجيل، دخول، حساب، اتصال، feedback</li>
+</ul>
+<hr>
+<h2>5. الاختبارات</h2>
+<p><strong>المسار:</strong> </code>/tmp/mdztest/test.mjs<code> (Puppeteer + خادم محلي)</p>
+<p><strong>النتيجة:</strong> <strong>74/74 PASS</strong><br><table><thead><tr><th>الفئة</th><th>ما يُختبر</th></tr></thead><tbody><tr><td>Layout</td><td>9 عروض (320→1366px)، لا تداخل في الهيدر</td></tr><tr><td>i18n</td><td>تبديل اللغات</td></tr><tr><td>Locations</td><td>58 ولاية، المدية 19 دائرة، بلديات مملوءة</td></tr><tr><td>Registration</td><td>حقول حسب الدور، success card، MDZ IDs</td></tr><tr><td>Supabase</td><td>payload صحيح، هاتف +213، ولاية بدون رقم</td></tr><tr><td>EmailJS down</td><td>التسجيل ينجح بدون شبكة</td></tr><tr><td>Phone</td><td>7 أرقام مرفوض، 8 مقبولة، تنظيف غير الأرقام</td></tr><tr><td>Hero mobile</td><td>صورة، object-position، لا تداخل مع dock</td></tr><tr><td>Console</td><td>صفر أخطاء JS</td></tr></tbody></table><br><hr></p>
+<h2>6. القيود والفجوات المعروفة</h2>
+<h3>لم يُنجز بعد</h3>
+<p>1. <strong>صفحات الشروط والخصوصية</strong> — toasts تقول "جاهزة للربط" لكن لا توجد صفحات فعلية<br>2. <strong>لوحة إدارة</strong> — البيانات تُحفظ في Supabase بدون واجهة إدارة<br>3. <strong>QR العضو/الحيوان</strong> — واجهة فقط، لا backend تحقق<br>4. <strong>تطبيق موبايل</strong> — مذكور في المحتوى، غير موجود<br>5. <strong>ترجمة placeholders</strong> — بعض النصوص الثابتة في الحقول<br>6. <strong>أسماء المواقع</strong> — 17 تصحيحًا محددًا فقط؛ قد تحتاج مراجعة لغوية أوسع<br>7. <strong>اختبارات i18n آلية</strong> — لا فحص تلقائي لاكتمال المفاتيح عبر اللغات الأربع<br>8. <strong>الأخبار على GitHub Pages</strong> — fallback محدود مقارنة بـ Netlify<br>9. <strong>مفاتيح API مكشوفة</strong> — Supabase publishable + EmailJS في الكود (مقبول للـ frontend لكن يحتاج RLS صارم)</p>
+<h3>قرارات معلّقة (TODO في الكود)</h3>
+<p></code>`<code>javascript<br>/* TODO(مالك المشروع): رسالة المستخدم الوحيدة هي رسالة تأكيد Supabase المعرّبة */<br>// حُذفت sendMemberConfirmationEmail المكررة من EmailJS<br></code>`<code></p>
+<h3>تغيير بنية البيانات</h3>
+<ul><li></code>algeria_cities.json<code> انتقل من <strong>متداخل</strong> (</code>wilayas[].dairas[].communes[]<code>) إلى <strong>مسطح</strong> (</code>wilaya_name, daira_name, commune_name<code>)</li>
+<li></code>flattenLocationData()<code> يدعم الصيغتين</li>
+</ul>
+<hr>
+<h2>7. Commits على الفرع (مرجع سريع)</h2>
+<p></code>`<code><br>6aa6cae Fix Arabic wilaya, daira, and commune names across location data<br>8b9e41a Bump to v1.8.0 with profile button and compact language switcher<br>ebe69bd Complete i18n for content sections and registration role fields<br>1f5b472 Add full AR/EN/FR/DE i18n for shell UI and dynamic strings<br>1d5dc29 Enable RLS on public.user_roles with self-read policy<br>c9328d8 Add idempotent Supabase migration for existing database schema<br>1d25617 Post-testing fixes: header grid, z-index, RTL hero, README<br>97a7478 Fix core structure: CSS cascade, header rebuild, JS errors, registration<br></code>`<code></p>
+<hr>
+<h2>8. طلب صريح لـ Opus 4.8 / Claude</h2>
+<p><strong>بعد مراجعة هذا التقرير:</strong></p>
+<p>1. <strong>ما الأولوية التالية؟</strong> اختر من:<br>   - v1.9.0 بميزة محددة (لوحة بروفيل كاملة؟ صفحات قانونية؟ تحسين SEO؟)<br>   - توسيع تصحيح الأسماء العربية بمراجعة لغوية شاملة<br>   - اختبارات i18n آلية + CI<br>   - فصل JS/CSS عن </code>index.html<code> الضخم<br>   - PWA + offline<br>   - تحسين الأخبار/الأسعار الحية</p>
+<p>2. <strong>هل v1.8.0 جاهز للدمج في </code>main<code>؟</strong> أم تريد تعديلات قبل الدمج؟</p>
+<p>3. <strong>ما التحسينات الحرجة التي تراها ناقصة</strong> في:<br>   - الأمان (RLS، rate limiting، validation)<br>   - UX (تسجيل، دخول، بروفيل)<br>   - الأداء (حجم </code>index.html<code> ~548KB مع base64 images)<br>   - SEO/i18n (hreflang، meta ديناميكية)<br>   - إمكانية الوصول (a11y)</p>
+<p>4. <strong>أصدر قائمة أوامر محددة</strong> للوكيل التنفيذي بصيغة:</p>
+<p></code>`<code><br>[P0] ...<br>[P1] ...<br>[P2] ...<br></code>`<code></p>
+<p>مع معايير قبول واضحة لكل مهمة.</p>
+<hr>
+<h2>9. أوامر مفيدة للتشغيل</h2>
+<p></code>`<code>bash<br><h1>اختبارات</h1><br>cd /tmp/mdztest && node test.mjs</p>
+<h1>إعادة بناء بيانات المواقع</h1>
+node scripts/build-algeria-cities.mjs /tmp/algeria_official.json
+<h1>فحص Supabase</h1>
+node supabase/probe-columns.mjs
+</code>``
+<hr>
+<h2>10. حالة المشروع (ملخص تنفيذي)</h2>
+<table><thead><tr><th>المؤشر</th><th>الحالة</th></tr></thead><tbody><tr><td>الاستقرار</td><td>✅ 74/74 اختبار</td></tr><tr><td>i18n</td><td>✅ AR/EN/FR/DE كامل للواجهة</td></tr><tr><td>التسجيل</td><td>✅ Supabase + EmailJS fallback</td></tr><tr><td>المواقع</td><td>✅ 58/548/1541 مع تصحيح عربي</td></tr><tr><td>الإصدار</td><td>v1.8.0</td></tr><tr><td>PR</td><td>#3 مفتوح على الفرع</td></tr></tbody></table>
+<strong>في انتظار توجيه Opus 4.8 / Claude للمرحلة التالية.</strong></body></html>
