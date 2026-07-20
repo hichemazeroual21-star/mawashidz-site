@@ -88,6 +88,11 @@ async function runScenario(name, { registrationsStatus = 201, emailThrows = fals
         });
       }
       if (url.includes('/rest/v1/registrations')) {
+        let parsed = {};
+        try { parsed = JSON.parse(body || '{}'); } catch { /* ignore */ }
+        if (parsed.member_id !== undefined || parsed.registration_id !== undefined) {
+          fail(`${name}: registrations payload must not include top-level member_id/registration_id columns`);
+        }
         return req.respond({ status: registrationsStatus, headers: cors, body: registrationsStatus === 201 ? '' : '{"message":"server error"}' });
       }
       return req.respond({ status: 200, headers: cors, contentType: 'application/json', body: '[]' });

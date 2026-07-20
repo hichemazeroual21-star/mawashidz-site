@@ -2284,7 +2284,7 @@ function getSession(){try{return JSON.parse(localStorage.getItem(MDZ_SESSION_KEY
 function isAuthenticated(){return Boolean(getSession()?.access_token)}
 function memberIdFromAuthResult(authResult){
  const fromUser=authResult?.user?.user_metadata?.member_id;
- if(typeof fromUser==='string'&&/^MDZ-[A-Z]-\d{6}$/.test(fromUser)) return fromUser;
+ if(typeof fromUser==='string'&&/^MDZ-[A-Z]-/.test(fromUser)) return fromUser;
  return null;
 }
 async function memberIdAfterSignup(authResult){
@@ -2598,11 +2598,12 @@ function buildRegistrationRecords({raw,form,valid,ids}){
     ...(raw.bio?{bio:safeText(raw.bio)}:{}),
     ...collectRoleFields(raw.role,raw,form)
   };
+  /* member_id / registration_id في message JSON فقط — الأعمدة العليا اختيارية بعد ترحيل 001/004.
+     إرسالها قبل وجود الأعمدة يسبب PGRST204 ويفشل الإدراج بالكامل على الإنتاج. */
   const payload={
     full_name:valid.fullName, phone:valid.phone, email:safeText(raw.email,254)||null,
     whatsapp:valid.phone||null, wilaya:safeText(raw.wilaya.replace(/^\d+\s*-\s*/,''),120),
     user_type:safeText(raw.role,60), role:safeText(raw.role,60),
-    member_id:ids.memberId, registration_id:ids.registrationId,
     message:JSON.stringify(extra), is_verified:false,
     privacy_accepted:checked(form,'privacy_accept'),
     founding_terms_accepted:checked(form,'founder_terms')
@@ -2657,8 +2658,12 @@ $('#registerForm').addEventListener('submit', async e=>{
   const ids={
     registrationId:makeRegistrationId(),
     memberId:null,
+    sequential:false,
     memberInviteCode:makeMemberInviteCode(valid.lastName||valid.firstName)
   };
+  const allocated=await allocateMemberId(raw.role);
+  ids.memberId=allocated.id;
+  ids.sequential=allocated.sequential;
   const {extra,payload}=buildRegistrationRecords({raw,form,valid,ids});
   registerFormSubmitting=true;
   submit.disabled=true; submit.dataset.oldText=submit.textContent; submit.textContent=t('registerSending');
@@ -2671,13 +2676,13 @@ $('#registerForm').addEventListener('submit', async e=>{
     },{
       email,password:valid.password,
       authMetadata:{
-        registration_id:ids.registrationId,role_label:registrationRoleLabel(raw.role),
+        member_id:ids.memberId,registration_id:ids.registrationId,role_label:registrationRoleLabel(raw.role),
         first_name:valid.firstName,last_name:valid.lastName,full_name:valid.fullName,phone:valid.phone,
         role:raw.role,wilaya:payload.wilaya,daira:extra.daira,commune:extra.commune,
         birth_date:valid.birthDate,invite_code:ids.memberInviteCode,invited_by:extra.invited_by
       },
       registrationPayload:payload,
-      emailData:{...payload,...ids,registration_id:ids.registrationId,member_id:null,role_label:registrationRoleLabel(raw.role),member_invite_code:ids.memberInviteCode,invited_by:extra.invited_by}
+      emailData:{...payload,...ids,registration_id:ids.registrationId,member_id:ids.memberId,role_label:registrationRoleLabel(raw.role),member_invite_code:ids.memberInviteCode,invited_by:extra.invited_by}
     });
     if(!pipelineResult.success){
       showToast(pipelineResult.error?.message||t('authErrGeneric'));

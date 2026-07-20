@@ -39,6 +39,10 @@ assert.match(html, /runRegistrationPipeline/, 'index.html must reference runRegi
 assert.match(html, /registerFormSubmitting/, 'index.html must include double-submit guard');
 assert.match(html, /import\('\.\/js\/registration-flow\.mjs'\)/, 'index.html must dynamic-import registration-flow.mjs');
 assert.match(html, /updateAuthChrome/, 'index.html must use updateAuthChrome');
+assert.match(html, /await allocateMemberId\(raw\.role\)/, 'index.html must allocate member_id before signup');
+const payloadBlock = html.match(/const payload=\{[\s\S]*?founding_terms_accepted:checked\(form,'founder_terms'\)\s*\}/);
+assert.ok(payloadBlock && !payloadBlock[0].includes('member_id:ids.memberId'),
+  'registrations REST payload must not send member_id/registration_id as top-level columns (PGRST204 on legacy DB)');
 
 const coupledPattern = /try\s*\{[\s\S]*signUpAccount[\s\S]*await supabaseInsert\('registrations'/;
 assert.ok(!coupledPattern.test(html), 'old coupled signUp+registrations try/catch must be removed');
