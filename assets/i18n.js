@@ -1,5 +1,5 @@
 /* MawashiDZ — multilingual UI (ar, en, fr, de) */
-const MDZ_APP_VERSION = '1.9.1';
+const MDZ_APP_VERSION = '1.9.2';
 const MDZ_LANGS = ['ar', 'en', 'fr', 'de'];
 
 const MDZ_I18N = {
@@ -244,7 +244,7 @@ const MDZ_I18N = {
     foundingTitle: 'Participez à la première base de MawashiDZ',
     foundingDesc: 'Préinscription ouverte. Une fois les objectifs validés, cartes, QR, vérification, services et application seront déployés progressivement.',
     foundingRegister: 'S\'inscrire gratuitement',
-    dockHome: 'Accueil', dockRegister: 'Inscription gratuite', dockContact: 'Contact',
+    dockHome: 'Accueil', dockRegister: 'Inscription', dockContact: 'Contact',
     contactTitle: 'Nous contacter',
     contactDesc: 'L\'équipe MawashiDZ traite vos demandes professionnelles via un canal sécurisé, avec un numéro de référence pour chaque message.',
     contactName: 'Nom complet', contactPhone: 'Téléphone mobile', contactType: 'Type de demande', contactMessage: 'Message',
@@ -274,7 +274,7 @@ const MDZ_I18N = {
     founderConsentTitle: 'J\'accepte les conditions des membres fondateurs',
     founderConsentNote: 'Inscription gratuite et préalable ; vérification et cartes activées progressivement après acceptation.',
     roleBreeder: 'Éleveur', roleVet: 'Vétérinaire', roleFeed: 'Aliments', roleBuyer: 'Acheteur',
-    roleManager: 'Gestionnaire', roleAmbassador: 'Ambassadeur', rolePartner: 'Partenaire',
+    roleManager: 'Gestion wilaya', roleAmbassador: 'Ambassadeur', rolePartner: 'Partenaire',
     roleBreederFull: 'Éleveur', roleVetFull: 'Vétérinaire', roleFeedFull: 'Négociant en aliments', roleBuyerFull: 'Acheteur',
     roleManagerFull: 'Gestionnaire de wilaya', roleAmbassadorFull: 'Ambassadeur', rolePartnerFull: 'Partenaire', roleNewMember: 'Nouveau membre',
     securityTitle: 'Partagez votre avis pour nous améliorer',
@@ -340,7 +340,7 @@ const MDZ_I18N = {
     brandTagline: 'Die vertrauenswürdige Digitalplattform für Algeriens Viehzucht',
     navFounders: 'Gründer', navPassport: 'MDZ-ID', navMarket: 'Markt', navExchange: 'Viehbörse', navHow: 'So funktioniert\'s',
     navTrust: 'Vertrauen', navServices: 'Services', navNews: 'Nachrichten', navManagers: 'Wilaya-Leiter',
-    btnLogin: 'Anmelden', btnProfile: 'Mein Profil', btnRegister: 'Jetzt registrieren', menuLabel: 'Menü',
+    btnLogin: 'Anmelden', btnProfile: 'Mein Profil', btnRegister: 'Registrieren', menuLabel: 'Menü',
     siteVersion: 'MawashiDZ — Version v{version}',
     drawerHome: 'Start', drawerFounding: 'Gründer-Anmeldung', drawerMarket: 'Viehmarkt',
     drawerServices: 'Tierärzte & Futter', drawerNews: 'News & Preise', drawerExchange: 'Viehbörse', drawerManagers: 'Wilaya-Leiter',
@@ -384,8 +384,8 @@ const MDZ_I18N = {
     privacyConsentNote: 'Meine Daten dienen nur der Prüfung und professionellen Kontaktaufnahme.',
     founderConsentTitle: 'Ich akzeptiere die Gründermitglied-Bedingungen',
     founderConsentNote: 'Kostenlose Vorregistrierung; Verifizierung und Karten werden nach Freigabe schrittweise aktiviert.',
-    roleBreeder: 'Züchter', roleVet: 'Tierarzt', roleFeed: 'Futterhändler', roleBuyer: 'Käufer',
-    roleManager: 'Wilaya-Leiter', roleAmbassador: 'Botschafter', rolePartner: 'Partner',
+    roleBreeder: 'Züchter', roleVet: 'Tierarzt', roleFeed: 'Futter', roleBuyer: 'Käufer',
+    roleManager: 'Wilaya-Mgr.', roleAmbassador: 'Botschafter', rolePartner: 'Partner',
     roleBreederFull: 'Züchter', roleVetFull: 'Tierarzt', roleFeedFull: 'Futterhändler', roleBuyerFull: 'Käufer',
     roleManagerFull: 'Wilaya-Leiter', roleAmbassadorFull: 'Plattform-Botschafter', rolePartnerFull: 'Partner', roleNewMember: 'Neues Mitglied',
     securityTitle: 'Teilen Sie Feedback zur Verbesserung',

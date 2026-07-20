@@ -12,7 +12,7 @@
  --g:#123d2b;--g2:#1f6a48;--mint:#edf6f0;--gold:#c9a64e;--ink:#17231d;
  --muted:#6f7b74;--line:#dfe7e1;--white:#fff;--danger:#b5414c;--bg:#f7faf7;
 }
-*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Tahoma,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+*{box-sizing:border-box}html{scroll-behavior:smooth;overflow-x:hidden}body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Tahoma,Arial,sans-serif;background:var(--bg);color:var(--ink);overflow-x:hidden;max-width:100%}
 a{text-decoration:none;color:inherit}.wrap{width:min(1180px,92%);margin:auto}
 .top{position:sticky;top:0;z-index:80;background:#fffffff2;backdrop-filter:blur(16px);border-bottom:1px solid var(--line)}
 .nav{height:72px;display:flex;align-items:center;justify-content:space-between;gap:14px}
@@ -368,13 +368,41 @@ html[dir="ltr"] body{text-align:left}
 html[dir="ltr"] .hero-card,html[dir="ltr"] .head{text-align:left}
 html[dir="ltr"] .brand-copy{text-align:left}
 /* ثبات الشكل عند تغيير اللغة: الهيكل RTL دائمًا، النصوص الأجنبية داخل المحتوى فقط */
+body[data-lang]:not([data-lang="ar"]) .head,
 body[data-lang]:not([data-lang="ar"]) .head > div,
+body[data-lang]:not([data-lang="ar"]) .hero-card,
+body[data-lang]:not([data-lang="ar"]) .hero-card p,
+body[data-lang]:not([data-lang="ar"]) .eyebrow,
 body[data-lang]:not([data-lang="ar"]) .news-item,
 body[data-lang]:not([data-lang="ar"]) .special-news-card,
 body[data-lang]:not([data-lang="ar"]) .modal-box,
+body[data-lang]:not([data-lang="ar"]) .card,
 body[data-lang]:not([data-lang="ar"]) .card p,
-body[data-lang]:not([data-lang="ar"]) .pulse-box span{
+body[data-lang]:not([data-lang="ar"]) .pulse-box,
+body[data-lang]:not([data-lang="ar"]) .pulse-box span,
+body[data-lang]:not([data-lang="ar"]) .module-card,
+body[data-lang]:not([data-lang="ar"]) .manager,
+body[data-lang]:not([data-lang="ar"]) .foot,
+body[data-lang]:not([data-lang="ar"]) footer,
+body[data-lang]:not([data-lang="ar"]) .news-toolbar,
+body[data-lang]:not([data-lang="ar"]) .exchange-toolbar{
   direction:ltr;text-align:start;unicode-bidi:plaintext;
+}
+body[data-lang]:not([data-lang="ar"]) h1,
+body[data-lang]:not([data-lang="ar"]) h2,
+body[data-lang]:not([data-lang="ar"]) h3{
+  text-wrap:balance;overflow-wrap:break-word;hyphens:auto;
+}
+body[data-lang]:not([data-lang="ar"]) .hero-card h1{
+  line-height:1.14!important;overflow:visible;padding-bottom:.12em;
+}
+body[data-lang]:not([data-lang="ar"]) .hero-title-main,
+body[data-lang]:not([data-lang="ar"]) .hero-title-sub{white-space:normal}
+body[data-lang]:not([data-lang="ar"]) .hero-actions .btn,
+body[data-lang]:not([data-lang="ar"]) .news-filter,
+body[data-lang]:not([data-lang="ar"]) .exchange-tab,
+body[data-lang]:not([data-lang="ar"]) .exchange-product{
+  white-space:normal;text-align:center;line-height:1.25;
 }
 body[data-lang="de"] .desktop a,
 body[data-lang="en"] .desktop a,
@@ -382,6 +410,43 @@ body[data-lang="fr"] .desktop a{font-size:.78rem}
 body[data-lang="de"] .btn,
 body[data-lang="en"] .btn,
 body[data-lang="fr"] .btn{letter-spacing:0}
+@media(min-width:1101px){
+  body[data-lang]:not([data-lang="ar"]) .top .desktop a{flex:0 0 auto;white-space:nowrap}
+}
+@media(max-width:760px){
+  body[data-lang]:not([data-lang="ar"]) .top .brand-tagline{display:none!important}
+  body[data-lang]:not([data-lang="ar"]) .top .actions .btn.primary{
+    padding:0 9px;font-size:.74rem;max-width:42vw;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  }
+}
+@media(max-width:620px){
+  body[data-lang]:not([data-lang="ar"]) .hero-card{text-align:center!important}
+  body[data-lang]:not([data-lang="ar"]) .hero-card h1{
+    font-size:clamp(1.85rem,8.5vw,2.65rem)!important;
+    line-height:1.18!important;
+    letter-spacing:-.5px!important;
+  }
+  body[data-lang]:not([data-lang="ar"]) .mobile-dock span{
+    font-size:.62rem;line-height:1.15;overflow-wrap:anywhere;text-align:center;
+  }
+  body[data-lang]:not([data-lang="ar"]) #registerModal .tab{font-size:.76rem;padding:8px 10px}
+  body[data-lang="de"] #registerModal .tab,
+  body[data-lang="fr"] #registerModal .tab{font-size:.7rem;padding:7px 9px}
+  body[data-lang]:not([data-lang="ar"]) .news-filter,
+  body[data-lang]:not([data-lang="ar"]) .exchange-tab,
+  body[data-lang]:not([data-lang="ar"]) .exchange-product{
+    padding:8px 10px;font-size:.8rem;
+  }
+}
+@media(max-width:360px){
+  body[data-lang]:not([data-lang="ar"]) .hero-card h1{
+    font-size:clamp(1.65rem,7.8vw,2.2rem)!important;
+  }
+  body[data-lang]:not([data-lang="ar"]) .top .actions .btn.primary{
+    max-width:32vw;font-size:.62rem;padding:0 6px;min-height:40px;
+  }
+}
 @media(min-width:1101px){
   .top .desktop{display:flex;flex-wrap:nowrap;gap:10px;overflow-x:auto;scrollbar-width:none;max-width:min(58vw,720px)}
   .top .desktop::-webkit-scrollbar{display:none}
@@ -825,6 +890,9 @@ footer{border-top:1px solid rgba(255,255,255,.08)}
 @media(max-width:380px){
   .hero-card h1{font-size:2.55rem!important}
   .hero-title-main{font-size:.79em}
+  body[data-lang]:not([data-lang="ar"]) .hero-card h1{
+    font-size:clamp(1.55rem,7.2vw,2rem)!important;
+  }
 }
 
 
@@ -992,8 +1060,8 @@ footer{background:#0b100d}
 #bioField[hidden]{display:none!important}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-<script src="assets/i18n.js?v=1.9.1"></script>
-<script src="assets/i18n-content.js?v=1.9.1"></script>
+<script src="assets/i18n.js?v=1.9.2"></script>
+<script src="assets/i18n-content.js?v=1.9.2"></script>
 <script src="assets/algeria-location-normalize.js"></script>
 <script src="assets/market-engine.js"></script>
 
@@ -1336,7 +1404,7 @@ footer .foot{align-items:start}
 </style>
 
 <style id="mdz-v17-header-final">
-/* ===== MawashiDZ v1.9.1 — بنية الهيدر النهائية (مصدر وحيد للتخطيط بدل طبقات الإصلاح السابقة) =====
+/* ===== MawashiDZ v1.9.2 — بنية الهيدر النهائية (مصدر وحيد للتخطيط بدل طبقات الإصلاح السابقة) =====
    Desktop (>920px): شريط أفقي — العلامة يمينًا، الروابط، اللغات، ثم الأزرار يسارًا.
    Tablet (761–920px): نفس الشريط بدون قائمة اللغات.
    Mobile (≤760px): شبكة من صفّين — [قائمة | سجّل الآن | ... | العلامة يمينًا] ثم اللغات وسط الصف الثاني. */
@@ -1432,6 +1500,34 @@ footer .foot{align-items:start}
   .top .brand-copy>span{font-size:.78rem!important}
   .top .brand-tagline{font-size:.42rem!important;max-width:118px}
   .header-languages button{min-width:26px;height:24px;padding:0 4px;font-size:.58rem}
+}
+</style>
+
+<style id="mdz-i18n-layout-final">
+/* v1.9.2 — final i18n layout overrides (must load after hero/header layers) */
+.hero-card h1{overflow:visible;padding-bottom:.2em;line-height:1.1!important;overflow-wrap:anywhere;word-break:break-word;max-width:100%}
+body[data-lang]:not([data-lang="ar"]) .hero-card h1{
+  line-height:1.12!important;padding-bottom:.14em!important;
+}
+body[data-lang]:not([data-lang="ar"]) .hero-title-main,
+body[data-lang]:not([data-lang="ar"]) .hero-title-sub{white-space:normal!important}
+@media(max-width:620px){
+  body[data-lang]:not([data-lang="ar"]) .hero-card h1{
+    line-height:1.2!important;padding-bottom:.18em!important;
+    font-size:clamp(1.75rem,8.2vw,2.55rem)!important;
+  }
+  .news-filters{
+    flex-wrap:wrap!important;
+    overflow-x:visible!important;
+    padding-bottom:0!important;
+  }
+  .news-filter{
+    flex:0 1 auto!important;
+    max-width:100%;
+    white-space:normal;
+    text-align:center;
+    line-height:1.25;
+  }
 }
 </style>
 
@@ -1882,7 +1978,7 @@ footer .foot{align-items:start}
   <div><h3 data-i18n="footerLinks">روابط</h3><a href="#market" data-i18n="footerRegister">التسجيل</a><a href="#news" data-i18n="navNews">الأخبار</a><a href="#managers" data-i18n="navManagers">مدراء الولايات</a></div>
   <div><h3 data-i18n="footerPolicies">السياسات والمساعدة</h3><a href="#" onclick="showToast(t('toastTermsReady'));return false" data-i18n="footerTerms">شروط الاستخدام</a><a href="#" onclick="showToast(t('toastPrivacyReady'));return false" data-i18n="footerPrivacy">الخصوصية</a><a href="#" onclick="openFeedback();return false;" data-i18n="footerFeedback">شاركنا رأيك لنرتقي معًا</a></div>
  </div>
-  <div class="site-version"><span class="version-number" id="siteVersionLabel">MawashiDZ — الإصدار v1.9.1</span><span class="copyright" data-i18n="footerCopyright">© 2026 جميع الحقوق محفوظة لمنصة MawashiDZ</span></div>
+  <div class="site-version"><span class="version-number" id="siteVersionLabel">MawashiDZ — الإصدار v1.9.2</span><span class="copyright" data-i18n="footerCopyright">© 2026 جميع الحقوق محفوظة لمنصة MawashiDZ</span></div>
 </footer>
 
 <div class="modal" id="registerModal">
@@ -2194,7 +2290,7 @@ function refreshDynamicI18n(){
   if(regBtn&&!regBtn.disabled) regBtn.textContent=t('registerSubmit');
   const dock=document.querySelector('.mobile-dock');
   if(dock) dock.setAttribute('aria-label',t('dockAriaLabel'));
-  if(typeof mdzWeatherLast!=='undefined'&&mdzWeatherLast) renderWeather(mdzWeatherLast.j,mdzWeatherLast.label);
+  if(typeof mdzWeatherLast!=='undefined'&&mdzWeatherLast&&typeof renderWeather==='function') renderWeather(mdzWeatherLast.j,mdzWeatherLast.label);
   if(typeof mdzNewsItems!=='undefined'&&mdzNewsItems.length) renderLivestockNews();
   if(typeof mdzNewsStreams!=='undefined') updateSpecialNewsStreams(buildNewsStreams(mdzNewsItems||[]),false);
   if(typeof mdzMarketSnapshot!=='undefined'&&mdzMarketSnapshot) { renderExchangeProductButtons(); renderExchangeBoard(); }
@@ -2521,24 +2617,26 @@ $('#contactForm').addEventListener('submit',async e=>{
   }finally{button.disabled=false;button.textContent=old;}
 });
 let mdzWeatherLast=null;
-async function loadWeather(forceLocation=false){
+function renderWeather(j,label){
  const el=document.querySelector('#weatherText');
  const alertEl=document.querySelector('#weatherAlert');
  if(!el) return;
+ mdzWeatherLast={j,label};
+ const c=j.current||{};
+ const temp=Number(c.temperature_2m), wind=Number(c.wind_speed_10m), rain=Number(c.precipitation||0);
+ el.textContent=`${label}: ${Number.isFinite(temp)?temp+'°':''} — ${t('weatherWind')} ${Number.isFinite(wind)?wind:0} km/h${rain>0?` — ${t('weatherRain')} ${rain} mm`:''}`;
+ let warning='', safe=false;
+ if(temp>=38) warning=t('weatherHighTemp');
+ else if(temp<=3) warning=t('weatherLowTemp');
+ else if(wind>=45) warning=t('weatherStrongWind');
+ else if(rain>=10) warning=t('weatherHeavyRain');
+ else {warning=t('weatherStable');safe=true;}
+ if(alertEl){alertEl.style.display='block';alertEl.classList.toggle('safe',safe);alertEl.textContent=warning;}
+}
+async function loadWeather(forceLocation=false){
+ const el=document.querySelector('#weatherText');
+ if(!el) return;
  el.textContent=t('weatherLoading');
- const renderWeather=(j,label)=>{
-   mdzWeatherLast={j,label};
-   const c=j.current||{};
-   const temp=Number(c.temperature_2m), wind=Number(c.wind_speed_10m), rain=Number(c.precipitation||0);
-   el.textContent=`${label}: ${Number.isFinite(temp)?temp+'°':''} — ${t('weatherWind')} ${Number.isFinite(wind)?wind:0} km/h${rain>0?` — ${t('weatherRain')} ${rain} mm`:''}`;
-   let warning='', safe=false;
-   if(temp>=38) warning=t('weatherHighTemp');
-   else if(temp<=3) warning=t('weatherLowTemp');
-   else if(wind>=45) warning=t('weatherStrongWind');
-   else if(rain>=10) warning=t('weatherHeavyRain');
-   else {warning=t('weatherStable');safe=true;}
-   if(alertEl){alertEl.style.display='block';alertEl.classList.toggle('safe',safe);alertEl.textContent=warning;}
- };
  const fetchWeather=async(latitude,longitude,label)=>{
    const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,wind_speed_10m,precipitation&timezone=auto`,{cache:'no-store'});
    if(!r.ok) throw new Error('weather'); renderWeather(await r.json(),label);
@@ -2847,7 +2945,7 @@ document.querySelectorAll('[data-exchange-tab]').forEach(button=>button.addEvent
 }));
 document.getElementById('refreshExchangeBtn')?.addEventListener('click',()=>loadLivestockPrices(true));
 
-/* ===== الأخبار الآلية المتخصصة v1.9.1 ===== */
+/* ===== الأخبار الآلية المتخصصة v1.9.2 ===== */
 const NEWS_ENDPOINT='/api/livestock-news';
 let mdzNewsItems=[];
 let mdzNewsFilter='all';
