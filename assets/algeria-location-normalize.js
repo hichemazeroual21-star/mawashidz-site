@@ -17,6 +17,10 @@ const MDZ_ARABIC_LOCATION_FIXES = {
   'سيدي امحمد': 'سيدي أمحمد',
   'سيدي امحمد بن عودة': 'سيدي أمحمد بن عودة',
   'ابن عكنون': 'بن عكنون',
+  'عوامري': 'وامري',
+  'أولاد ابراهيم': 'أولاد إبراهيم',
+  'أولاد سيدي ابراهيم': 'أولاد سيدي إبراهيم',
+  'مصطفى بن ابراهيم': 'مصطفى بن إبراهيم',
 };
 
 function normalizeArabicLocationName(name) {
@@ -27,5 +31,6 @@ function normalizeArabicLocationName(name) {
   n = n.replace(/سيدي امحمد/g, 'سيدي أمحمد');
   n = n.replace(/^اولاد /g, 'أولاد ');
   n = n.replace(/^ايت /g, 'آيت ');
+  n = n.replace(/ابراهيم/g, 'إبراهيم');
   return n;
 }
