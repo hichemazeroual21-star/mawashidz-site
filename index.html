@@ -315,8 +315,8 @@ img{max-width:100%}
     z-index:110;
     left:10px;right:10px;bottom:10px;
     display:grid;
-    grid-template-columns:repeat(3,1fr);
-    gap:7px;
+    grid-template-columns:repeat(4,1fr);
+    gap:6px;
     padding:8px;
     border:1px solid rgba(255,255,255,.68);
     border-radius:20px;
@@ -351,14 +351,14 @@ img{max-width:100%}
 
 /* ===== MawashiDZ Global Brand & Languages v6.3 ===== */
 .header-languages{
-  display:flex;align-items:center;gap:5px;
-  padding:4px;border:1px solid var(--line);
+  display:flex;align-items:center;gap:4px;
+  padding:3px;border:1px solid var(--line);
   background:#fff;border-radius:999px;
 }
 .header-languages button{
   border:0;background:transparent;color:var(--muted);
-  min-width:34px;height:30px;padding:0 8px;
-  border-radius:999px;font:inherit;font-size:.72rem;font-weight:950;
+  min-width:28px;height:26px;padding:0 6px;
+  border-radius:999px;font:inherit;font-size:.66rem;font-weight:950;
   cursor:pointer;
 }
 .header-languages button.active{
@@ -941,8 +941,8 @@ footer{background:#0b100d}
 #bioField[hidden]{display:none!important}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-<script src="assets/i18n.js"></script>
-<script src="assets/i18n-content.js"></script>
+<script src="assets/i18n.js?v=1.8.0"></script>
+<script src="assets/i18n-content.js?v=1.8.0"></script>
 
 <style id="mdz-v10-responsive-hero-footer">
 .hero{
@@ -1068,9 +1068,9 @@ footer .foot{align-items:start}
 .header-languages{
   background:rgba(255,255,255,.075)!important;
   border:1px solid rgba(255,255,255,.18)!important;
-  border-radius:999px!important;padding:4px!important;gap:2px!important
+  border-radius:999px!important;padding:3px!important;gap:2px!important
 }
-.header-languages button{color:rgba(255,255,255,.78)!important;border-radius:999px!important;font-weight:900!important}
+.header-languages button{color:rgba(255,255,255,.78)!important;border-radius:999px!important;font-weight:900!important;font-size:.64rem!important;min-width:28px!important;height:26px!important;padding:0 5px!important}
 .header-languages button.active{background:#15724d!important;color:#fff!important;box-shadow:0 5px 13px rgba(0,0,0,.2)!important}
 
 @media(max-width:760px){
@@ -1283,7 +1283,7 @@ footer .foot{align-items:start}
 </style>
 
 <style id="mdz-v17-header-final">
-/* ===== MawashiDZ v1.7.1 — بنية الهيدر النهائية (مصدر وحيد للتخطيط بدل طبقات الإصلاح السابقة) =====
+/* ===== MawashiDZ v1.8.0 — بنية الهيدر النهائية (مصدر وحيد للتخطيط بدل طبقات الإصلاح السابقة) =====
    Desktop (>920px): شريط أفقي — العلامة يمينًا، الروابط، اللغات، ثم الأزرار يسارًا.
    Tablet (761–920px): نفس الشريط بدون قائمة اللغات.
    Mobile (≤760px): شبكة من صفّين — [قائمة | سجّل الآن | ... | العلامة يمينًا] ثم اللغات وسط الصف الثاني. */
@@ -1356,9 +1356,9 @@ footer .foot{align-items:start}
     grid-column:1/-1;grid-row:2;
     justify-self:center;align-self:center;
     display:flex;direction:ltr;margin:0;
-    padding:4px;gap:3px;border-radius:999px;
+    padding:3px;gap:2px;border-radius:999px;
   }
-  .header-languages button{min-width:38px;height:30px;padding:0 7px;font-size:.7rem;border-radius:999px}
+  .header-languages button{min-width:30px;height:26px;padding:0 5px;font-size:.64rem;border-radius:999px}
 }
 
 @media(max-width:390px){
@@ -1369,7 +1369,7 @@ footer .foot{align-items:start}
   .top .brand-logo{width:42px!important;height:42px!important;flex-basis:42px!important}
   .top .brand-copy>span{font-size:.86rem!important}
   .top .brand-tagline{font-size:.46rem!important;max-width:135px}
-  .header-languages button{min-width:34px;padding:0 6px;font-size:.66rem}
+  .header-languages button{min-width:28px;padding:0 5px;font-size:.6rem}
 }
 
 @media(max-width:350px){
@@ -1378,7 +1378,7 @@ footer .foot{align-items:start}
   .top .brand-logo{width:38px!important;height:38px!important;flex-basis:38px!important}
   .top .brand-copy>span{font-size:.78rem!important}
   .top .brand-tagline{font-size:.42rem!important;max-width:118px}
-  .header-languages button{min-width:31px;height:29px;padding:0 5px;font-size:.62rem}
+  .header-languages button{min-width:26px;height:24px;padding:0 4px;font-size:.58rem}
 }
 </style>
 
@@ -1399,7 +1399,7 @@ footer .foot{align-items:start}
     <button type="button" data-lang="de">DE</button>
   </div>
   <div class="actions">
-   <button class="btn ghost" onclick="openLogin()" data-i18n="btnLogin">دخول</button>
+   <button class="btn ghost" id="headerAuthBtn" type="button" onclick="openAccount()" data-i18n="btnLogin">دخول</button>
    <button class="btn primary" onclick="openRegister()" data-i18n="btnRegister">سجّل الآن</button>
    <button class="menu-btn" onclick="toggleMenu(true)" data-i18n-aria="menuLabel" aria-label="القائمة">☰</button>
   </div>
@@ -1417,7 +1417,8 @@ footer .foot{align-items:start}
    <a href="#news" onclick="toggleMenu(false)" data-i18n="drawerNews">الأخبار والأسعار</a>
    <a href="#managers" onclick="toggleMenu(false)" data-i18n="drawerManagers">مدراء الولايات</a>
    <a href="#how" onclick="toggleMenu(false)" data-i18n="drawerHow"><span data-i18n="howTitle">كيف تعمل المنصة؟</span></a><a href="#trust-public" onclick="toggleMenu(false)" data-i18n="drawerTrust"><span data-i18n="trustTitle">الثقة والشفافية</span></a><a href="#animal-life" onclick="toggleMenu(false)" data-i18n="drawerAnimal">هوية الحيوان وQR</a><a href="#eid" onclick="toggleMenu(false)" data-i18n="drawerEid">قسم الأضاحي</a><a href="#identity" onclick="toggleMenu(false)" data-i18n="drawerIdentity">بطاقات الأعضاء</a>
-   <a href="#login" onclick="toggleMenu(false);openLogin();return false" data-i18n="drawerLogin">تسجيل الدخول إلى حسابي</a>
+   <a href="#account" onclick="toggleMenu(false);openAccount();return false" data-i18n="btnProfile">حسابي</a>
+   <a href="#login" onclick="toggleMenu(false);openAccount();return false" data-i18n="drawerLogin">تسجيل الدخول إلى حسابي</a>
    <a href="#contact" onclick="toggleMenu(false)" data-i18n="drawerContact">اتصل بنا</a>
   </div>
  </aside>
@@ -1790,7 +1791,7 @@ footer .foot{align-items:start}
   <div><h3 data-i18n="footerLinks">روابط</h3><a href="#market" data-i18n="footerRegister">التسجيل</a><a href="#news" data-i18n="navNews">الأخبار</a><a href="#managers" data-i18n="navManagers">مدراء الولايات</a></div>
   <div><h3 data-i18n="footerPolicies">السياسات والمساعدة</h3><a href="#" onclick="showToast(t('toastTermsReady'));return false" data-i18n="footerTerms">شروط الاستخدام</a><a href="#" onclick="showToast(t('toastPrivacyReady'));return false" data-i18n="footerPrivacy">الخصوصية</a><a href="#" onclick="openFeedback();return false;" data-i18n="footerFeedback">شاركنا رأيك لنرتقي معًا</a></div>
  </div>
-  <div class="site-version"><span class="version-number">MawashiDZ — الإصدار v1.7.1</span><span class="copyright" data-i18n="footerCopyright">© 2026 جميع الحقوق محفوظة لمنصة MawashiDZ</span></div>
+  <div class="site-version"><span class="version-number" id="siteVersionLabel">MawashiDZ — الإصدار v1.8.0</span><span class="copyright" data-i18n="footerCopyright">© 2026 جميع الحقوق محفوظة لمنصة MawashiDZ</span></div>
 </footer>
 
 <div class="modal" id="registerModal">
@@ -2107,6 +2108,7 @@ function refreshDynamicI18n(){
   const status=document.getElementById('newsStatus');
   if(status&&status.dataset.newsStatusKey) status.textContent=t(status.dataset.newsStatusKey,JSON.parse(status.dataset.newsStatusVars||'{}'));
   updateRoleFields(document.getElementById('roleInput')?.value||'breeder');
+  syncAuthHeader();
 }
 
 function mdzDateLocale(){return ({ar:'ar-DZ',en:'en-GB',fr:'fr-DZ',de:'de-DE'})[getMawashiLanguage()]||'ar-DZ';}
@@ -2348,7 +2350,7 @@ passwordInput?.addEventListener('input',()=>{const v=passwordInput.value;let sco
 document.getElementById('loginForm')?.addEventListener('submit',async e=>{
  e.preventDefault();const form=e.target,btn=document.getElementById('loginSubmit'),state=document.getElementById('loginState');const raw=Object.fromEntries(new FormData(form).entries());
  btn.disabled=true;btn.textContent=t('loginChecking');state.textContent='';
- try{const email=await resolveLoginEmail(raw.identifier);const result=await signInAccount(email,String(raw.password||''));saveSession(result);state.textContent=t('toastLoginSuccess');state.style.color='var(--primary)';closeModal('loginModal');await openAccount();showToast(t('toastLoginOk'));}
+ try{const email=await resolveLoginEmail(raw.identifier);const result=await signInAccount(email,String(raw.password||''));saveSession(result);syncAuthHeader();state.textContent=t('toastLoginSuccess');state.style.color='var(--primary)';closeModal('loginModal');await openAccount();showToast(t('toastLoginOk'));}
  catch(err){state.textContent=String(err.message||t('loginFailGeneric'));state.style.color='#b42318'}finally{btn.disabled=false;btn.textContent=t('loginSubmit')}
 });
 
@@ -2362,10 +2364,27 @@ async function openAccount(){
  closeAll();document.getElementById('accountModal').classList.add('open');const box=document.getElementById('accountContent');box.innerHTML=`<div class="notice">${t('accountLoading')}</div>`;
  try{const p=await fetchMyProfile(session.access_token);if(!p)throw new Error('الملف الشخصي غير موجود. شغّل ملف إعداد قاعدة البيانات المرفق.');
  box.innerHTML=`<div class="member-hero"><span class="member-id-chip">${safeText(p.member_id,40)}</span><h2 style="margin:14px 0 4px">${safeText(p.full_name,180)}</h2><p style="margin:0;opacity:.85">${t('accountOf')} ${registrationRoleLabel(p.role)} · ${p.status==='approved'?t('accountApproved'):t('accountPending')}</p></div><div class="member-data-grid"><div class="member-data"><small>${t('phone')}</small><b dir="ltr">${safeText(p.phone,30)}</b></div><div class="member-data"><small>${t('wilaya')}</small><b>${safeText(p.wilaya,120)}</b></div><div class="member-data"><small>${t('daira')}</small><b>${safeText(p.daira,120)}</b></div><div class="member-data"><small>${t('commune')}</small><b>${safeText(p.commune,120)}</b></div></div><button class="btn ghost" type="button" id="logoutBtn">${t('logoutBtn')}</button>`;
- document.getElementById('logoutBtn').onclick=()=>{saveSession(null);closeModal('accountModal');showToast(t('toastLogout'))};
+ document.getElementById('logoutBtn').onclick=()=>{saveSession(null);closeModal('accountModal');syncAuthHeader();showToast(t('toastLogout'))};
  }catch(e){box.innerHTML=`<div class="notice">${safeText(e.message,500)}</div>`}
+ syncAuthHeader();
+}
+function syncAuthHeader(){
+ const session=getSession();
+ const loggedIn=Boolean(session?.access_token);
+ const btn=document.getElementById('headerAuthBtn');
+ if(btn){
+   btn.textContent=t(loggedIn?'btnProfile':'btnLogin');
+   btn.setAttribute('aria-label',btn.textContent);
+ }
+ const dockProfile=document.getElementById('dockProfileBtn');
+ if(dockProfile){
+   const label=dockProfile.querySelector('[data-i18n],span');
+   if(label) label.textContent=t(loggedIn?'btnProfile':'btnLogin');
+   dockProfile.setAttribute('aria-label',t(loggedIn?'btnProfile':'btnLogin'));
+ }
 }
 window.openAccount=openAccount;
+window.syncAuthHeader=syncAuthHeader;
 
 const contactPhoneLocal=document.getElementById('contactPhoneLocal');
 if(contactPhoneLocal){
@@ -2680,6 +2699,7 @@ window.addEventListener('DOMContentLoaded',()=>{loadWeather(false);loadLivestock
 <nav class="mobile-dock" data-i18n-aria="dockAriaLabel" aria-label="التنقل السريع للهاتف">
   <a href="#home"><i>⌂</i><span data-i18n="dockHome">الرئيسية</span></a>
   <button class="dock-main" onclick="openRegister()"><i>＋</i><span data-i18n="dockRegister">تسجيل مجاني</span></button>
+  <button type="button" id="dockProfileBtn" onclick="openAccount()"><i>👤</i><span data-i18n="btnLogin">دخول</span></button>
   <a href="#contact"><i>✉</i><span data-i18n="dockContact">تواصل معنا</span></a>
 </nav>
 
