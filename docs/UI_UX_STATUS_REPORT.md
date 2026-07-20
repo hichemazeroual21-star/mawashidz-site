@@ -65,7 +65,19 @@
 - مدير ولاية: `manager` أو `wilaya_manager`
 - إدارة: `admin` أو `founder` أو `super_admin`
 
-بدون ذلك تعرض اللوحات بيانات من `localStorage` (`mdz_registrations`) مع تنبيه مصدر البيانات.
+### هل يمكن الدمج بدون تشغيل 003؟
+
+**نعم للدمج التقني** — الموقع العام ومسار التسجيل يعملان بدون 003.
+
+**لكن لوحة التحكم:**
+
+| الحالة | ماذا يحدث |
+|--------|-----------|
+| **003 غير مشغّل** | لا يمكن قراءة `registrations` من Supabase عبر REST → اللوحة تعرض **fallback محلي** (`localStorage`) فقط. **لا تسريب بيانات** عبر API لأن RLS الافتراضي يمنع SELECT. |
+| **003 مشغّل بدون أدوار** | نفس السلوك — لا وصول لبيانات الغير. |
+| **003 + أدوار معيّنة** | المدير/الإدارة يريان الطلبات حسب الصلاحية. |
+
+**الخلاصة:** الدمج بدون 003 **آمن** (لا يفتح ثغرة قراءة عامة)، لكن اللوحة تبقى **غير وظيفية على بيانات حية** حتى تشغيل 003 وتعيين الأدوار.
 
 ---
 
@@ -94,10 +106,11 @@
 
 | المجموعة | الأمر | النتيجة |
 |----------|-------|---------|
-| تخطيط + تسجيل | `node /tmp/mdztest/test.mjs` | 178/178 |
+| تخطيط + تسجيل (Puppeteer) | `node /tmp/mdztest/test.mjs` | 178/178 |
 | i18n تخطيط | `node /tmp/mdztest/test-i18n-layout.mjs` | 423/423 |
-| pipeline التسجيل | `node tests/registration-flow.test.mjs` | 11/11 |
-| أصول ثابتة | `node tests/static-asset-validation.test.mjs` | ✓ |
+| **تسجيل E2E** (submit→auth→insert→نجاح) | `npm run test:e2e` | 9/9 |
+| pipeline التسجيل (وحدة) | `npm run test:registration` | 11/11 |
+| أصول Workers (`public/` + `wrangler.jsonc`) | `npm run test:assets` | ✓ |
 
 ---
 

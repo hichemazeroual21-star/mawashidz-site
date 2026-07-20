@@ -3,9 +3,15 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "sync:worker": "node scripts/sync-worker-public.mjs",
     "test:registration": "node tests/registration-flow.test.mjs",
     "test:assets": "node tests/static-asset-validation.test.mjs",
     "test:ui-guard": "node tests/registration-ui-guard.test.mjs",
-    "test:unit": "node tests/registration-flow.test.mjs && node tests/static-asset-validation.test.mjs && node tests/registration-ui-guard.test.mjs"
+    "test:e2e": "node tests/registration-e2e.test.mjs",
+    "test:unit": "node tests/registration-flow.test.mjs && node tests/static-asset-validation.test.mjs && node tests/registration-ui-guard.test.mjs",
+    "test": "npm run test:unit && npm run test:e2e"
+  },
+  "devDependencies": {
+    "puppeteer-core": "^24.0.0"
   }
 }

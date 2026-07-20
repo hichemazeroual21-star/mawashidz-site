@@ -1,19 +1,38 @@
 #!/usr/bin/env node
-/** Validates deploy-critical static assets (Netlify publish = repo root). */
+/**
+ * Validates Cloudflare Workers deploy artifact:
+ * wrangler.jsonc → public/ (synced via scripts/sync-worker-public.mjs)
+ */
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
+import { execSync } from 'node:child_process';
 
 const root = process.cwd();
-const indexPath = join(root, 'index.html');
-const modulePath = join(root, 'js/registration-flow.mjs');
-const dashPath = join(root, 'js/mdz-dashboards.mjs');
-const citiesPath = join(root, 'assets/algeria_cities.json');
+const wranglerPath = join(root, 'wrangler.jsonc');
+const syncScript = join(root, 'scripts/sync-worker-public.mjs');
 
-assert.ok(existsSync(indexPath), 'index.html must exist');
-assert.ok(existsSync(modulePath), 'js/registration-flow.mjs must exist');
-assert.ok(existsSync(dashPath), 'js/mdz-dashboards.mjs must exist');
-assert.ok(existsSync(citiesPath), 'assets/algeria_cities.json must exist');
+assert.ok(existsSync(wranglerPath), 'wrangler.jsonc must exist for Cloudflare Workers deploy');
+assert.ok(existsSync(syncScript), 'scripts/sync-worker-public.mjs must exist');
+
+const wrangler = JSON.parse(readFileSync(wranglerPath, 'utf8').replace(/^\s*\/\/.*$/gm, '').replace(/,\s*}/g, '}'));
+assert.equal(wrangler.assets?.directory, './public', 'wrangler.jsonc must serve ./public');
+
+execSync('node scripts/sync-worker-public.mjs', { stdio: 'inherit' });
+
+const publicRoot = join(root, 'public');
+const indexPath = join(publicRoot, 'index.html');
+const regModule = join(publicRoot, 'js/registration-flow.mjs');
+const dashModule = join(publicRoot, 'js/mdz-dashboards.mjs');
+const citiesPath = join(publicRoot, 'assets/algeria_cities.json');
+const cnamePath = join(publicRoot, 'CNAME');
+
+assert.ok(existsSync(indexPath), 'public/index.html must exist after sync');
+assert.ok(existsSync(regModule), 'public/js/registration-flow.mjs must exist after sync');
+assert.ok(existsSync(dashModule), 'public/js/mdz-dashboards.mjs must exist after sync');
+assert.ok(existsSync(citiesPath), 'public/assets/algeria_cities.json must exist after sync');
+assert.ok(existsSync(cnamePath), 'public/CNAME must exist after sync');
+assert.ok(!existsSync(join(publicRoot, 'node_modules')), 'public/ must not contain node_modules');
 
 const html = readFileSync(indexPath, 'utf8');
 assert.match(html, /runRegistrationPipeline/, 'index.html must reference runRegistrationPipeline');
@@ -24,4 +43,4 @@ assert.match(html, /updateAuthChrome/, 'index.html must use updateAuthChrome');
 const coupledPattern = /try\s*\{[\s\S]*signUpAccount[\s\S]*await supabaseInsert\('registrations'/;
 assert.ok(!coupledPattern.test(html), 'old coupled signUp+registrations try/catch must be removed');
 
-console.log('  ✓ static asset validation passed');
+console.log('  ✓ Cloudflare Workers static artifact validation passed (wrangler.jsonc + public/)');
