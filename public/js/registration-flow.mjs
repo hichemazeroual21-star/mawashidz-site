@@ -167,8 +167,7 @@ export async function runRegistrationPipeline(deps, context) {
         }
       }
       // Recovery path: the original submission already notified the admin.
-      // Re-sending here spams the inbox on every duplicate resubmit
-      // (production registrations table has no unique constraints yet).
+      // Re-sending here spams the inbox on every duplicate resubmit.
       result.emailSkipped = true;
       return result;
     }
