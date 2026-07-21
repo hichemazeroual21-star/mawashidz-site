@@ -161,7 +161,7 @@ export function renderManagerDashboard(t, ctx) {
   return `<div class="dash-hero manager">
     <h3>${escapeHtml(t('mgrDashTitle'))}</h3>
     <p>${escapeHtml(t('mgrDashDesc', { wilaya: wilaya || t('laterValue') }))}</p>
-    <span class="dash-source">${escapeHtml(source === 'live' ? t('dashSourceLive') : t('dashSourceLocal'))}</span>
+    <span class="dash-source">${escapeHtml(t('dashSourceLive'))}</span>
   </div>
   <div class="dash-stats">
     <article><strong>${rows.length}</strong><span>${escapeHtml(t('mgrDashPending'))}</span></article>
@@ -177,7 +177,7 @@ export function renderAdminDashboard(t, ctx) {
   return `<div class="dash-hero admin">
     <h3>${escapeHtml(t('adminDashTitle'))}</h3>
     <p>${escapeHtml(t('adminDashDesc'))}</p>
-    <span class="dash-source">${escapeHtml(source === 'live' ? t('dashSourceLive') : t('dashSourceLocal'))}</span>
+    <span class="dash-source">${escapeHtml(t('dashSourceLive'))}</span>
   </div>
   <div class="dash-stats admin">
     <article><strong>${stats.total}</strong><span>${escapeHtml(t('adminStatTotal'))}</span></article>
@@ -205,57 +205,26 @@ export async function fetchRegistrationsLive(token, restUrl, apiKey, wilayaFilte
   const r = await fetch(url, {
     headers: { apikey: apiKey, Authorization: `Bearer ${token}` },
   });
-  if (!r.ok) throw new Error(`registrations ${r.status}`);
+  if (!r.ok) {
+    const err = new Error(`registrations_fetch_failed_${r.status}`);
+    err.status = r.status;
+    throw err;
+  }
   return r.json();
 }
 
-export function localRegistrationRows(wilayaFilter) {
-  let rows = [];
-  try {
-    rows = JSON.parse(localStorage.getItem('mdz_registrations') || '[]');
-  } catch {
-    rows = [];
-  }
-  if (wilayaFilter) {
-    const w = String(wilayaFilter).trim();
-    rows = rows.filter((row) => String(row.wilaya || '').includes(w) || w.includes(String(row.wilaya || '')));
-  }
-  return rows.map((row) => ({
-    registration_id: row.registration_id,
-    full_name: row.full_name || `${row.first_name || ''} ${row.last_name || ''}`.trim(),
-    role: row.role,
-    wilaya: row.wilaya,
-    status: row.status || 'pending',
-  }));
-}
-
 export async function loadManagerData(token, restUrl, apiKey, wilaya) {
-  try {
-    const rows = await fetchRegistrationsLive(token, restUrl, apiKey, wilaya);
-    return { rows, source: 'live' };
-  } catch {
-    return { rows: localRegistrationRows(wilaya), source: 'local' };
-  }
+  const rows = await fetchRegistrationsLive(token, restUrl, apiKey, wilaya);
+  return { rows, source: 'live' };
 }
 
 export async function loadAdminData(token, restUrl, apiKey) {
-  try {
-    const rows = await fetchRegistrationsLive(token, restUrl, apiKey, null);
-    const stats = {
-      total: rows.length,
-      vets: rows.filter((r) => r.role === 'vet').length,
-      breeders: rows.filter((r) => r.role === 'breeder').length,
-      managers: rows.filter((r) => r.role === 'manager').length,
-    };
-    return { rows, stats, source: 'live' };
-  } catch {
-    const rows = localRegistrationRows(null);
-    const stats = {
-      total: rows.length,
-      vets: rows.filter((r) => r.role === 'vet').length,
-      breeders: rows.filter((r) => r.role === 'breeder').length,
-      managers: rows.filter((r) => r.role === 'manager').length,
-    };
-    return { rows, stats, source: 'local' };
-  }
+  const rows = await fetchRegistrationsLive(token, restUrl, apiKey, null);
+  const stats = {
+    total: rows.length,
+    vets: rows.filter((r) => r.role === 'vet').length,
+    breeders: rows.filter((r) => r.role === 'breeder').length,
+    managers: rows.filter((r) => r.role === 'manager').length,
+  };
+  return { rows, stats, source: 'live' };
 }

@@ -96,4 +96,8 @@ select user_id, role from public.user_roles;
 -- Example: grant founder to your account (replace UUID from Auth → Users)
 -- insert into public.user_roles (user_id, role)
 -- values ('YOUR-UUID', 'founder');
+
+### Pre-launch security backlog
+
+- **`registrations: public insert` with `check (true)` for `anon`:** anyone can POST rows via REST (UI rate-limit bypass). Tighten `WITH CHECK` and/or server rate limits before public launch. Unique indexes limit duplicate email/phone but not volume spam.
 ```
