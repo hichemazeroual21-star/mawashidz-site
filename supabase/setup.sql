@@ -2,6 +2,11 @@
 -- MawashiDZ — Fresh database setup (v1.8.0)
 -- For NEW Supabase projects only.
 -- Idempotent · safe to re-run · does not drop existing data.
+--
+-- ⚠️ إذا كانت الجداول موجودة مسبقًا (مشروع قديم): لا تشغّل هذا الملف —
+--    استخدم بدلًا منه supabase/migrations/001_compatible_existing_db.sql
+--    لأن CREATE TABLE IF NOT EXISTS لا يضيف أعمدة جديدة للجداول القديمة،
+--    وقد يفشل عند إنشاء فهارس على أعمدة غير موجودة (مثل member_id).
 -- ============================================================
 
 -- ------------------------------------------------------------

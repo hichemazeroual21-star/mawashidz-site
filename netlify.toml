@@ -10,6 +10,21 @@
   to = "/.netlify/functions/news"
   status = 200
 
+[[redirects]]
+  from = "/api/livestock-prices"
+  to = "/.netlify/functions/prices"
+  status = 200
+
+[[headers]]
+  for = "/*.mjs"
+  [headers.values]
+    Content-Type = "text/javascript; charset=utf-8"
+
+[[headers]]
+  for = "/js/*"
+  [headers.values]
+    Content-Type = "text/javascript; charset=utf-8"
+
 [[headers]]
   for = "/*"
   [headers.values]
