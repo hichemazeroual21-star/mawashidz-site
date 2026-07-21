@@ -7,6 +7,7 @@ import {
   runRegistrationPipeline,
   duplicateRegistrationMessage,
   isAuthDuplicateError,
+  isSignupDuplicateResponse,
   isRegistrationDuplicateError,
   isRateLimitError,
   REGISTRATION_ERROR,
@@ -86,11 +87,14 @@ await testAsync('3. duplicate phone on registrations after auth success', async 
   });
   const r = await runRegistrationPipeline(makeDeps({
     supabaseInsert: async () => { throw phoneDup; },
+    sendRegistrationEmail: async () => { throw new Error('should not send'); },
   }), baseContext);
   assert.equal(r.success, true);
   assert.equal(r.accountCreated, true);
   assert.equal(r.registrationSaved, true);
   assert.equal(r.registrationWarning, REGISTRATION_RECOVERY_WARNING_AR);
+  assert.equal(r.emailSkipped, true);
+  assert.equal(r.emailSent, false);
 });
 
 // 4. Duplicate email (auth)
@@ -199,6 +203,44 @@ await testAsync('10. duplicate recovery — no admin email on resubmit', async (
   assert.equal(r.emailSent, false);
 });
 
+// 11. Supabase signup 200 + empty identities (existing email) — no admin email
+await testAsync('11. signup duplicate response — no admin email', async () => {
+  const regDup = Object.assign(new Error('duplicate key'), {
+    code: '23505',
+    status: 409,
+    details: 'registrations_email_unique_ci',
+  });
+  let emailCalls = 0;
+  const r = await runRegistrationPipeline(makeDeps({
+    signUpAccount: async () => ({ user: { id: 'existing' }, identities: [] }),
+    supabaseInsert: async () => { throw regDup; },
+    sendRegistrationEmail: async () => { emailCalls += 1; return { status: 200 }; },
+  }), baseContext);
+  assert.equal(emailCalls, 0);
+  assert.equal(r.emailSkipped, true);
+  assert.equal(r.emailSent, false);
+});
+
+// 11b. Auth ok + registrations duplicate after account created — no admin email
+await testAsync('11b. auth ok + registrations duplicate — no admin email', async () => {
+  const regDup = Object.assign(new Error('duplicate key'), {
+    code: '23505',
+    status: 409,
+    details: 'registrations_email_unique_ci',
+  });
+  let emailCalls = 0;
+  const r = await runRegistrationPipeline(makeDeps({
+    supabaseInsert: async () => { throw regDup; },
+    sendRegistrationEmail: async () => { emailCalls += 1; return { status: 200 }; },
+  }), baseContext);
+  assert.equal(r.success, true);
+  assert.equal(r.accountCreated, true);
+  assert.equal(r.registrationWarning, REGISTRATION_RECOVERY_WARNING_AR);
+  assert.equal(emailCalls, 0);
+  assert.equal(r.emailSkipped, true);
+  assert.equal(r.emailSent, false);
+});
+
 test('isRateLimitError detects Supabase 429 and rate-limit text', () => {
   assert.equal(isRateLimitError({ status: 429, message: 'email rate limit exceeded' }), true);
   assert.equal(isRateLimitError({ message: 'over_email_send_rate_limit: rate limit hit' }), true);
@@ -220,6 +262,12 @@ test('duplicateRegistrationMessage — unrelated 500 returns empty', () => {
 
 test('isAuthDuplicateError detects Supabase message', () => {
   assert.equal(isAuthDuplicateError({ message: 'User already registered', status: 422 }), true);
+});
+
+test('isSignupDuplicateResponse detects empty identities', () => {
+  assert.equal(isSignupDuplicateResponse({ identities: [] }), true);
+  assert.equal(isSignupDuplicateResponse({ user: { identities: [] } }), true);
+  assert.equal(isSignupDuplicateResponse({ identities: [{ id: 'x' }] }), false);
 });
 
 console.log(`\nRegistration flow tests: ${results.passed.length} passed, ${results.failed.length} failed`);

@@ -25,6 +25,12 @@ export function isAuthDuplicateError(error) {
   );
 }
 
+/** Supabase may return HTTP 200 with empty identities when the email already exists. */
+export function isSignupDuplicateResponse(authResult) {
+  const identities = authResult?.identities ?? authResult?.user?.identities;
+  return Array.isArray(identities) && identities.length === 0;
+}
+
 export function isRegistrationDuplicateError(error) {
   return error?.code === '23505' || error?.status === 409;
 }
@@ -123,6 +129,41 @@ export async function runRegistrationPipeline(deps, context) {
       context.password,
       context.authMetadata,
     );
+    if (isSignupDuplicateResponse(result.authResult)) {
+      result.error = {
+        code: REGISTRATION_ERROR.DUPLICATE_EMAIL,
+        message: authDuplicateMessage(),
+        cause: result.authResult,
+      };
+      result.duplicateKind = 'email';
+      try {
+        await supabaseInsert('registrations', context.registrationPayload);
+        result.registrationSaved = true;
+        result.success = true;
+        result.registrationWarning = REGISTRATION_RECOVERY_WARNING_AR;
+      } catch (regError) {
+        const dupMsg = duplicateRegistrationMessage(regError);
+        if (dupMsg) {
+          const text = `${regError?.message || ''} ${regError?.details || ''}`.toLowerCase();
+          result.error = {
+            code: text.includes('phone') || text.includes('registrations_phone')
+              ? REGISTRATION_ERROR.DUPLICATE_PHONE
+              : REGISTRATION_ERROR.DUPLICATE_REGISTRATION,
+            message: dupMsg,
+            cause: regError,
+          };
+          result.duplicateKind = text.includes('phone') ? 'phone' : 'registration';
+        } else {
+          result.error = {
+            code: REGISTRATION_ERROR.DUPLICATE_EMAIL,
+            message: authDuplicateMessage(),
+            cause: regError,
+          };
+        }
+      }
+      result.emailSkipped = true;
+      return result;
+    }
     result.accountCreated = true;
   } catch (authError) {
     if (isRateLimitError(authError)) {
@@ -208,6 +249,7 @@ export async function runRegistrationPipeline(deps, context) {
       // Likely a prior timeout/double-submit — treat as saved, surface specific duplicate text.
       result.registrationSaved = true;
       result.registrationWarning = REGISTRATION_RECOVERY_WARNING_AR;
+      result.emailSkipped = true;
     } else {
       result.registrationWarning = REGISTRATION_ROW_WARNING_AR;
     }
@@ -225,7 +267,7 @@ export async function runRegistrationPipeline(deps, context) {
 }
 
 async function finalizeEmail(deps, context, result) {
-  if (!result.success) return result;
+  if (!result.success || result.emailSkipped) return result;
 
   const { sendRegistrationEmail } = deps;
   try {
