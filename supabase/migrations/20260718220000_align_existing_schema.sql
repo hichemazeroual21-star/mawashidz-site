@@ -1,21 +1,22 @@
 -- ============================================================
--- MawashiDZ — ترحيل متوافق مع قاعدة بيانات موجودة (v1.7.2)
--- شغّله من: Supabase Dashboard → SQL Editor → Run
+-- MawashiDZ — ترقية idempotent للمخطط الحالي (v1.7.1)
+-- شغّل هذا الملف من: Supabase Dashboard → SQL Editor → Run
+-- ثم شغّل: supabase/migrations/20260719000000_phase0_member_id_foundation.sql
 --
--- لا يُعيد إنشاء الجداول الموجودة. يضيف الأعمدة/الدوال/المحفّزات/
--- السياسات الناقصة فقط (idempotent).
+-- تم اكتشاف المخطط الحالي عبر REST API (2026-07-18):
+--   profiles:          id, full_name, phone, email, created_at
+--   registrations:     كامل + عمود status إضافي (يُترك كما هو)
+--   contact_messages:  كامل + عمود email إضافي (يُترك كما هو)
+--   feedback_tickets:  كامل
+--   breeders:          جدول قديم (id, full_name, phone, wilaya, commune, farm_name, created_at)
+--   member_id_counters: غير موجود
+--   الدوال allocate_member_id / resolve_login_identifier / handle_new_user: غير موجودة
 --
--- تم اكتشاف البنية الحالية عبر REST (2026-07-19):
---   profiles         — كامل (member_id, registration_id موجودان)
---   registrations    — ينقصه member_id, registration_id
---   contact_messages — ينقصه wilaya_name (محفّز قديم يشير إليه)
---   feedback_tickets — كامل
---   member_id_counters — موجود (بدون SELECT عام، وهذا صحيح)
---   allocate_member_id — موجود لكن بدون GRANT EXECUTE لـ anon
+-- لا يُعاد إنشاء أي جدول موجود. يُضاف فقط ما ينقص.
 -- ============================================================
 
 -- ------------------------------------------------------------
--- 1) عدّادات أرقام العضوية (إن لم تكن موجودة)
+-- 1) أرقام العضوية التسلسلية
 -- ------------------------------------------------------------
 create table if not exists public.member_id_counters (
   prefix text primary key,
@@ -23,7 +24,6 @@ create table if not exists public.member_id_counters (
 );
 
 alter table public.member_id_counters enable row level security;
--- لا سياسات عامة: يُعدَّل فقط عبر allocate_member_id (security definer).
 
 create or replace function public.allocate_member_id(member_role text)
 returns text
@@ -56,21 +56,18 @@ begin
 end;
 $$;
 
--- ⚠️ تحذير: هذا GRANT يُلغى في 004_fix_registration_production.sql (سطر 35–36).
--- تشغيل 001 وحده على قاعدة جديدة ثم التوقف يترك allocate_member_id() قابلاً
--- للاستدعاء من anon/authenticated — ثغرة أمنية (Phase 0). أكمل دائمًا حتى 004.
-grant execute on function public.allocate_member_id(text) to anon, authenticated;
+revoke all on function public.allocate_member_id(text) from public;
+revoke all on function public.allocate_member_id(text) from anon, authenticated;
+grant execute on function public.allocate_member_id(text) to service_role;
 
 -- ------------------------------------------------------------
--- 2) profiles — أعمدة ناقصة فقط (الجدول موجود مسبقًا)
+-- 2) ترقية profiles — إضافة الأعمدة الناقصة فقط
+--    الموجود حاليًا: id, full_name, phone, email, created_at
 -- ------------------------------------------------------------
 alter table public.profiles add column if not exists member_id text;
 alter table public.profiles add column if not exists registration_id text;
-alter table public.profiles add column if not exists full_name text;
 alter table public.profiles add column if not exists first_name text;
 alter table public.profiles add column if not exists last_name text;
-alter table public.profiles add column if not exists phone text;
-alter table public.profiles add column if not exists email text;
 alter table public.profiles add column if not exists role text;
 alter table public.profiles add column if not exists wilaya text;
 alter table public.profiles add column if not exists daira text;
@@ -79,12 +76,8 @@ alter table public.profiles add column if not exists birth_date date;
 alter table public.profiles add column if not exists invite_code text;
 alter table public.profiles add column if not exists invited_by text;
 alter table public.profiles add column if not exists status text not null default 'pending';
-alter table public.profiles add column if not exists created_at timestamptz not null default now();
-alter table public.profiles add column if not exists updated_at timestamptz not null default now();
 
-create unique index if not exists profiles_member_id_key on public.profiles (member_id)
-  where member_id is not null;
-create index if not exists profiles_member_id_idx on public.profiles (member_id);
+create unique index if not exists profiles_member_id_idx on public.profiles (member_id);
 create index if not exists profiles_phone_idx on public.profiles (phone);
 
 alter table public.profiles enable row level security;
@@ -134,7 +127,7 @@ create trigger on_auth_user_created
   for each row execute function public.handle_new_user();
 
 -- ------------------------------------------------------------
--- 3) resolve_login_identifier — يعتمد على profiles.member_id
+-- 3) الدخول بالبريد أو الهاتف أو رقم العضوية MDZ
 -- ------------------------------------------------------------
 create or replace function public.resolve_login_identifier(lookup_value text)
 returns text
@@ -164,24 +157,8 @@ $$;
 grant execute on function public.resolve_login_identifier(text) to anon, authenticated;
 
 -- ------------------------------------------------------------
--- 4) registrations — أعمدة ناقصة (الجدول موجود ببنية مختلفة)
+-- 4) registrations — الجدول موجود؛ تأكيد RLS والسياسة فقط
 -- ------------------------------------------------------------
-alter table public.registrations add column if not exists member_id text;
-alter table public.registrations add column if not exists registration_id text;
-alter table public.registrations add column if not exists daira text;
-
-create index if not exists registrations_member_id_idx on public.registrations (member_id);
-create index if not exists registrations_registration_id_idx on public.registrations (registration_id);
-
--- استرجاع القيم المخزّنة سابقًا داخل message (JSON)
-update public.registrations r
-set
-  member_id = coalesce(r.member_id, nullif(r.message::jsonb ->> 'member_id', '')),
-  registration_id = coalesce(r.registration_id, nullif(r.message::jsonb ->> 'registration_id', ''))
-where r.message is not null
-  and r.message ~ '^\s*\{'
-  and (r.member_id is null or r.registration_id is null);
-
 alter table public.registrations enable row level security;
 
 drop policy if exists "registrations: public insert" on public.registrations;
@@ -191,28 +168,8 @@ create policy "registrations: public insert"
   with check (true);
 
 -- ------------------------------------------------------------
--- 5) contact_messages — إصلاح محفّز قديم يشير إلى wilaya_name
+-- 5) contact_messages — الجدول موجود؛ تأكيد RLS والسياسة فقط
 -- ------------------------------------------------------------
-alter table public.contact_messages add column if not exists wilaya_name text;
-
-create or replace function public.contact_messages_sync_wilaya_name()
-returns trigger
-language plpgsql
-set search_path = public
-as $$
-begin
-  if new.wilaya_name is null and new.wilaya is not null then
-    new.wilaya_name := new.wilaya;
-  end if;
-  return new;
-end;
-$$;
-
-drop trigger if exists contact_messages_sync_wilaya_name on public.contact_messages;
-create trigger contact_messages_sync_wilaya_name
-  before insert or update on public.contact_messages
-  for each row execute function public.contact_messages_sync_wilaya_name();
-
 alter table public.contact_messages enable row level security;
 
 drop policy if exists "contact: public insert" on public.contact_messages;
@@ -222,7 +179,7 @@ create policy "contact: public insert"
   with check (true);
 
 -- ------------------------------------------------------------
--- 6) feedback_tickets — سياسات الإدراج فقط
+-- 6) feedback_tickets — الجدول موجود؛ تأكيد RLS والسياسة فقط
 -- ------------------------------------------------------------
 alter table public.feedback_tickets enable row level security;
 
@@ -231,22 +188,3 @@ create policy "feedback: public insert"
   on public.feedback_tickets for insert
   to anon, authenticated
   with check (true);
-
--- ------------------------------------------------------------
--- 7) user_roles — تفعيل RLS (جدول أدوار إدارية داخلية)
--- ------------------------------------------------------------
-alter table public.user_roles enable row level security;
-
-drop policy if exists "user_roles: self read" on public.user_roles;
-create policy "user_roles: self read"
-  on public.user_roles for select
-  to authenticated
-  using (user_id = (select auth.uid()));
-
--- لا سياسات كتابة عامة: الإدارة عبر service_role أو SQL Editor فقط.
-
--- ============================================================
--- بعد التشغيل: تحقق محليًا (اختياري)
---   node supabase/introspect.mjs
---   node supabase/probe-columns.mjs
--- ============================================================
