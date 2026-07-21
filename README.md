@@ -55,8 +55,8 @@ select public.allocate_member_id('breeder');
 
 ## Tests
 
-- `npm test` — اختبارات الوحدة + E2E + أصول Workers (يجب أن تبقى خضراء في CI).
-- `npm run test:layout` — اختبارات Puppeteer لتخطيط الهيدر/الموبايل (`tests/ui-layout.test.mjs`, `tests/i18n-layout.test.mjs`). **معروف أنها تفشل حاليًا** (~23 فشل على فجوات register/menu في الهيدر) — قيد الإصلاح في PR منفصل بعد الدمج؛ لم تُحذف ولم تُعطَّل، فقط أُخرجت مؤقتًا من `npm test`.
+- `npm test` — اختبارات الوحدة + E2E + أصول Workers + تخطيط Puppeteer (يجب أن تبقى خضراء في CI).
+- `npm run test:layout` — اختبارات Puppeteer لتخطيط الهيدر/الموبايل (`tests/ui-layout.test.mjs`, `tests/i18n-layout.test.mjs`). تصميم الهيدر على الموبايل: القائمة يسارًا + العلامة يمينًا (صف 1)، دخول + تسجيل مجمّعان يسارًا (صف 2)، مبدّل اللغة وسطًا (صف 3).
 - `npm run test:db` — اختبارات قاعدة البيانات المحلية (Phase 0)
 - `npm run test:security` — تحقق حي أن `allocate_member_id` محظور لـ anon
 

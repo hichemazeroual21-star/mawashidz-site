@@ -98,6 +98,7 @@ for (const w of widths) {
     const q = s => document.querySelector(s);
     const r = el => { const b = el.getBoundingClientRect(); return { l: b.left, r: b.right, t: b.top, b: b.bottom, w: b.width, h: b.height }; };
     const menu = q('.top .menu-btn'), reg = q('.top .actions .btn.primary'), brand = q('.top .brand');
+    const login = q('#headerLoginBtn');
     const name = q('.top .brand-copy>span'), langs = q('.header-languages');
     const overlap = (a, b) => !(a.r <= b.l + 1 || b.r <= a.l + 1 || a.b <= b.t + 1 || b.b <= a.t + 1);
     const vis = el => el && getComputedStyle(el).display !== 'none' && el.getBoundingClientRect().width > 0;
@@ -107,6 +108,7 @@ for (const w of widths) {
       innerW: window.innerWidth,
       menu: vis(menu) ? r(menu) : null,
       reg: vis(reg) ? r(reg) : null,
+      login: vis(login) ? r(login) : null,
       brand: vis(brand) ? r(brand) : null,
       langsVisible: vis(langs), langs: vis(langs) ? r(langs) : null,
       nameVisible: vis(name),
@@ -124,9 +126,13 @@ for (const w of widths) {
   check(`w${w}: brand name visible & not clipped`, layout.nameVisible && !layout.nameClipped);
   if (w <= 760) {
     check(`w${w}: menu button at far LEFT`, layout.menu && layout.menu.l < 20, layout.menu ? `left=${Math.round(layout.menu.l)}` : 'missing');
-    check(`w${w}: register button next to menu`, layout.reg && Math.abs(layout.reg.l - layout.menu.r) < 20, layout.reg ? `gap=${Math.round(layout.reg.l - layout.menu.r)}` : 'missing');
+    // Row 1: menu + brand. Register moved to row 2 → must sit below the menu row.
+    check(`w${w}: action buttons below menu row`, layout.reg && layout.reg.t >= layout.menu.b - 6, layout.reg ? `regTop=${Math.round(layout.reg.t)} menuBottom=${Math.round(layout.menu.b)}` : 'missing');
+    // Login + register are one contiguous group (no big empty gap between them).
+    check(`w${w}: login & register grouped`, layout.login && layout.reg && Math.min(Math.abs(layout.login.l - layout.reg.r), Math.abs(layout.reg.l - layout.login.r)) < 24,
+      (layout.login && layout.reg) ? `gap=${Math.round(Math.min(Math.abs(layout.login.l - layout.reg.r), Math.abs(layout.reg.l - layout.login.r)))}` : 'missing');
     check(`w${w}: brand at RIGHT edge`, layout.brand && layout.brand.r > layout.innerW - 36, layout.brand ? `right=${Math.round(layout.brand.r)}/${layout.innerW}` : 'missing');
-    check(`w${w}: no overlap menu/brand or reg/brand`, !layout.brandOverlapsMenu && !layout.brandOverlapsReg);
+    check(`w${w}: no overlap menu/brand`, !layout.brandOverlapsMenu);
     check(`w${w}: languages centered below`, layout.langsVisible && layout.langs.t >= layout.menu.b - 4 && Math.abs((layout.langs.l + layout.langs.r) / 2 - layout.innerW / 2) < 40,
       layout.langs ? `center=${Math.round((layout.langs.l + layout.langs.r) / 2)}/${Math.round(layout.innerW / 2)}` : 'hidden');
   }
@@ -393,9 +399,10 @@ for (const lang of I18N_LANGS) {
     await new Promise(r => setTimeout(r, 450));
     const layout = await page.evaluate(() => {
       const q = s => document.querySelector(s);
-      const r = el => { const b = el.getBoundingClientRect(); return { l: b.left, r: b.right, w: b.width }; };
+      const r = el => { const b = el.getBoundingClientRect(); return { l: b.left, r: b.right, t: b.top, b: b.bottom, w: b.width }; };
       const vis = el => el && getComputedStyle(el).display !== 'none' && el.getBoundingClientRect().width > 0;
       const menu = q('.top .menu-btn'), reg = q('.top .actions .btn.primary'), brand = q('.top .brand');
+      const login = q('#headerLoginBtn');
       const name = q('.top .brand-copy>span');
       return {
         lang: document.body.dataset.lang,
@@ -405,6 +412,7 @@ for (const lang of I18N_LANGS) {
         nameClipped: name ? name.scrollWidth > name.clientWidth + 1 : false,
         menu: vis(menu) ? r(menu) : null,
         reg: vis(reg) ? r(reg) : null,
+        login: vis(login) ? r(login) : null,
         brand: vis(brand) ? r(brand) : null,
       };
     });
@@ -414,8 +422,10 @@ for (const lang of I18N_LANGS) {
     check(`${tag}: lang applied`, layout.lang === lang, layout.lang);
     check(`${tag}: brand name not clipped`, !layout.nameClipped);
     if (w <= 760) {
-      check(`${tag}: register near menu`, layout.reg && layout.menu && Math.abs(layout.reg.l - layout.menu.r) < 24,
-        layout.reg ? `gap=${Math.round(layout.reg.l - layout.menu.r)}` : 'missing');
+      check(`${tag}: action buttons below menu row`, layout.reg && layout.reg.t >= layout.menu.b - 6,
+        layout.reg ? `regTop=${Math.round(layout.reg.t)} menuBottom=${Math.round(layout.menu.b)}` : 'missing');
+      check(`${tag}: login & register grouped`, layout.login && layout.reg && Math.min(Math.abs(layout.login.l - layout.reg.r), Math.abs(layout.reg.l - layout.login.r)) < 24,
+        (layout.login && layout.reg) ? `gap=${Math.round(Math.min(Math.abs(layout.login.l - layout.reg.r), Math.abs(layout.reg.l - layout.login.r)))}` : 'missing');
       check(`${tag}: brand at right`, layout.brand && layout.brand.r > layout.innerW - 40);
     }
     await page.close();

@@ -77,6 +77,7 @@ for (const lang of LANGS) {
 
       const menu = q('.top .menu-btn');
       const reg = q('.top .actions .btn.primary');
+      const login = q('#headerLoginBtn');
       const brand = q('.top .brand');
       const name = q('.top .brand-copy>span');
       const langs = q('.header-languages');
@@ -111,6 +112,7 @@ for (const lang of LANGS) {
         innerW: window.innerWidth,
         menu: vis(menu) ? r(menu) : null,
         reg: vis(reg) ? r(reg) : null,
+        login: vis(login) ? r(login) : null,
         brand: vis(brand) ? r(brand) : null,
         nameClipped: name ? name.scrollWidth > name.clientWidth + 1 : false,
         brandOverlapsMenu: vis(menu) && vis(brand) ? overlap(r(menu), r(brand)) : false,
@@ -142,9 +144,11 @@ for (const lang of LANGS) {
 
     if (w <= 760) {
       check(`${prefix}: menu at left`, layout.menu && layout.menu.l < 20, layout.menu ? `l=${Math.round(layout.menu.l)}` : 'missing');
-      check(`${prefix}: register near menu`, layout.reg && Math.abs(layout.reg.l - layout.menu.r) < 24, layout.reg ? `gap=${Math.round(layout.reg.l - layout.menu.r)} reg="${layout.regText}"` : 'missing');
+      check(`${prefix}: action buttons below menu row`, layout.reg && layout.reg.t >= layout.menu.b - 6, layout.reg ? `regTop=${Math.round(layout.reg.t)} menuBottom=${Math.round(layout.menu.b)} reg="${layout.regText}"` : 'missing');
+      check(`${prefix}: login & register grouped`, layout.login && layout.reg && Math.min(Math.abs(layout.login.l - layout.reg.r), Math.abs(layout.reg.l - layout.login.r)) < 24,
+        (layout.login && layout.reg) ? `gap=${Math.round(Math.min(Math.abs(layout.login.l - layout.reg.r), Math.abs(layout.reg.l - layout.login.r)))}` : 'missing');
       check(`${prefix}: brand at right`, layout.brand && layout.brand.r > layout.innerW - 40);
-      check(`${prefix}: no header overlap`, !layout.brandOverlapsMenu && !layout.brandOverlapsReg);
+      check(`${prefix}: no header overlap`, !layout.brandOverlapsMenu);
       if (layout.langsVisible) {
         check(`${prefix}: langs centered`, Math.abs((layout.langs.l + layout.langs.r) / 2 - layout.innerW / 2) < 45);
       }
