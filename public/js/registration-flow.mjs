@@ -11,6 +11,7 @@ export const REGISTRATION_ERROR = {
   AUTH_FAILED: 'AUTH_FAILED',
   VALIDATION: 'VALIDATION',
   NETWORK: 'NETWORK',
+  RATE_LIMITED: 'RATE_LIMITED',
   REGISTRATION_ROW_FAILED: 'REGISTRATION_ROW_FAILED',
 };
 
@@ -27,6 +28,19 @@ export function isAuthDuplicateError(error) {
 export function isRegistrationDuplicateError(error) {
   return error?.code === '23505' || error?.status === 409;
 }
+
+/**
+ * Supabase built-in SMTP throttles confirmation emails (HTTP 429,
+ * error_code=over_email_send_rate_limit). Signup is rejected — no account
+ * is created — so this must be surfaced as a clear retry-later message.
+ */
+export function isRateLimitError(error) {
+  const text = String(error?.message || error?.error_description || '').toLowerCase();
+  return error?.status === 429 || text.includes('rate limit');
+}
+
+export const RATE_LIMIT_MESSAGE_AR =
+  'وصل الخادم إلى الحد المؤقت لإرسال رسائل التأكيد. لم يُنشأ حسابك بعد — انتظر نحو ساعة ثم أعد المحاولة بنفس البريد. الطلبات المتكررة لا تسرّع القبول.';
 
 export function isNetworkError(error) {
   return error?.name === 'AbortError' || error instanceof TypeError;
@@ -111,6 +125,14 @@ export async function runRegistrationPipeline(deps, context) {
     );
     result.accountCreated = true;
   } catch (authError) {
+    if (isRateLimitError(authError)) {
+      result.error = {
+        code: REGISTRATION_ERROR.RATE_LIMITED,
+        message: RATE_LIMIT_MESSAGE_AR,
+        cause: authError,
+      };
+      return result;
+    }
     if (isAuthDuplicateError(authError)) {
       result.error = {
         code: REGISTRATION_ERROR.DUPLICATE_EMAIL,
@@ -144,7 +166,11 @@ export async function runRegistrationPipeline(deps, context) {
           };
         }
       }
-      return finalizeEmail(deps, context, result);
+      // Recovery path: the original submission already notified the admin.
+      // Re-sending here spams the inbox on every duplicate resubmit
+      // (production registrations table has no unique constraints yet).
+      result.emailSkipped = true;
+      return result;
     }
 
     result.error = {

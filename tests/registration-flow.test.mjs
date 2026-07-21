@@ -8,8 +8,10 @@ import {
   duplicateRegistrationMessage,
   isAuthDuplicateError,
   isRegistrationDuplicateError,
+  isRateLimitError,
   REGISTRATION_ERROR,
   EMAIL_WARNING_AR,
+  RATE_LIMIT_MESSAGE_AR,
   authDuplicateMessage,
   GENERIC_CONFLICT_MESSAGE_AR,
   REGISTRATION_RECOVERY_WARNING_AR,
@@ -162,6 +164,45 @@ await testAsync('8. existing auth user — complete missing registration row', a
   assert.equal(r.success, true);
   assert.equal(r.registrationSaved, true);
   assert.match(r.registrationWarning, /حساب|طلب/);
+});
+
+// 9. Supabase email rate limit (429 over_email_send_rate_limit)
+await testAsync('9. email rate limit — Arabic retry message, no insert, no admin email', async () => {
+  const rateLimit = Object.assign(new Error('email rate limit exceeded'), { status: 429 });
+  let insertCalls = 0;
+  let emailCalls = 0;
+  const r = await runRegistrationPipeline(makeDeps({
+    signUpAccount: async () => { throw rateLimit; },
+    supabaseInsert: async () => { insertCalls += 1; return true; },
+    sendRegistrationEmail: async () => { emailCalls += 1; return { status: 200 }; },
+  }), baseContext);
+  assert.equal(r.success, false);
+  assert.equal(r.error.code, REGISTRATION_ERROR.RATE_LIMITED);
+  assert.equal(r.error.message, RATE_LIMIT_MESSAGE_AR);
+  assert.equal(insertCalls, 0);
+  assert.equal(emailCalls, 0);
+});
+
+// 10. Duplicate resubmit must NOT spam the admin inbox
+await testAsync('10. duplicate recovery — no admin email on resubmit', async () => {
+  const authDup = Object.assign(new Error('User already registered'), { status: 422 });
+  let emailCalls = 0;
+  const r = await runRegistrationPipeline(makeDeps({
+    signUpAccount: async () => { throw authDup; },
+    supabaseInsert: async () => true,
+    sendRegistrationEmail: async () => { emailCalls += 1; return { status: 200 }; },
+  }), baseContext);
+  assert.equal(r.success, true);
+  assert.equal(r.registrationSaved, true);
+  assert.equal(emailCalls, 0);
+  assert.equal(r.emailSkipped, true);
+  assert.equal(r.emailSent, false);
+});
+
+test('isRateLimitError detects Supabase 429 and rate-limit text', () => {
+  assert.equal(isRateLimitError({ status: 429, message: 'email rate limit exceeded' }), true);
+  assert.equal(isRateLimitError({ message: 'over_email_send_rate_limit: rate limit hit' }), true);
+  assert.equal(isRateLimitError({ status: 400, message: 'invalid email' }), false);
 });
 
 test('duplicateRegistrationMessage — phone constraint returns generic conflict', () => {
