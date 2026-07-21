@@ -4,8 +4,8 @@
 
 | Worker | Role in repo | Custom domain |
 |--------|----------------|---------------|
-| **`mawashidz-live`** | **Canonical** — `wrangler.jsonc` → `"name": "mawashidz-live"` (commits `5904373`, `e6ead0c`) | **Verify in Cloudflare Dashboard** (see below) |
-| **`mawashidz-site`** | Legacy / duplicate — older `wrangler.jsonc` name; branch `update_worker_name_to_mawashidz-site` | Must **not** be assumed production without checking |
+| **`mawashidz-live`** | **Canonical** — `wrangler.jsonc` → `"name": "mawashidz-live"` (commits `5904373`, `e6ead0c`) | **Production** — dashboard shows **+ 1 other route** (= `mawashidz.com`) |
+| **`mawashidz-site`** | Legacy / duplicate — older `wrangler.jsonc` name; branch `update_worker_name_to_mawashidz-site` | **Not production** — only `mawashidz-site.hichemazeroual21.workers.dev` (no custom domain) |
 
 ### Why this matters
 
