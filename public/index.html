@@ -1394,6 +1394,11 @@ footer .foot{align-items:start}
   border:1px solid #bddfc9;
   border-radius:16px;
 }
+#registerModal .confirm-card.is-error{
+  color:#7a2e2e;
+  background:#fff4f4;
+  border:1px solid #e8b4b4;
+}
 #registerModal .consent-stack{gap:10px}
 #registerModal .consent-card{
   grid-template-columns:26px 1fr;
@@ -2619,6 +2624,12 @@ function describeRegistrationError(error){
     : `${t('errSaveFailed')} (${error?.status||'?'})`};
 }
 
+function showRegistrationError(confirmBox,message){
+  confirmBox.style.display='block';
+  confirmBox.className='full confirm-card is-error';
+  confirmBox.textContent=message;
+}
+
 function renderRegistrationSuccess({confirmBox,ids,email,hasSession,warnings=[]}){
   const inviteUrl=`${location.origin}${location.pathname}?ref=${encodeURIComponent(ids.memberInviteCode)}#register`;
   const memberLabel=ids.memberId?`<span dir="ltr">${ids.memberId}</span>`:t('acctMemberPending');
@@ -2662,6 +2673,9 @@ $('#registerForm').addEventListener('submit', async e=>{
   const {extra,payload}=buildRegistrationRecords({raw,form,valid,ids});
   registerFormSubmitting=true;
   submit.disabled=true; submit.dataset.oldText=submit.textContent; submit.textContent=t('registerSending');
+  confirmBox.style.display='none';
+  confirmBox.className='full confirm-card';
+  confirmBox.textContent='';
   const restoreSubmit=()=>{registerFormSubmitting=false;submit.disabled=false;submit.textContent=submit.dataset.oldText||t('registerSubmit')};
   const email=String(raw.email||'').trim().toLowerCase();
   try{
@@ -2680,9 +2694,7 @@ $('#registerForm').addEventListener('submit', async e=>{
       emailData:{...payload,...ids,registration_id:ids.registrationId,member_id:ids.memberId,role_label:registrationRoleLabel(raw.role),member_invite_code:ids.memberInviteCode,invited_by:extra.invited_by}
     });
     if(!pipelineResult.success){
-      showToast(pipelineResult.error?.message||t('authErrGeneric'));
-      confirmBox.style.display='block';
-      confirmBox.textContent=pipelineResult.error?.message||t('authErrGeneric');
+      showRegistrationError(confirmBox,pipelineResult.error?.message||t('authErrGeneric'));
       restoreSubmit();
       return;
     }
