@@ -24,12 +24,14 @@ The decision is binding from `007_manual_rls_fixes.sql` (file header). Any new d
 7. `003_dashboard_rls.sql` — dashboard **SELECT** policies (after founder + `user_roles`)  
 8. `008_consolidate_insert_policies.sql` — one INSERT policy (when ready)
 
-Do **not** run the dated `20260718*` path on the same database without reviewing overlap with `001`–`008`.
+Do **not** run the full dated `20260718*` stack on this production database without reviewing overlap with `001`–`008` and reading **`PRODUCTION_DB_BASELINE.md`** (provenance of live objects is partly unknown).
 
-## Phase 0 dated path (greenfield / separate DB only)
+## Phase 0 dated path (reference / greenfield — not “never on prod”)
 
 - `20260718220000_align_existing_schema.sql`  
 - `20260719000000_phase0_member_id_foundation.sql`  
 - `20260719110000_secure_allocate_member_id.sql`  
 
-See item **10** analysis in launch docs / agent handoff before merging paths.
+**Production baseline (state, not guessed history):** `supabase/PRODUCTION_DB_BASELINE.md`
+
+See launch docs / handoff before merging migration paths on an existing database.
