@@ -135,9 +135,19 @@ export function renderAccountDashboard(t, profile, helpers) {
     </div>`;
 }
 
+function renderDashHero(variant, title, desc, liveLabel) {
+  return `<div class="dash-hero ${variant}">
+    <div class="dash-hero-glow" aria-hidden="true"></div>
+    <p class="dash-kicker">MawashiDZ</p>
+    <h3>${title}</h3>
+    <p class="dash-lead">${desc}</p>
+    <span class="dash-source"><span class="dash-live-dot" aria-hidden="true"></span>${liveLabel}</span>
+  </div>`;
+}
+
 function renderQueueTable(t, rows, safeText, registrationRoleLabel) {
   if (!rows.length) {
-    return `<div class="dash-empty">${escapeHtml(t('dashEmptyQueue'))}</div>`;
+    return `<div class="dash-empty"><span class="dash-empty-icon" aria-hidden="true">📋</span><p>${escapeHtml(t('dashEmptyQueue'))}</p></div>`;
   }
   const head = `<thead><tr>
     <th>${escapeHtml(t('acctRegId'))}</th>
@@ -158,35 +168,37 @@ function renderQueueTable(t, rows, safeText, registrationRoleLabel) {
 
 export function renderManagerDashboard(t, ctx) {
   const { wilaya, rows, source, safeText, registrationRoleLabel } = ctx;
-  return `<div class="dash-hero manager">
-    <h3>${escapeHtml(t('mgrDashTitle'))}</h3>
-    <p>${escapeHtml(t('mgrDashDesc', { wilaya: wilaya || t('laterValue') }))}</p>
-    <span class="dash-source">${escapeHtml(t('dashSourceLive'))}</span>
-  </div>
+  return `${renderDashHero(
+    'manager',
+    escapeHtml(t('mgrDashTitle')),
+    escapeHtml(t('mgrDashDesc', { wilaya: wilaya || t('laterValue') })),
+    escapeHtml(t('dashSourceLive')),
+  )}
   <div class="dash-stats">
-    <article><strong>${rows.length}</strong><span>${escapeHtml(t('mgrDashPending'))}</span></article>
-    <article><strong>${rows.filter((r) => String(r.role) === 'vet').length}</strong><span>${escapeHtml(t('roleVet'))}</span></article>
-    <article><strong>${rows.filter((r) => String(r.role) === 'breeder').length}</strong><span>${escapeHtml(t('roleBreeder'))}</span></article>
+    <article class="stat-card stat-total"><strong>${rows.length}</strong><span>${escapeHtml(t('mgrDashPending'))}</span></article>
+    <article class="stat-card stat-vet"><strong>${rows.filter((r) => String(r.role) === 'vet').length}</strong><span>${escapeHtml(t('roleVet'))}</span></article>
+    <article class="stat-card stat-breeder"><strong>${rows.filter((r) => String(r.role) === 'breeder').length}</strong><span>${escapeHtml(t('roleBreeder'))}</span></article>
   </div>
   ${renderQueueTable(t, rows, safeText, registrationRoleLabel)}
-  <p class="dash-note">${escapeHtml(t('mgrDashNote'))}</p>`;
+  <p class="dash-callout">${escapeHtml(t('mgrDashNote'))}</p>`;
 }
 
 export function renderAdminDashboard(t, ctx) {
   const { stats, rows, source, safeText, registrationRoleLabel } = ctx;
-  return `<div class="dash-hero admin">
-    <h3>${escapeHtml(t('adminDashTitle'))}</h3>
-    <p>${escapeHtml(t('adminDashDesc'))}</p>
-    <span class="dash-source">${escapeHtml(t('dashSourceLive'))}</span>
-  </div>
+  return `${renderDashHero(
+    'admin',
+    escapeHtml(t('adminDashTitle')),
+    escapeHtml(t('adminDashDesc')),
+    escapeHtml(t('dashSourceLive')),
+  )}
   <div class="dash-stats admin">
-    <article><strong>${stats.total}</strong><span>${escapeHtml(t('adminStatTotal'))}</span></article>
-    <article><strong>${stats.vets}</strong><span>${escapeHtml(t('roleVet'))}</span></article>
-    <article><strong>${stats.breeders}</strong><span>${escapeHtml(t('roleBreeder'))}</span></article>
-    <article><strong>${stats.managers}</strong><span>${escapeHtml(t('roleManager'))}</span></article>
+    <article class="stat-card stat-total"><strong>${stats.total}</strong><span>${escapeHtml(t('adminStatTotal'))}</span></article>
+    <article class="stat-card stat-vet"><strong>${stats.vets}</strong><span>${escapeHtml(t('roleVet'))}</span></article>
+    <article class="stat-card stat-breeder"><strong>${stats.breeders}</strong><span>${escapeHtml(t('roleBreeder'))}</span></article>
+    <article class="stat-card stat-manager"><strong>${stats.managers}</strong><span>${escapeHtml(t('roleManager'))}</span></article>
   </div>
   ${renderQueueTable(t, rows, safeText, registrationRoleLabel)}
-  <p class="dash-note">${escapeHtml(t('adminDashNote'))}</p>`;
+  <p class="dash-callout">${escapeHtml(t('adminDashNote'))}</p>`;
 }
 
 export async function fetchUserRoles(token, restUrl, apiKey) {
