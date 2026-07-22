@@ -8,23 +8,46 @@
 
 ## Prerequisite gate (owner — before any production deploy)
 
-> **Root risk:** If **Version command** = `npx wrangler deploy`, every push to **any** branch can replace live traffic. That is how production regressed to the **v1.9.0 monolith** while `main` carries **v1.10.0**.
+> **Root risk (RC#1):** If **Version command** = `npx wrangler deploy`, every push to **any** branch can replace live traffic. That is how production regressed to the **v1.9.0 monolith** while `main` carries **v1.10.0**.
 
-**Do not run `npm run deploy:prod` or promote a build until:**
+### RC#1 — Cloudflare branch commands (configuration)
 
-1. **Workers & Pages → `mawashidz-live` → Settings → Build**
-2. **Version command** = `npx wrangler versions upload` (**not** `npx wrangler deploy`)
-3. **Deploy command** (production branch `main` only) = `npx wrangler deploy`
-4. **Build command** = `npm ci && npm run build`
-5. **Builds for non-production branches** = **Disabled** (recommended)
+**Status: closed (owner verified 2026-07-22)** on `mawashidz-live` → Settings → Build:
 
-Then set locally when running emergency deploy:
+| Setting | Required value | Verified |
+|---------|----------------|----------|
+| Production branch | `main` | yes |
+| Production deploy command | `npx wrangler deploy` | yes |
+| Non-production branch deploy command / **Version command** | `npx wrangler versions upload` | yes |
+| Builds for non-production branches | Enabled is **OK** when non-prod command is `versions upload` (uploads preview only; does not take production traffic) | yes |
+
+`wrangler deploy` promotes the build to **100% traffic** on the production branch. `wrangler versions upload` creates a **preview version** only. That split is what stops `cursor/…` branches from overwriting `main` on production.
+
+**RC#1 does not by itself prove** the **active** production version was built from current `main`. That is **RC#1 operational closure** (below).
+
+### RC#1 operational closure (after next `main` deploy)
+
+1. Merge this repo’s deploy pipeline PR to `main` (build + `build-info.json` + `verify:prod`).
+2. Cloudflare **Build command** must be **`npm ci && npm run build`** (not `None` — otherwise `public/build-info.json` is never generated).
+3. Push/merge to `main` → Cloudflare runs build + `npx wrangler deploy`.
+4. Confirm **Active deployment** is from `main` and run:
+
+```bash
+curl -sL https://mawashidz.com/build-info.json
+npm run verify:prod   # on a checkout at the same commit as main
+```
+
+Expect **HTTP 200** on `build-info.json` with `commit` matching `git rev-parse HEAD` on `main`.
+
+**Do not run `npm run deploy:prod` or promote a build until RC#1 configuration is verified** (done) **and** Build command includes `npm run build` when using Workers Builds.
+
+For break-glass deploy only:
 
 ```bash
 export MAWASHIDZ_CF_SAFE_MODE=confirmed
 ```
 
-Agents: if this is not confirmed, **STOP** — fix dashboard first; do not `wrangler deploy` from feature branches.
+Agents: do not `wrangler deploy` from feature branches; non-prod branches must only `versions upload`.
 
 ---
 
@@ -84,9 +107,9 @@ This is **not** explained by browser cache alone: missing JS paths prove the **d
 | Worker | `mawashidz-live` |
 | Custom domain | `mawashidz.com` (verify under Domains & Routes) |
 | Production branch | `main` |
-| Build command | `npm ci && npm run build` |
+| **Build command** | **`npm ci && npm run build`** (required — generates `public/build-info.json`; **not** `None`) |
 | Deploy command | `npx wrangler deploy` |
-| Version command | `npx wrangler versions upload` |
+| Version command / non-production deploy | `npx wrangler versions upload` |
 | Legacy worker `mawashidz-site` | Disable builds or ignore — **not** production domain |
 
 ---
