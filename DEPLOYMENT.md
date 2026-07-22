@@ -1,103 +1,160 @@
-# MawashiDZ — Production deployment
+# MawashiDZ — Production deployment (single source of truth)
 
-## ⚠️ CRITICAL — Cloudflare Workers Builds (`mawashidz-live`)
-
-**Wrong settings here caused production to serve code from random branches** (e.g. `cursor/…` overwriting `main`).
-
-Open: **Workers & Pages → `mawashidz-live` → Settings → Build**
-
-| Setting | Correct value | Why |
-|---------|---------------|-----|
-| **Production branch** | `main` | Only `main` may promote to 100% traffic |
-| **Deploy command** | `npx wrangler deploy` | Production deploy (main only) |
-| **Version command** | `npx wrangler versions upload` | **NOT** `npx wrangler deploy` — preview branches must upload a version without going live |
-| **Builds for non-production branches** | **Disabled** (recommended) | Or keep enabled **only if** Version command is `versions upload` |
-
-### What went wrong
-
-With **Version command = `npx wrangler deploy`**, every push on **any** branch deployed directly to production. Build history showed the same commit built from `main` and `cursor/…` — **last deploy wins**, with no review.
-
-### Fix checklist (do once in dashboard)
-
-1. Set **Version command** → `npx wrangler versions upload`
-2. Keep **Deploy command** → `npx wrangler deploy`
-3. Set **Builds for non-production branches** → **Disabled** (safest) until you need preview URLs
-4. **Version History** → confirm **Active** version is from `main` after next `main` push
-5. Optionally **disable** Workers Builds on **`mawashidz-site`** (legacy worker — not production)
+**Last updated:** 2026-07-22  
+**Production URL:** https://mawashidz.com  
+**Production Worker:** `mawashidz-live` only (`wrangler.jsonc` → `"name": "mawashidz-live"`)
 
 ---
 
-## Which Worker serves `mawashidz.com`?
+## Prerequisite gate (owner — before any production deploy)
 
-| Worker | Role in repo | Custom domain |
-|--------|----------------|---------------|
-| **`mawashidz-live`** | **Canonical** — `wrangler.jsonc` → `"name": "mawashidz-live"` (commits `5904373`, `e6ead0c`) | **Production** — dashboard shows **+ 1 other route** (= `mawashidz.com`) |
-| **`mawashidz-site`** | Legacy / duplicate — older `wrangler.jsonc` name; branch `update_worker_name_to_mawashidz-site` | **Not production** — only `mawashidz-site.hichemazeroual21.workers.dev` (no custom domain) |
+> **Root risk:** If **Version command** = `npx wrangler deploy`, every push to **any** branch can replace live traffic. That is how production regressed to the **v1.9.0 monolith** while `main` carries **v1.10.0**.
 
-### Why this matters
+**Do not run `npm run deploy:prod` or promote a build until:**
 
-CI builds **both** workers on every push (`Workers Builds: mawashidz-live` and `Workers Builds: mawashidz-site`). A green “Deployment successful” on the **wrong** worker does **not** update `mawashidz.com` if the custom domain is bound to the other worker. This explains past drift (e.g. build green while the site stayed on an older artifact).
+1. **Workers & Pages → `mawashidz-live` → Settings → Build**
+2. **Version command** = `npx wrangler versions upload` (**not** `npx wrangler deploy`)
+3. **Deploy command** (production branch `main` only) = `npx wrangler deploy`
+4. **Build command** = `npm ci && npm run build`
+5. **Builds for non-production branches** = **Disabled** (recommended)
 
-### How to verify (required before every deploy)
-
-1. Open [Cloudflare Dashboard](https://dash.cloudflare.com) → **Workers & Pages**.
-2. Open **`mawashidz-live`** → **Settings** → **Domains & Routes**.
-   - If `mawashidz.com` (and optionally `www.mawashidz.com`) is listed → **this is the production worker**.
-3. Repeat for **`mawashidz-site`**.
-   - If the domain is only here, either migrate the custom domain to `mawashidz-live` or align `wrangler.jsonc` with the bound worker — do not deploy blindly.
-
-> **Agent note (2026-07-21):** No `CLOUDFLARE_API_TOKEN` in this environment — domain binding could not be queried via API. The table above reflects repo intent (`mawashidz-live`); dashboard confirmation is mandatory.
-
-### Deploy command (after merge + `npm run sync:worker`)
+Then set locally when running emergency deploy:
 
 ```bash
-npm run sync:worker          # copy index.html, js/, assets/ → public/
-npx wrangler deploy          # uses wrangler.jsonc → mawashidz-live
+export MAWASHIDZ_CF_SAFE_MODE=confirmed
 ```
 
-Post-deploy smoke check:
+Agents: if this is not confirmed, **STOP** — fix dashboard first; do not `wrangler deploy` from feature branches.
+
+---
+
+## Deployment strategy (one path only)
+
+### Canonical: **A) Git → `main` → Cloudflare Workers Builds**
+
+| Step | What happens |
+|------|----------------|
+| 1 | Merge PR to `main` |
+| 2 | Cloudflare builds with `npm ci && npm run build` |
+| 3 | Production branch deploy runs `npx wrangler deploy` → `mawashidz-live` |
+| 4 | Verify: `npm run verify:prod` (commit on `main`) |
+
+**Unsupported for routine releases:** manual `npx wrangler deploy` without going through `main` + Builds.
+
+### Break-glass only: `npm run deploy:prod`
+
+Runs: gate → `npm test` → `npm run build` → `wrangler deploy` → `verify:prod`.  
+Requires `MAWASHIDZ_CF_SAFE_MODE=confirmed`. Document why break-glass was used.
+
+**Do not** document a second “normal” manual path. Netlify is **not** production HTML for `mawashidz.com`.
+
+---
+
+## Source of truth (no competing copies)
+
+| Layer | Location | Notes |
+|-------|----------|--------|
+| **App source** | Repo root: `index.html`, `js/`, `assets/` | Edit here only |
+| **Version label** | `assets/i18n.js` → `MDZ_APP_VERSION` | Single version string |
+| **Worker bundle** | `public/` | **Generated** — never hand-edit |
+| **Build** | `npm run build` | `sync-worker-public.mjs` + `build-info.json` + `_headers` |
+| **Runtime** | Cloudflare Worker `mawashidz-live` | Serves `./public` per `wrangler.jsonc` |
+
+`public/` must match root after every build (`npm run verify:public`).
+
+---
+
+## Why production showed v1.9.0 (diagnosis)
+
+| Finding | Evidence |
+|---------|----------|
+| **Current `main` is not v1.9.0** | `MDZ_APP_VERSION = '1.10.0'` in `assets/i18n.js`; modular `js/mdz-dashboards.mjs` |
+| **v1.9.0 in repo** | Only in **docs** / recovery artifacts (`docs/PRODUCTION_RECOVERY_MANIFEST.md`, drift reports) — **not** in deployable root HTML |
+| **Live site matched old monolith** | Footer `v1.9.0`, `Phase 1 Auth UI` inline CSS, `/assets/i18n.js` **404**, `/js/mdz-dashboards.mjs` **404** |
+| **Root cause** | Cloudflare **last deploy wins** with **Version command = `wrangler deploy` on all branches**, serving an **older Worker asset bundle**, not current `main` |
+
+This is **not** explained by browser cache alone: missing JS paths prove the **deployed artifact** is old.
+
+---
+
+## Cloudflare dashboard checklist
+
+| Setting | Value |
+|---------|--------|
+| Worker | `mawashidz-live` |
+| Custom domain | `mawashidz.com` (verify under Domains & Routes) |
+| Production branch | `main` |
+| Build command | `npm ci && npm run build` |
+| Deploy command | `npx wrangler deploy` |
+| Version command | `npx wrangler versions upload` |
+| Legacy worker `mawashidz-site` | Disable builds or ignore — **not** production domain |
+
+---
+
+## Commands
 
 ```bash
+# Local artifact (same as CI build step)
+npm run build
+
+# After owner gate + merge to main (CI deploys), or break-glass:
+export MAWASHIDZ_CF_SAFE_MODE=confirmed   # owner confirmed dashboard
+npm run deploy:prod                        # emergency only; runs test → build → deploy → verify
+
+# Verification (no deploy)
+npm test
+npm run verify:public
+npm run verify:prod                        # fails until production serves latest build-info + v1.10+
+```
+
+`build-info.json` (in `public/` after build):
+
+```json
+{
+  "version": "1.10.0",
+  "commit": "<git sha>",
+  "builtAt": "<iso8601>",
+  "worker": "mawashidz-live"
+}
+```
+
+---
+
+## Cache policy
+
+`deploy/_headers` → copied to `public/_headers` on build:
+
+- `index.html`, `build-info.json` → `no-cache, must-revalidate`
+- `/assets/*`, `/js/*` → short cache + `must-revalidate`
+
+Stale HTML without redeploy is a **deploy** problem; headers reduce CDN stickiness after a correct deploy.
+
+---
+
+## Post-deploy verification
+
+```bash
+curl -sL https://mawashidz.com/build-info.json
 curl -sL https://mawashidz.com/assets/i18n.js | grep MDZ_APP_VERSION
-# Expect: const MDZ_APP_VERSION = '1.10.0'; (or current release)
+# Expect 1.10.0+ and commit matching main
+npm run verify:prod
 ```
-
-### Artifact layout
-
-- Source of truth: repo root (`index.html`, `js/`, `assets/`)
-- Worker bundle: `public/` (generated — never edit by hand)
-- Config: `wrangler.jsonc` (`assets.directory` = `./public`)
-
-### Netlify
-
-Netlify still runs deploy previews and header/redirect checks. **Production HTML for mawashidz.com is served by Cloudflare Workers**, not Netlify Pages.
 
 ---
 
-## Founder / admin role (`user_roles`)
+## Founder / admin (`user_roles`)
 
-Registration does **not** create `founder` or `admin`. Assign manually after signup.
+Registration does not create `founder`. Assign in Supabase SQL Editor after signup. See SQL in previous revisions of this doc under `user_roles`.
 
-`user_roles.role` is **plain text** (not a Postgres enum). Valid values used in code:
+---
 
-- Admin dashboard: `founder`, `admin`, `super_admin`
-- Wilaya manager: `wilaya_manager`, `manager`, `wilaya_mgr`
+## Related docs
 
-Check before insert:
+- `supabase/PRODUCTION_DB_BASELINE.md` — database state (separate from frontend deploy)
+- Launch gate / RLS steps — after production serves **v1.10+** from `main`
 
-```sql
--- If empty: role is text, not enum — safe to use strings below
-select column_name, data_type
-from information_schema.columns
-where table_schema = 'public' and table_name = 'user_roles' and column_name = 'role';
+---
 
-select user_id, role from public.user_roles;
+## Pre-launch security backlog
 
--- Example: grant founder to your account (replace UUID from Auth → Users)
--- insert into public.user_roles (user_id, role)
--- values ('YOUR-UUID', 'founder');
-
-### Pre-launch security backlog
-
-- **`registrations: public insert` with `check (true)` for `anon`:** anyone can POST rows via REST (UI rate-limit bypass). Tighten `WITH CHECK` and/or server rate limits before public launch. Unique indexes limit duplicate email/phone but not volume spam.
-```
+- Open `registrations` INSERT policies — tighten before public launch (see Supabase migrations).

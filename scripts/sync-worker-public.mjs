@@ -15,3 +15,8 @@ for (const rel of ['index.html', 'CNAME']) {
 for (const dir of ['js', 'assets']) {
   cpSync(join(root, dir), join(out, dir), { recursive: true });
 }
+
+const headersSrc = join(root, 'deploy/_headers');
+if (existsSync(headersSrc)) {
+  cpSync(headersSrc, join(out, '_headers'));
+}

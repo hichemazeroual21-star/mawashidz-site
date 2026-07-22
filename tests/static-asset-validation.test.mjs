@@ -18,7 +18,7 @@ assert.ok(existsSync(syncScript), 'scripts/sync-worker-public.mjs must exist');
 const wrangler = JSON.parse(readFileSync(wranglerPath, 'utf8').replace(/^\s*\/\/.*$/gm, '').replace(/,\s*}/g, '}'));
 assert.equal(wrangler.assets?.directory, './public', 'wrangler.jsonc must serve ./public');
 
-execSync('node scripts/sync-worker-public.mjs', { stdio: 'inherit' });
+execSync('npm run build', { stdio: 'inherit' });
 
 const publicRoot = join(root, 'public');
 const indexPath = join(publicRoot, 'index.html');
@@ -26,6 +26,14 @@ const regModule = join(publicRoot, 'js/registration-flow.mjs');
 const dashModule = join(publicRoot, 'js/mdz-dashboards.mjs');
 const citiesPath = join(publicRoot, 'assets/algeria_cities.json');
 const cnamePath = join(publicRoot, 'CNAME');
+const buildInfoPath = join(publicRoot, 'build-info.json');
+const headersPath = join(publicRoot, '_headers');
+
+assert.ok(existsSync(buildInfoPath), 'public/build-info.json must exist after npm run build');
+const buildInfo = JSON.parse(readFileSync(buildInfoPath, 'utf8'));
+assert.ok(buildInfo.version && buildInfo.commit && buildInfo.builtAt, 'build-info must include version, commit, builtAt');
+assert.ok(buildInfo.version !== '1.9.0', 'build-info version must not be legacy 1.9.0');
+assert.ok(existsSync(headersPath), 'public/_headers must exist after build (cache policy)');
 
 assert.ok(existsSync(indexPath), 'public/index.html must exist after sync');
 assert.ok(existsSync(regModule), 'public/js/registration-flow.mjs must exist after sync');

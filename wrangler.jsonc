@@ -1,6 +1,8 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "mawashidz-live",
+  // Production: Git → main → Cloudflare Build (npm ci && npm run build) → npx wrangler deploy
+  // See DEPLOYMENT.md — Version command must be `npx wrangler versions upload` on non-prod branches.
   "compatibility_date": "2026-07-18",
   "observability": {
     "enabled": true

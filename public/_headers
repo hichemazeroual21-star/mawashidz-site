@@ -1,0 +1,14 @@
+# Cloudflare Workers static assets — cache policy (see DEPLOYMENT.md)
+# HTML and build manifest: always revalidate (avoids stale v1.9.x shell)
+
+/index.html
+  Cache-Control: no-cache, must-revalidate
+
+/build-info.json
+  Cache-Control: no-cache, must-revalidate
+
+/assets/*
+  Cache-Control: public, max-age=300, must-revalidate
+
+/js/*
+  Cache-Control: public, max-age=300, must-revalidate
