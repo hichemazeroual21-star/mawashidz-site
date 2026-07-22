@@ -2768,23 +2768,31 @@ window.openLoginOrAccount=openLoginOrAccount;
 async function openAccount(){
  const session=await ensureFreshSession();
  if(!session?.access_token){openLogin();return}
+ const accountLoad=await import('./js/account-load.mjs');
+ const { AccountLoadError, ACCOUNT_STEP, logAccountLoadFailure, messageForAccountLoadError, fetchAccountProfile, fetchAccountRoles }=accountLoad;
  closeAll();
  document.getElementById('accountModal').classList.add('open');
  const box=document.getElementById('accountContent');
  box.innerHTML=`<div class="notice">${t('accountLoading')}</div>`;
  try{
-  const p=await fetchMyProfile(session.access_token);
-  if(!p) throw new Error(t('authErrProfileMissing'));
+  const p=await fetchAccountProfile(SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY,session.access_token);
   mdzAccountProfile=p;
-  mdzUserRoles=await fetchMyRoles(session.access_token);
-  const dash=await import('./js/mdz-dashboards.mjs');
-  box.innerHTML=dash.renderAccountDashboard(t,p,accountHelpers());
-  document.getElementById('logoutBtn').onclick=()=>logoutAccount();
-  wireAccountTabs(box,p);
-  wireInviteActions(p);
-  updateAuthChrome();
+  mdzUserRoles=await fetchAccountRoles(SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY,session.access_token);
+  let dash;
+  try{ dash=await import('./js/mdz-dashboards.mjs'); }
+  catch(importErr){ throw new AccountLoadError(ACCOUNT_STEP.DASHBOARD_MODULE,null,importErr); }
+  try{
+   box.innerHTML=dash.renderAccountDashboard(t,p,accountHelpers());
+   document.getElementById('logoutBtn').onclick=()=>logoutAccount();
+   wireAccountTabs(box,p);
+   wireInviteActions(p);
+   updateAuthChrome();
+  }catch(renderErr){ throw new AccountLoadError(ACCOUNT_STEP.DASHBOARD_RENDER,null,renderErr); }
  }catch(e){
-  box.innerHTML=`<div class="notice">${safeText(authErrorArabic(e),500)}</div><button class="btn primary" type="button" id="reloginBtn">${t('btnLogin')}</button>`;
+  const err=e instanceof AccountLoadError?e:accountLoad.normalizeAccountLoadError(e);
+  logAccountLoadFailure(err);
+  const msg=messageForAccountLoadError(err,t);
+  box.innerHTML=`<div class="notice is-error">${safeText(msg,500)}</div><button class="btn primary" type="button" id="reloginBtn">${t('btnLogin')}</button>`;
   document.getElementById('reloginBtn')?.addEventListener('click',()=>{closeModal('accountModal');openLogin()});
  }
 }
