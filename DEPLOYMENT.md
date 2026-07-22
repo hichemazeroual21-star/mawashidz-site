@@ -96,8 +96,55 @@ select user_id, role from public.user_roles;
 -- Example: grant founder to your account (replace UUID from Auth → Users)
 -- insert into public.user_roles (user_id, role)
 -- values ('YOUR-UUID', 'founder');
+```
+
+---
+
+## Production launch gate (before invitations)
+
+Use **state**, not a fixed commit SHA. New merges after `localStorage` fallback removal stay valid; pinning a hash goes stale.
+
+### Step 0 — Active deployment (`mawashidz-live`)
+
+The active deployment must be:
+
+1. **Sourced from branch `main`** (not `cursor/*`)
+2. **Status = success**
+3. **Newer than** the commit that removed dashboard `localStorage` fallback on failed live fetch
+
+**Evidence (required):** version ID + source branch + build timestamp (Cloudflare Version History screenshot or export). “Latest deploy from main” alone is not enough — confirm success.
+
+### Full order
+
+| Step | Action |
+|------|--------|
+| 0 | Active deployment verified per above |
+| 1 | Assign `founder` (or `admin` / `super_admin`) in `user_roles` |
+| 2 | Logout / login |
+| 3 | Admin button visible |
+| 4 | Apply `supabase/migrations/003_dashboard_rls.sql` |
+| 5 | Exactly **two** `SELECT` policies on `public.registrations` |
+| 6 | Admin dashboard opens; source = live Supabase (not fallback / not `dashLoadFailed`) |
+| 7 | Drop **three** redundant `INSERT` policies, one statement at a time; keep one public insert policy |
+| 8 | One real production registration — `INSERT` still works |
+| 9 | Repo contains `007_production_rls_manual_jul2026.sql` (documents manual prod changes; **do not re-run on prod** if already applied) |
+| 10 | Start invitations |
+
+### Success criteria (YES/NO + evidence)
+
+- Active deployment from `main`, successful, post-fallback-removal
+- Admin button visible
+- `user_roles` loaded for session (network: `user_roles?select=role` → 200)
+- `registrations` `SELECT` policies: **exactly 2**
+- Dashboard source: **LIVE** (Supabase)
+- Registration `INSERT` after INSERT cleanup: **PASS**
+
+SQL or screenshot for each step — no assumptions.
+
+Manual RLS work on production is recorded in `supabase/migrations/007_production_rls_manual_jul2026.sql` so it does not live only in chat history (same class of drift as undocumented `Allow admin read`).
+
+---
 
 ### Pre-launch security backlog
 
 - **`registrations: public insert` with `check (true)` for `anon`:** anyone can POST rows via REST (UI rate-limit bypass). Tighten `WITH CHECK` and/or server rate limits before public launch. Unique indexes limit duplicate email/phone but not volume spam.
-```
