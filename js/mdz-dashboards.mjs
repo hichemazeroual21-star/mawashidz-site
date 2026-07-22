@@ -135,25 +135,52 @@ export function renderAccountDashboard(t, profile, helpers) {
     </div>`;
 }
 
-function renderQueueTable(t, rows, safeText, registrationRoleLabel) {
+export function registrationKindKey(row) {
+  const raw = String(row?.role || row?.user_type || '').toLowerCase().trim();
+  if (raw === 'éleveur' || raw === 'eleveur') return 'breeder';
+  if (raw === 'veterinarian' || raw === 'vétérinaire') return 'vet';
+  if (raw === 'wilaya_manager' || raw === 'wilaya_mgr') return 'manager';
+  if (raw === 'dealer' || raw === 'feed') return 'feed';
+  return raw;
+}
+
+function renderQueueTable(t, rows, safeText, registrationRoleLabel, options = {}) {
+  const { adminActions = false } = options;
   if (!rows.length) {
     return `<div class="dash-empty">${escapeHtml(t('dashEmptyQueue'))}</div>`;
   }
+  const actionHead = adminActions
+    ? `<th>${escapeHtml(t('adminColActions'))}</th>`
+    : '';
   const head = `<thead><tr>
     <th>${escapeHtml(t('acctRegId'))}</th>
     <th>${escapeHtml(t('acctFullName'))}</th>
     <th>${escapeHtml(t('acctRole'))}</th>
     <th>${escapeHtml(t('wilaya'))}</th>
     <th>${escapeHtml(t('acctStatus'))}</th>
+    ${actionHead}
   </tr></thead>`;
-  const body = rows.slice(0, 50).map((row) => `<tr>
+  const body = rows.slice(0, 50).map((row) => {
+    const profileId = row.profile_id || '';
+    const statusLabel = safeText(
+      row.profile_status || row.status || t('accountPending'),
+      40,
+    );
+    const actions = adminActions && profileId
+      ? `<td class="dash-actions"><button type="button" class="btn ghost dash-act" data-admin-act="approved" data-profile-id="${escapeHtml(profileId)}">${escapeHtml(t('adminActApprove'))}</button><button type="button" class="btn ghost dash-act" data-admin-act="rejected" data-profile-id="${escapeHtml(profileId)}">${escapeHtml(t('adminActReject'))}</button><button type="button" class="btn ghost dash-act" data-admin-act="suspended" data-profile-id="${escapeHtml(profileId)}">${escapeHtml(t('adminActSuspend'))}</button></td>`
+      : adminActions
+        ? `<td class="dash-actions"><span class="dash-act-muted">${escapeHtml(t('adminNoProfile'))}</span></td>`
+        : '';
+    return `<tr>
     <td dir="ltr">${escapeHtml(safeText(row.registration_id || row.registrationId || '—', 40))}</td>
     <td>${escapeHtml(safeText(row.full_name || row.first_name, 80))}</td>
     <td>${escapeHtml(registrationRoleLabel(row.role || row.user_type))}</td>
     <td>${escapeHtml(safeText(row.wilaya, 60))}</td>
-    <td>${escapeHtml(safeText(row.status || t('accountPending'), 40))}</td>
-  </tr>`).join('');
-  return `<div class="dash-table-wrap"><table class="dash-table">${head}<tbody>${body}</tbody></table></div>`;
+    <td>${escapeHtml(statusLabel)}</td>
+    ${actions}
+  </tr>`;
+  }).join('');
+  return `<div class="dash-table-wrap"><table class="dash-table dash-table-admin">${head}<tbody>${body}</tbody></table></div>`;
 }
 
 export function renderManagerDashboard(t, ctx) {
@@ -185,7 +212,8 @@ export function renderAdminDashboard(t, ctx) {
     <article><strong>${stats.breeders}</strong><span>${escapeHtml(t('roleBreeder'))}</span></article>
     <article><strong>${stats.managers}</strong><span>${escapeHtml(t('roleManager'))}</span></article>
   </div>
-  ${renderQueueTable(t, rows, safeText, registrationRoleLabel)}
+  ${renderQueueTable(t, rows, safeText, registrationRoleLabel, { adminActions: true })}
+  ${ctx.auditHtml || ''}
   <p class="dash-note">${escapeHtml(t('adminDashNote'))}</p>`;
 }
 
@@ -198,7 +226,7 @@ export async function fetchUserRoles(token, restUrl, apiKey) {
 }
 
 export async function fetchRegistrationsLive(token, restUrl, apiKey, wilayaFilter) {
-  let url = `${restUrl}/registrations?select=registration_id,full_name,role,user_type,wilaya,status,created_at&order=created_at.desc&limit=80`;
+  let url = `${restUrl}/registrations?select=registration_id,full_name,role,user_type,wilaya,status,created_at,email&order=created_at.desc&limit=80`;
   if (wilayaFilter) {
     url += `&wilaya=eq.${encodeURIComponent(wilayaFilter)}`;
   }
@@ -218,13 +246,43 @@ export async function loadManagerData(token, restUrl, apiKey, wilaya) {
   return { rows, source: 'live' };
 }
 
-export async function loadAdminData(token, restUrl, apiKey) {
-  const rows = await fetchRegistrationsLive(token, restUrl, apiKey, null);
-  const stats = {
+export async function attachProfileMeta(rows, token, restUrl, apiKey) {
+  const emails = [
+    ...new Set(
+      rows
+        .map((r) => String(r.email || '').trim().toLowerCase())
+        .filter(Boolean),
+    ),
+  ];
+  if (!emails.length) {
+    return rows.map((r) => ({ ...r, profile_id: null, profile_status: null }));
+  }
+  const inFilter = emails.map((e) => encodeURIComponent(e)).join(',');
+  const r = await fetch(`${restUrl}/profiles?select=id,email,status&email=in.(${inFilter})`, {
+    headers: { apikey: apiKey, Authorization: `Bearer ${token}` },
+  });
+  const profiles = r.ok ? await r.json() : [];
+  const byEmail = new Map(
+    profiles.map((p) => [String(p.email || '').trim().toLowerCase(), p]),
+  );
+  return rows.map((row) => {
+    const p = byEmail.get(String(row.email || '').trim().toLowerCase());
+    return { ...row, profile_id: p?.id || null, profile_status: p?.status || null };
+  });
+}
+
+export function computeRegistrationStats(rows) {
+  return {
     total: rows.length,
-    vets: rows.filter((r) => r.role === 'vet').length,
-    breeders: rows.filter((r) => r.role === 'breeder').length,
-    managers: rows.filter((r) => r.role === 'manager').length,
+    vets: rows.filter((r) => registrationKindKey(r) === 'vet').length,
+    breeders: rows.filter((r) => registrationKindKey(r) === 'breeder').length,
+    managers: rows.filter((r) => registrationKindKey(r) === 'manager').length,
   };
+}
+
+export async function loadAdminData(token, restUrl, apiKey) {
+  const raw = await fetchRegistrationsLive(token, restUrl, apiKey, null);
+  const rows = await attachProfileMeta(raw, token, restUrl, apiKey);
+  const stats = computeRegistrationStats(rows);
   return { rows, stats, source: 'live' };
 }

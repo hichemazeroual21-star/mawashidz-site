@@ -1062,6 +1062,12 @@ footer{background:#0b100d}
 .dash-table th,.dash-table td{padding:10px 12px;border-bottom:1px solid #e8efea;text-align:right}
 .dash-table th{background:#f4f8f5;color:#1b3d2e;font-weight:900}
 .dash-empty{padding:24px;text-align:center;color:#667c70;font-weight:750}
+.dash-actions{white-space:nowrap;vertical-align:middle}
+.dash-actions .dash-act{font-size:.72rem;padding:5px 8px;margin:2px 0}
+.dash-act-muted{font-size:.75rem;color:#667c70}
+.dash-audit{margin-top:12px;padding:12px 14px;border-radius:14px;background:#f4f8f5;border:1px solid #d7e4dc}
+.dash-audit h4{margin:0 0 8px;font-size:.9rem;color:#1b3d2e}
+.dash-audit ul{margin:0;padding:0 18px 0 0;font-size:.8rem;line-height:1.55;color:#5a6d62}
 #headerActions .btn[hidden],#drawerAccountLink[hidden],#drawerLogoutLink[hidden],#drawerLoginLink[hidden],#drawerRegisterLink[hidden],#headerMgrDashBtn[hidden],#headerAdminDashBtn[hidden]{display:none!important}
 .policy-modal .modal-box{max-width:min(640px,96vw)}
 .policy-body{max-height:52vh;overflow:auto;line-height:1.75;color:#2a4035;font-size:.92rem}
@@ -2810,6 +2816,49 @@ async function openManagerDashboard(){
  }
 }
 
+async function renderAdminDashboardPanel(box,session){
+ const dash=await import('./js/mdz-dashboards.mjs');
+ const data=await dash.loadAdminData(session.access_token,SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY);
+ let auditHtml='';
+ try{
+  const {adminListAuditLog}=await import('./js/admin-rpc.mjs');
+  const entries=await adminListAuditLog(SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY,session.access_token,12);
+  if(Array.isArray(entries)&&entries.length){
+   const lines=entries.map(e=>`<li>${safeText(e.action,48)} — ${safeText(e.target_label||String(e.target_id||''),80)}</li>`).join('');
+   auditHtml=`<section class="dash-audit"><h4>${t('adminAuditTitle')}</h4><ul>${lines}</ul></section>`;
+  }
+ }catch(err){console.warn('admin audit log',err)}
+ box.innerHTML=dash.renderAdminDashboard(t,{stats:data.stats,rows:data.rows,source:data.source,safeText,registrationRoleLabel,auditHtml});
+ wireAdminDashboardActions(box,session);
+}
+function wireAdminDashboardActions(box,session){
+ if(box._mdzAdminActionsBound) return;
+ box._mdzAdminActionsBound=true;
+ box.addEventListener('click',async(ev)=>{
+  const btn=ev.target.closest('[data-admin-act]');
+  if(!btn||btn.disabled) return;
+  const act=btn.dataset.adminAct;
+  const profileId=btn.dataset.profileId;
+  if(!profileId) return;
+  let reason=null;
+  if(act==='rejected'){
+   reason=window.prompt(t('adminRejectReasonPrompt'));
+   if(reason===null) return;
+  }
+  btn.disabled=true;
+  try{
+   const {adminSetProfileStatus}=await import('./js/admin-rpc.mjs');
+   await adminSetProfileStatus(SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY,session.access_token,profileId,act,reason||null);
+   showToast(t('adminActDone'));
+   box.innerHTML=`<div class="notice">${t('accountLoading')}</div>`;
+   await renderAdminDashboardPanel(box,session);
+  }catch(e){
+   console.error('Admin action failed',e);
+   showToast(t('adminActFail'));
+  }finally{btn.disabled=false}
+ });
+}
+
 async function openAdminDashboard(){
  const session=await ensureFreshSession();
  if(!session?.access_token){openLogin();return}
@@ -2821,8 +2870,7 @@ async function openAdminDashboard(){
  const box=document.getElementById('adminDashContent');
  box.innerHTML=`<div class="notice">${t('accountLoading')}</div>`;
  try{
-  const data=await dash.loadAdminData(session.access_token,SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY);
-  box.innerHTML=dash.renderAdminDashboard(t,{stats:data.stats,rows:data.rows,source:data.source,safeText,registrationRoleLabel});
+  await renderAdminDashboardPanel(box,session);
  }catch(e){
   console.error('Admin dashboard load failed',e);
   box.innerHTML=`<div class="dash-hero admin"><h3>${t('adminDashTitle')}</h3><div class="notice is-error" style="margin-top:12px">${t('dashLoadFailed')}</div></div>`;
