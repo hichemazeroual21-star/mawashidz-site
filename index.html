@@ -2345,11 +2345,14 @@ async function fetchMyProfile(token){
  const rows=await r.json();return rows[0]||null;
 }
 async function fetchMyRoles(token){
- try{
-  const r=await fetch(`${SUPABASE_REST}/user_roles?select=role`,{headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:`Bearer ${token}`}});
-  if(!r.ok) return [];
-  return (await r.json()).map(x=>String(x.role||'').toLowerCase()).filter(Boolean);
- }catch{return []}
+ const { fetchUserRoles }=await import('./js/user-roles-fetch.mjs');
+ return fetchUserRoles(SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY,token);
+}
+async function refreshUserRoles(token){
+ try{mdzUserRoles=await fetchMyRoles(token)}
+ catch{mdzUserRoles=[]}
+ updateAuthChrome();
+ return mdzUserRoles;
 }
 function statusLabelArabic(status){
  const key=({pending:'statusPending',approved:'statusApproved',active:'statusApproved',rejected:'statusRejected',suspended:'statusSuspended'})[String(status||'').toLowerCase()]||'statusPending';
@@ -2776,7 +2779,7 @@ async function openAccount(){
   const p=await fetchMyProfile(session.access_token);
   if(!p) throw new Error(t('authErrProfileMissing'));
   mdzAccountProfile=p;
-  mdzUserRoles=await fetchMyRoles(session.access_token);
+  await refreshUserRoles(session.access_token);
   const dash=await import('./js/mdz-dashboards.mjs');
   box.innerHTML=dash.renderAccountDashboard(t,p,accountHelpers());
   document.getElementById('logoutBtn').onclick=()=>logoutAccount();
@@ -2793,7 +2796,7 @@ window.openAccount=openAccount;
 async function openManagerDashboard(){
  const session=await ensureFreshSession();
  if(!session?.access_token){openLogin();return}
- mdzUserRoles=await fetchMyRoles(session.access_token);
+ await refreshUserRoles(session.access_token);
  const dash=await import('./js/mdz-dashboards.mjs');
  if(!dash.hasManagerAccess(mdzUserRoles, mdzAccountProfile?.role)){showToast(t('dashNoAccess'));return}
  closeAll();
@@ -2814,7 +2817,7 @@ async function openAdminDashboard(){
  const session=await ensureFreshSession();
  if(!session?.access_token){openLogin();return}
  const dash=await import('./js/mdz-dashboards.mjs');
- mdzUserRoles=mdzUserRoles.length?mdzUserRoles:await fetchMyRoles(session.access_token);
+ if(!mdzUserRoles.length) await refreshUserRoles(session.access_token);
  if(!dash.hasAdminAccess(mdzUserRoles)){showToast(t('dashNoAccess'));return}
  closeAll();
  document.getElementById('adminDashModal').classList.add('open');
@@ -3386,7 +3389,7 @@ window.addEventListener('DOMContentLoaded',async()=>{
   await handleAuthRedirect();
   const session=await ensureFreshSession();
   if(session){
-    mdzUserRoles=await fetchMyRoles(session.access_token);
+    await refreshUserRoles(session.access_token);
     if(location.hash==='#account'||location.hash==='#auth-callback') await openAccount();
   }
   loadWeather(false);
