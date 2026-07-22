@@ -114,6 +114,23 @@ The active deployment must be:
 
 **Evidence (required):** version ID + source branch + build timestamp (Cloudflare Version History screenshot or export). “Latest deploy from main” alone is not enough — confirm success.
 
+**Reference commit (fallback removal on `main`, not a deploy pin):** `5f79cf8` — `fix(dashboard): remove localStorage fallback on registration load failure`.
+
+#### Step 0 evidence log
+
+| Check | How | Result |
+|-------|-----|--------|
+| (c) Post-fallback artifact | `curl -sL https://mawashidz.com/js/mdz-dashboards.mjs` — no `localStorage` / `mdz_registrations`; byte-match `public/js/mdz-dashboards.mjs` on `main` | **PASS** (2026-07-22 agent) |
+| (a) Source branch `main` | Cloudflare → `mawashidz-live` → Builds / Version History → **Active** row | **Pending** — needs dashboard screenshot |
+| (b) Status success | Same Active row | **Pending** — needs dashboard screenshot |
+| Version ID + timestamp | Same Active row | **Pending** — paste when captured |
+
+Until (a)(b) are confirmed on Cloudflare, treat Step 0 as **partial**: artifact matches post-`5f79cf8` `main`; governance not closed.
+
+### Migration naming (canonical)
+
+**Numeric `001`–`007+` is canonical.** Dated files (`20260718*`) are legacy Phase 0 only. Decision is written in `supabase/migrations/007_manual_rls_fixes.sql` header — update that note if the policy ever changes.
+
 ### Full order
 
 | Step | Action |
@@ -127,7 +144,7 @@ The active deployment must be:
 | 6 | Admin dashboard opens; source = live Supabase (not fallback / not `dashLoadFailed`) |
 | 7 | Drop **three** redundant `INSERT` policies, one statement at a time; keep one public insert policy |
 | 8 | One real production registration — `INSERT` still works |
-| 9 | Repo contains `007_production_rls_manual_jul2026.sql` (documents manual prod changes; **do not re-run on prod** if already applied) |
+| 9 | Repo contains `007_manual_rls_fixes.sql` (documents manual prod changes; **do not re-run on prod** if already applied) |
 | 10 | Start invitations |
 
 ### Success criteria (YES/NO + evidence)
@@ -141,7 +158,7 @@ The active deployment must be:
 
 SQL or screenshot for each step — no assumptions.
 
-Manual RLS work on production is recorded in `supabase/migrations/007_production_rls_manual_jul2026.sql` so it does not live only in chat history (same class of drift as undocumented `Allow admin read`).
+Manual RLS work on production is recorded in `supabase/migrations/007_manual_rls_fixes.sql` so it does not live only in chat history (same class of drift as undocumented `Allow admin read`).
 
 ---
 
