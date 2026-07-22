@@ -10,8 +10,14 @@ Open: **Workers & Pages → `mawashidz-live` → Settings → Build**
 |---------|---------------|-----|
 | **Production branch** | `main` | Only `main` may promote to 100% traffic |
 | **Deploy command** | `npx wrangler deploy` | Production deploy (main only) |
-| **Version command** | `npx wrangler versions upload` | **NOT** `npx wrangler deploy` — preview branches must upload a version without going live |
+| **Version command** (dashboard may label this **Non-production branch deploy command**) | `npx wrangler versions upload` | **NOT** `npx wrangler deploy` — preview branches must upload a version without going live |
 | **Builds for non-production branches** | **Disabled** (recommended) | Or keep enabled **only if** Version command is `versions upload` |
+
+After **Save / Update**, Settings should show something like:
+
+`Non-production branch deploy command: npx wrangler versions upload`
+
+and **Deploy command** remains `npx wrangler deploy` on **Production branch: main**.
 
 ### What went wrong
 
