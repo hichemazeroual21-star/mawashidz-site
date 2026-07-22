@@ -1,3 +1,6 @@
+> **Last verified:** 2026-07-22  
+> **Status:** Historical handoff — PR #3 closed; production is Cloudflare `mawashidz-live` + Supabase (not Netlify-only as stated below).
+
 # تقرير تسليم MawashiDZ — للمراجعة والتوجيه
 
 > **الغرض:** تقرير مفصل لكل ما تم إنجازه على مشروع MawashiDZ حتى الآن، مع طلب صريح من Opus 4.8 (أو أي نموذج Claude) لمراجعة الحالة وإصدار أوامر بالإضافات أو التحسينات التالية.
@@ -309,6 +312,6 @@ node supabase/probe-columns.mjs
 | التسجيل | ✅ Supabase + EmailJS fallback |
 | المواقع | ✅ 58/548/1541 مع تصحيح عربي |
 | الإصدار | v1.8.0 |
-| PR | #3 مفتوح على الفرع |
+| PR | #3 — **closed** (superseded by `main` + Workers deploy) |
 
 **في انتظار توجيه Opus 4.8 / Claude للمرحلة التالية.**

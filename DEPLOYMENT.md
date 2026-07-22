@@ -127,6 +127,18 @@ The active deployment must be:
 
 Until (a)(b) are confirmed on Cloudflare, treat Step 0 as **partial**: artifact matches post-`5f79cf8` `main`; governance not closed.
 
+### Verification scripts
+
+| Command | Purpose |
+|---------|---------|
+| `npm run verify:public` | `public/` byte-sync vs `index.html`, `js/`, `assets/` (also in `npm test`) |
+| `npm run verify:prod` | SHA256 of key files on https://mawashidz.com vs local checkout |
+| `npm run verify:rls` | Postgres policy counts (needs `DATABASE_URL`; skips with warning if unset) |
+
+Production worker is **`mawashidz-live`** only. **`mawashidz-site`** is legacy — does not serve `mawashidz.com` (see table above).
+
+---
+
 ### Migration naming (canonical)
 
 **Numeric `001`–`007+` is canonical.** Dated files (`20260718*`) are legacy Phase 0 only. Decision is written in `supabase/migrations/007_manual_rls_fixes.sql` header — update that note if the policy ever changes.

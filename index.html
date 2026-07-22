@@ -2208,6 +2208,7 @@ body[data-lang]:not([data-lang="ar"]) .hero-title-sub{white-space:normal!importa
 
 <script>
 const $=s=>document.querySelector(s), $$=s=>document.querySelectorAll(s);
+const mdzRolesPromise=import('./js/mdz-roles.mjs').then(m=>{window.__mdzRoles=m;return m;});
 
 /* ===== MawashiDZ EmailJS registration notifications ===== */
 /* لو تعذر تحميل مكتبة EmailJS (شبكة/حجب CDN) يستمر الموقع والتسجيل بشكل طبيعي. */
@@ -2805,8 +2806,10 @@ async function openManagerDashboard(){
   const data=await dash.loadManagerData(session.access_token,SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY,profile?.wilaya);
   box.innerHTML=dash.renderManagerDashboard(t,{wilaya:profile?.wilaya,rows:data.rows,source:data.source,safeText,registrationRoleLabel});
  }catch(e){
-  console.error('Manager dashboard load failed',e);
-  box.innerHTML=`<div class="dash-hero manager"><h3>${t('mgrDashTitle')}</h3><div class="notice is-error" style="margin-top:12px">${t('dashLoadFailed')}</div></div>`;
+  console.error('Manager dashboard load failed',e?.status ?? e);
+  const dash=await import('./js/mdz-dashboards.mjs');
+  const key=dash.dashboardErrorMessageKey(e);
+  box.innerHTML=`<div class="dash-hero manager"><h3>${t('mgrDashTitle')}</h3><div class="notice is-error" style="margin-top:12px">${t(key)}</div></div>`;
  }
 }
 
@@ -2824,8 +2827,9 @@ async function openAdminDashboard(){
   const data=await dash.loadAdminData(session.access_token,SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY);
   box.innerHTML=dash.renderAdminDashboard(t,{stats:data.stats,rows:data.rows,source:data.source,safeText,registrationRoleLabel});
  }catch(e){
-  console.error('Admin dashboard load failed',e);
-  box.innerHTML=`<div class="dash-hero admin"><h3>${t('adminDashTitle')}</h3><div class="notice is-error" style="margin-top:12px">${t('dashLoadFailed')}</div></div>`;
+  console.error('Admin dashboard load failed',e?.status ?? e);
+  const key=dash.dashboardErrorMessageKey(e);
+  box.innerHTML=`<div class="dash-hero admin"><h3>${t('adminDashTitle')}</h3><div class="notice is-error" style="margin-top:12px">${t(key)}</div></div>`;
  }
 }
 window.openManagerDashboard=openManagerDashboard;
@@ -2838,8 +2842,9 @@ function updateAuthChrome(){
   ['drawerLoginLink',!authed],['drawerRegisterLink',!authed],['drawerAccountLink',authed],['drawerLogoutLink',authed]
  ];
  map.forEach(([id,show])=>{const el=document.getElementById(id);if(!el)return;if(show) el.removeAttribute('hidden');else el.setAttribute('hidden','')});
- const showMgr=dashRoleFlag('manager');
- const showAdmin=dashRoleFlag('admin');
+ const R=window.__mdzRoles;
+ const showMgr=R?R.dashRoleFlag('manager',mdzUserRoles,mdzAccountProfile?.role):false;
+ const showAdmin=R?R.dashRoleFlag('admin',mdzUserRoles,mdzAccountProfile?.role):false;
  ['headerMgrDashBtn','drawerMgrDashLink'].forEach(id=>{const el=document.getElementById(id);if(!el)return;if(showMgr) el.removeAttribute('hidden');else el.setAttribute('hidden','')});
  ['headerAdminDashBtn','drawerAdminDashLink'].forEach(id=>{const el=document.getElementById(id);if(!el)return;if(showAdmin) el.removeAttribute('hidden');else el.setAttribute('hidden','')});
  const heroJoin=document.getElementById('heroJoin');
@@ -2849,10 +2854,8 @@ function updateAuthChrome(){
  const dockProfile=document.getElementById('dockProfileBtn');
  if(dockProfile){const label=dockProfile.querySelector('[data-i18n],span');if(label) label.textContent=t(authed?'btnProfile':'btnLogin');dockProfile.setAttribute('aria-label',t(authed?'btnProfile':'btnLogin'))}
 }
-function dashRoleFlag(kind){
- if(kind==='admin') return mdzUserRoles.some(r=>['admin','founder','super_admin'].includes(r));
- return mdzUserRoles.some(r=>['wilaya_manager','manager','wilaya_mgr','admin','founder','super_admin'].includes(r))||String(mdzAccountProfile?.role||'').toLowerCase()==='manager';
-}
+window.addEventListener('mdz-roles-ready',()=>updateAuthChrome());
+mdzRolesPromise.then(()=>document.dispatchEvent(new Event('mdz-roles-ready')));
 function logoutAccount(){
  saveSession(null);mdzAccountProfile=null;mdzUserRoles=[];
  closeAll();showToast(t('toastLogout'));
@@ -3382,6 +3385,7 @@ document.querySelectorAll('[data-news-filter]').forEach(button=>button.addEventL
 }));
 document.getElementById('refreshNewsBtn')?.addEventListener('click',()=>loadLivestockNews(true));
 window.addEventListener('DOMContentLoaded',async()=>{
+  await mdzRolesPromise;
   updateAuthChrome();
   await handleAuthRedirect();
   const session=await ensureFreshSession();

@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-19  
 **Scope:** `index.html`, `js/registration-flow.mjs`  
-**Production:** Not modified
+**Production:** Fixes on `main`; operator must apply SQL migrations on Supabase.
 
 ---
 
@@ -119,8 +119,6 @@ Scenarios covered:
 | Reproducible on old code? | **Yes** — auth succeeds + `registrations` fails → failure UI |
 | Email failure caused false failure? | **No** (already fire-and-forget before fix) |
 | Fixed in this patch? | **Yes** — auth success always shows success UI |
-| Production deployed? | **No** |
+| Production deployed? | **Yes** (Workers `mawashidz-live`; DB migrations operator-applied) |
 
----
-
-*Awaiting approval before production deployment.*
+*Last verified: 2026-07-22.*

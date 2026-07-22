@@ -32,7 +32,8 @@ Official website package with multilingual interface, automatic dark mode, and t
 4. `supabase/migrations/004_fix_registration_production.sql`
 5. `supabase/migrations/005_admin_approve_profile.sql`
 6. `supabase/migrations/006_registrations_unique.sql`
-7. `supabase/migrations/007_manual_rls_fixes.sql` — توثيق RLS يدوي على الإنتاج + **قرار التسمية الرقمية**؛ لا تُعاد على prod إن طُبّق (انظر `DEPLOYMENT.md`)
+7. `supabase/migrations/007_manual_rls_fixes.sql` — RLS manual prod record + naming decision  
+8. `supabase/migrations/008_consolidate_insert_policies.sql` — single INSERT policy (run when approved)
 
 **مسار Phase 0 (timestamped — من `main`):**
 

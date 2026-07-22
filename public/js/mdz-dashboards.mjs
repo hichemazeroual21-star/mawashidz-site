@@ -2,8 +2,9 @@
  * MawashiDZ — account v2, wilaya manager & admin dashboards (v1.10.0)
  */
 
-export const ADMIN_ROLES = new Set(['admin', 'founder', 'super_admin']);
-export const MANAGER_ROLES = new Set(['wilaya_manager', 'manager', 'wilaya_mgr']);
+import { ADMIN_ROLES, MANAGER_ROLES, dashRoleFlag } from './mdz-roles.mjs';
+
+export { ADMIN_ROLES, MANAGER_ROLES, dashRoleFlag };
 
 export function statusKey(status) {
   const s = String(status || 'pending').toLowerCase();
@@ -23,13 +24,11 @@ export function parseRoles(rows) {
 }
 
 export function hasAdminAccess(roles) {
-  return roles.some((r) => ADMIN_ROLES.has(r));
+  return dashRoleFlag('admin', roles, undefined);
 }
 
 export function hasManagerAccess(roles, profileRole) {
-  if (hasAdminAccess(roles)) return true;
-  if (roles.some((r) => MANAGER_ROLES.has(r))) return true;
-  return String(profileRole || '').toLowerCase() === 'manager';
+  return dashRoleFlag('manager', roles, profileRole);
 }
 
 export function escapeHtml(text) {
@@ -211,6 +210,14 @@ export async function fetchRegistrationsLive(token, restUrl, apiKey, wilayaFilte
     throw err;
   }
   return r.json();
+}
+
+/** i18n key for dashboard load failure (not used for HTTP 200 + empty rows). */
+export function dashboardErrorMessageKey(error) {
+  const status = error?.status;
+  if (status === 401 || status === 403) return 'dashLoadForbidden';
+  if (typeof status === 'number') return 'dashLoadHttp';
+  return 'dashLoadNetwork';
 }
 
 export async function loadManagerData(token, restUrl, apiKey, wilaya) {

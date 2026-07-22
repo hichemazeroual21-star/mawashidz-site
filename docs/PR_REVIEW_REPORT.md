@@ -1,3 +1,5 @@
+> **Last verified:** 2026-07-22
+
 # PR Review Report — Phase 0 + Security Hardening
 
 ## 1. Executive Summary
@@ -72,5 +74,7 @@ npm run test:db
 2. Approve `resolve_login_identifier` remaining on `anon` for login flow?
 
 ---
+
+**Merge status (2026-07-22):** Phase 0 migrations merged to `main`; production SQL remains operator-applied (004–008). Review gate below is historical.
 
 Awaiting ChatGPT review. Do not merge until review is approved.

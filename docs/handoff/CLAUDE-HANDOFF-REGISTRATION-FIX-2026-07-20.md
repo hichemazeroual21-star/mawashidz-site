@@ -1,8 +1,10 @@
 # MawashiDZ — Handoff كامل لـ Claude
 **التاريخ:** 2026-07-20  
+**Last verified:** 2026-07-22  
+**PR #9:** merged into `main` 2026-07-21 — `cursor/fix-registration-insert-6004`  
 **المشروع:** mawashidz-site (https://mawashidz.com)  
 **Supabase:** https://fpjvjfgwbfehhcvdirpy.supabase.co  
-**الفرع النشط للإصلاح:** `cursor/fix-registration-insert-6004`  
+**الفرع النشط للإصلاح:** `main` (was `cursor/fix-registration-insert-6004`)  
 **الفرع السابق (v1.10 dashboards):** `cursor/admin-manager-dashboard-6004`
 
 ---
@@ -188,7 +190,8 @@ npm run test:security       # يتحقق أن anon محظور من allocate_memb
 
 | الفرع | المحتوى | الحالة |
 |-------|---------|--------|
-| `cursor/admin-manager-dashboard-6004` | v1.10.0 — Auth UI، dashboards، حسابي v2، اختبارات Workers/E2E | مدفوع — PR يحتاج موافقة يدوية |
+| `cursor/fix-registration-insert-6004` | registration insert + member_id | **Merged (PR #9)** |
+| `cursor/admin-manager-dashboard-6004` | v1.10.0 — Auth UI، dashboards | merged / on `main` |
 | `cursor/fix-registration-insert-6004` | إصلاح PGRST204 + member_id server-side + أمن Phase 0 | **الأولوية للدمج** |
 
 **إنشاء PR:** يدوي — الإعدادات تمنع الإنشاء التلقائي.  
