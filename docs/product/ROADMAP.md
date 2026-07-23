@@ -1,64 +1,101 @@
-# MawashiDZ product roadmap (Member ops → Smart Workspace & Hub)
+# MawashiDZ product roadmap
 
 **Last updated:** 2026-07-23  
-**Authority:** [MEMBER_OPERATIONS_AND_COMMUNICATION.md](./MEMBER_OPERATIONS_AND_COMMUNICATION.md) + [PRODUCT_CONSTITUTION.md](./PRODUCT_CONSTITUTION.md)
+**Authority:** [PRODUCT_CONSTITUTION.md](./PRODUCT_CONSTITUTION.md) (vision) + phase specs below (delivery)
 
-This roadmap is **product/engineering delivery order**, not a calendar. Each step is **one or more branches/PRs**, green `npm test`, and **no** mixing unrelated registration/Auth/RLS changes unless an approved migration explicitly covers them.
+Delivery order is **not** a calendar. Each item: dedicated branch(es), PR(s), green `npm test`.
 
 ---
 
-## Phase 1 — Member operations & communication (before Hub)
+## Roadmap tree
 
-Complete **in order** (see unified spec for detail):
+```text
+ROADMAP
+│
+├── Phase 1: Member Operations          → MEMBER_OPERATIONS.md
+│      ├── Registration review
+│      ├── Password recovery
+│      ├── Email architecture
+│      └── Notifications (in-app center)
+│
+├── Phase 2: Support & Messages Center  → SUPPORT_AND_MESSAGES_CENTER.md
+│      ├── Tickets
+│      ├── Admin messages
+│      ├── Wilaya manager messages
+│      └── Future member-to-member messaging
+│
+└── Phase 3: Smart Workspace & Hub      → PRODUCT_CONSTITUTION.md
+       ├── P0 — hub_cards, engagement events
+       ├── P1 — mdz-hub-core, breeder-first
+       └── P2–P7 — see constitution phased table
+```
+
+---
+
+## Phase 1 — Member Operations
+
+**Spec:** [MEMBER_OPERATIONS.md](./MEMBER_OPERATIONS.md)
 
 | Step | Deliverable | Status (as of doc) |
 |------|-------------|---------------------|
-| **1** | **Admin operations** — registration review (approve/reject/request info), RPC, audit, dashboards | In progress (e.g. migration 008 PRs) |
-| **2** | **Ticket system** — Support & Messages Center; statuses, priority, links | Not started |
-| **3** | **Password recovery** — full Auth recovery UX | Verify production |
-| **4** | **Email architecture** — Auth (Supabase) + operational (Resend/Brevo) | Not started |
-| **5** | **Notification center** — in-app inbox, filters, deep links | Partially specified in constitution; build here |
-| **6** | **Product library** — `docs/product/` constitution, PDRs, this roadmap | In PR |
+| **1.1** | Registration review — RPC, audit, dashboards | In progress (e.g. 008) |
+| **1.2** | Password recovery — full Auth UX | Verify production |
+| **1.3** | Email — Supabase Auth + operational provider (status events) | Not started |
+| **1.4** | Notification center MVP (status/alerts; not full ticketing) | Not started |
 
-**After steps 1–5 are live:** proceed to Smart Workspace **P0** below.
+**Gate:** Phase 1 core live before starting Phase 2 at scale.
 
 ---
 
-## Phase 2 — Smart Workspace & Hub (constitution)
+## Phase 2 — Support & Messages Center
 
-| Step | Deliverable | Touches stable core? |
-|------|-------------|----------------------|
-| **P0** | Minimal `hub_cards` + `hub_engagement_events`; branch `cursor/smart-profile-hub-p0-6004` | No runtime until merged |
-| **P1** | `mdz-hub-core`, Card Providers, top-4 + lazy, offline, “Today in your wilaya”, **Breeder Smart Workspace** first | Workspace/Hub only |
-| **P2** | `profiles.hub_preferences` jsonb; global search MVP; optional `hub_feed_items` | New RPC/tables as needed |
-| **P3** | Breeder listings/requests workspace; CMS RPC | Hub + marketplace modules |
-| **P4** | Vet, buyer, feed Smart Workspaces; wilaya manager alignment | Wilaya RLS only if approved |
-| **P5** | External ingest; ranking v1 | Workers/cron separate |
-| **P6** | Founder analytics; engagement cards | Admin/founder surfaces |
-| **P7** | AI assistant Card Provider | New module + Edge |
+**Spec:** [SUPPORT_AND_MESSAGES_CENTER.md](./SUPPORT_AND_MESSAGES_CENTER.md)
+
+| Step | Deliverable | Status |
+|------|-------------|--------|
+| **2.1** | Ticket system (model + RLS) | Not started |
+| **2.2** | Admin / support channels | Not started |
+| **2.3** | Wilaya manager messaging | Not started |
+| **2.4** | Ticket deep links in notifications | Not started |
+| **2.5** | Member-to-member (marketplace-linked) | Later |
+
+**Gate:** Tickets + admin/wilaya messaging usable before **Smart Workspace P0**.
 
 ---
 
-## Parallel work (independent gates)
+## Phase 3 — Smart Workspace & Hub
 
-| Item | Branch (example) | Notes |
-|------|------------------|--------|
-| Exchange wilaya UX (10 + expand) | `cursor/exchange-wilaya-preview-6004` | Public board |
-| Dashboard premium UI | `cursor/dashboard-premium-ui-6004` | Visual polish |
-| Roles chrome fix | `cursor/fix-roles-chrome-6004` | Auth chrome |
+**Spec:** [PRODUCT_CONSTITUTION.md](./PRODUCT_CONSTITUTION.md)
+
+| Step | Deliverable |
+|------|-------------|
+| **P0** | `hub_cards`, `hub_engagement_events` — `cursor/smart-profile-hub-p0-6004` |
+| **P1** | `mdz-hub-core`, Card Providers, breeder-first workspace |
+| **P2–P7** | Preferences, search, CMS, roles, ingest, analytics, AI |
+
+---
+
+## Product library & parallel work
+
+| Item | Notes |
+|------|--------|
+| `docs/product/` | Official reference — **merged to main** |
+| Exchange wilaya UX | `cursor/exchange-wilaya-preview-6004` — independent |
+| Dashboard premium UI | Visual polish — independent |
 
 ---
 
 ## Gates before Smart Workspace P0
 
-- [ ] [MEMBER_OPERATIONS_AND_COMMUNICATION.md](./MEMBER_OPERATIONS_AND_COMMUNICATION.md) merged as official Phase 1 spec  
-- [ ] Step **1** (admin operations) live in production  
-- [ ] Steps **2–5** scoped and approved (may ship incrementally; **P0 Hub** waits for ticket + notification foundation)  
-- [ ] Founder approval to open `cursor/smart-profile-hub-p0-6004`  
+- [x] Product library on `main`  
+- [ ] Phase **1** registration review + recovery + email + notifications foundation  
+- [ ] Phase **2** ticket system + admin/wilaya messaging (minimum viable)  
+- [ ] Founder approval for `cursor/smart-profile-hub-p0-6004`  
 
 ---
 
 ## Success signals
 
-**Phase 1:** time to approve/reject, ticket response time, recovery success rate, notification read rates.  
-**Phase 2:** constitution operational metrics + Hub engagement events.
+**Phase 1:** approval latency, recovery success, notification delivery.  
+**Phase 2:** ticket response time, escalation quality.  
+**Phase 3:** constitution operational + Hub engagement metrics.
