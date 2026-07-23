@@ -1,66 +1,98 @@
-# Member Operations & Communication
+# Member Operations & Communication — product requirements
 
-**Roadmap phase (umbrella)** — mandatory before [Smart Workspace & Hub](./PRODUCT_CONSTITUTION.md)
+**Type:** Product requirements (PRD umbrella) — **not** an implementation plan.  
+**Execution order, tracks, migrations, and PR gates:** [ROADMAP.md](./ROADMAP.md) only.
 
 | | |
 |--|--|
-| **Status** | Approved — **one phase title**, **several delivery tracks** (not one mega-PR) |
-| **Owner** | Founder / Product / Operations |
-| **Index** | [ROADMAP.md](./ROADMAP.md) |
-
-## Is this one big project?
-
-**No.** *Member Operations & Communication* is the **name of the roadmap phase**. It groups everything a member needs **after registration** and **before** the Smart Workspace—but each section below has **its own scope, branches, tests, and merge gates**.
-
-> **Founder clarification (yes):** This title is the **phase that contains multiple sections**—including **Admin Operations**, Password Recovery, Notifications, and **Support & Messages**—not a single undifferentiated implementation.
+| **Roadmap phase** | Phase 1 — before [Smart Workspace & Hub](./PRODUCT_CONSTITUTION.md) |
+| **Owner** | Founder / Product |
+| **Audience** | Product, design, engineering, ops |
 
 ---
 
-## Phase structure (documentation map)
+## Goal
+
+After registration, every member and operator can complete **review, account recovery, status communication, and governed messaging** before the daily **Smart Workspace** experience. Operators work with **clear permissions**, **auditability**, and **linked context**—not ad-hoc tools or informal chat.
+
+---
+
+## Scope (what this phase includes)
 
 ```text
-Member Operations & Communication          ← this document (umbrella)
+Member Operations & Communication
 │
-├── Registration Review                    → MEMBER_OPERATIONS.md §1
-├── Admin Operations                       → MEMBER_OPERATIONS.md §2
-├── Password Recovery                      → MEMBER_OPERATIONS.md §3
-├── Email Architecture                     → MEMBER_OPERATIONS.md §4
-├── Notifications                          → MEMBER_OPERATIONS.md §5
-└── Support & Messages Center              → SUPPORT_AND_MESSAGES_CENTER.md
+├── Registration review          → MEMBER_OPERATIONS.md §1
+├── Admin operations             → MEMBER_OPERATIONS.md §2
+├── Password recovery            → MEMBER_OPERATIONS.md §3
+├── Email architecture           → MEMBER_OPERATIONS.md §4
+├── Notifications                → MEMBER_OPERATIONS.md §5
+└── Support & Messages Center  → SUPPORT_AND_MESSAGES_CENTER.md
+       ├── Tickets
+       ├── Admin / support messages
+       ├── Wilaya manager messages
+       ├── Audit & internal notes
+       └── (Later) Member-to-member messaging
 ```
 
-| Section | Detail spec | Typical delivery |
-|---------|-------------|------------------|
-| **Registration review** | Workflow: approve, reject, request info, view profile | With admin operations |
-| **Admin operations** | RPC (`admin_set_profile_status`, …), audit log, admin/founder/manager dashboards (e.g. migration **008**) | **First track** — often called “Admin Ops” in engineering |
-| **Password recovery** | Supabase Auth forgot/reset flow + UX | Separate PR when needed |
-| **Email architecture** | Auth emails + operational provider (Resend/Brevo) | Separate PR |
-| **Notifications** | In-app notification center (status, alerts) | Separate PR |
-| **Support & messages** | Tickets, admin/wilaya messaging, later P2P | **Separate track** after core ops + notifications foundation |
-
-**Admin Operations** is **not** renamed away—it remains the official name for the **administration implementation layer** (RPC, audit, dashboards) that powers registration review.
+> **Founder clarification:** One **phase title**, multiple **product sections**. **Admin Operations** remains a named section. **Support & Messages Center** is a section—not “Chat”. Delivery is split in the **ROADMAP**, not in this file.
 
 ---
 
-## Recommended execution order (within this phase)
+## Non-goals (phase-wide)
 
-| Track | Section | Gate |
-|-------|---------|------|
-| **A** | Registration review + **Admin operations** | Live in production |
-| **B** | Password recovery | Verified end-to-end |
-| **C** | Email architecture | Status + auth emails working |
-| **D** | Notifications | MVP inbox without full ticketing |
-| **E** | Support & messages | Tickets + admin/wilaya channels |
+This phase is **not**:
 
-Tracks **A→D** do not require tickets. Track **E** starts when **A** is stable; **D** should exist before ticket deep-links.
+| Non-goal | Meaning |
+|----------|---------|
+| **A chat app** | No open-ended messaging UX |
+| **WhatsApp / Messenger / Telegram clone** | No consumer chat patterns as the primary model |
+| **Social network** | No feeds, follows, or public member-to-member discovery |
+| **Random DMs** | No unsolicited member-to-member messages without a linked business object |
+| **Hard-delete of messages** | Archive and audit only; no erasing history |
+| **Smart Workspace / Hub** | Deferred to roadmap Phase 2+ (constitution) |
+| **Full marketplace** | Listing commerce is later; only messaging *linked* to future listings where specified |
+| **AI assistant** | Later phase per constitution |
 
-Only after **A–E** (minimum: A + B + C + D + E core) → **[Smart Workspace P0](./ROADMAP.md)**.
+Section-specific non-goals: see each detail document.
 
 ---
 
-## Related documents
+## Permissions (summary)
 
-- [MEMBER_OPERATIONS.md](./MEMBER_OPERATIONS.md) — sections 1–5 (not messaging)  
-- [SUPPORT_AND_MESSAGES_CENTER.md](./SUPPORT_AND_MESSAGES_CENTER.md) — section 6  
-- [PRODUCT_CONSTITUTION.md](./PRODUCT_CONSTITUTION.md) — vision (Hub after this phase)  
-- [GLOSSARY.md](./GLOSSARY.md) — Admin Operations, Support & Messages Center, …
+| Rank | Registration review | Admin operations UI | Wilaya messaging | National support |
+|------|---------------------|---------------------|------------------|------------------|
+| **Member** | View own status; respond to requests | — | Message own wilaya manager when enabled | Open support tickets |
+| **Wilaya manager** | Approve/reject/request info **in wilaya only** | Wilaya queue & actions | Wilaya-scoped threads | Escalate |
+| **Admin / Founder** | National | Full audit, roles, configuration | Oversight | All queues |
+
+Server-side enforcement required; see acceptance criteria in section docs. Rank detail: [PRODUCT_CONSTITUTION.md](./PRODUCT_CONSTITUTION.md).
+
+---
+
+## UX principles (phase-wide)
+
+- **Business platform, not chat:** labeled flows (ticket type, status), not bubble-first UX.
+- **Actionable states:** members always know *what happens next* after approve/reject/request info.
+- **Linked context:** every operator view shows member, wilaya, ticket, and related objects without hunting.
+- **RTL + AR/FR/EN** copy for errors and status (especially recovery and rejection).
+- **Accessibility:** keyboard and screen-reader friendly queues for managers.
+
+---
+
+## Detail documents (requirements + acceptance criteria)
+
+| Document | Contents |
+|----------|----------|
+| [MEMBER_OPERATIONS.md](./MEMBER_OPERATIONS.md) | §1–5 requirements and **done** criteria |
+| [SUPPORT_AND_MESSAGES_CENTER.md](./SUPPORT_AND_MESSAGES_CENTER.md) | Messaging, tickets, audit, internal notes + **done** criteria |
+| [ROADMAP.md](./ROADMAP.md) | **When** and **how** engineering delivers (tracks, gates, branches) |
+| [GLOSSARY.md](./GLOSSARY.md) | Official terms |
+
+---
+
+## Product acceptance (phase complete)
+
+Phase 1 is **product-complete** when **every section’s acceptance criteria** in the detail docs are met in production (verified by QA + founder sign-off), and [ROADMAP.md](./ROADMAP.md) gates for Smart Workspace **P0** are checked.
+
+Do **not** mark the phase done on documentation alone.

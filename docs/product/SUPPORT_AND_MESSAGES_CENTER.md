@@ -1,115 +1,143 @@
-# Support & Messages Center (section 6)
+# Support & Messages Center — product requirements (§6)
 
-Part of **[Member Operations & Communication](./MEMBER_OPERATIONS_AND_COMMUNICATION.md)** — **separate delivery track** from admin ops / notifications foundation (own branches, tests, PRs).
-
-| | |
-|--|--|
-| **Status** | Approved product specification |
-| **Owner** | Founder / Product / Operations |
-| **Roadmap** | [ROADMAP.md](./ROADMAP.md) — track **E** within Member Operations & Communication |
-| **Product name** | **Support & Messages Center** — not “Chat” |
-
-Purpose-bound messaging tied to **tickets** and operational objects—not a social network.
+Part of **[Member Operations & Communication](./MEMBER_OPERATIONS_AND_COMMUNICATION.md)**.  
+**Product name:** **Support & Messages Center** — never “Chat”.  
+**Implementation plan:** [ROADMAP.md](./ROADMAP.md) track **E** — not here.
 
 ---
 
-## 1. Message types
+## Goal
 
-### A. Member ↔ platform (admin / support)
+Members and operators communicate **for a reason** (support, wilaya ops, later commerce)—with **tickets**, **history**, and **staff notes**—on a livestock business platform, not a messaging app.
 
-| Type | Examples |
-|------|----------|
-| General inquiry | استفسار عام |
-| Complaint | شكوى |
-| Suggestion | اقتراح |
-| Profile / data change | طلب تعديل |
-| Verification | طلب توثيق |
-| Technical issue | مشكلة تقنية |
+---
 
-### B. Member ↔ wilaya manager (wilaya-scoped)
+## Non-goals (this section)
 
-| Type | Examples |
-|------|----------|
-| Membership follow-up | مراجعة العضوية |
-| Listing review | مراجعة عرض |
-| Local issues | مشاكل محلية |
-| Visit request | طلب زيارة |
-| Application status | متابعة حالة الطلب |
+| Non-goal | |
+|----------|---|
+| General chat or “DM anyone” | |
+| WhatsApp / Messenger / social-style UX as the primary pattern | |
+| Public member profiles for messaging discovery | |
+| Unlinked member-to-member messages | |
+| **Hard delete** of messages or tickets (archive only) | |
+| Voice/video calls in v1 | |
+| AI auto-reply bots in v1 | |
 
-Managers **never** see another wilaya’s threads.
+---
 
-### C. Later — member ↔ member (marketplace & services only)
+## 1. Message types & scenarios
 
-| Pair | Linked to |
-|------|-----------|
-| Buyer ↔ Breeder | Purchase request, listing, reservation, sale |
-| Breeder ↔ Veterinarian | Consultation, health record, case |
-| Breeder ↔ Feed seller | Order, product, delivery |
+### Requirements
 
-**Not allowed:** general DMs or spam without a linked object.
+**A. Member ↔ platform (admin / support)**  
+Inquiry, complaint, suggestion, profile change, verification, technical issue.
+
+**B. Member ↔ wilaya manager**  
+Membership follow-up, listing review, local issues, visit request, application status.
+
+**C. Later — member ↔ member**  
+Only when linked to purchase request, listing, reservation, sale, vet case, or feed order.
+
+### Permissions
+
+- Managers: wilaya fence for B; cannot read other wilayas’ threads.
+- Members: own threads + threads on their listings/requests when C is enabled.
+
+### UX
+
+- User picks **type** when opening a request (not a blank chat box).
+- Thread shows **status** and **linked objects** prominently.
+
+### Acceptance criteria
+
+- [ ] Member can open a **typed** support request (at least 3 types in MVP).
+- [ ] Wilaya manager sees only **wilaya-scoped** threads.
+- [ ] Member-to-member channel **disabled** until C is explicitly released.
+- [ ] UI does not use “Chat” as primary label (glossary term enforced in copy).
 
 ---
 
 ## 2. Ticket system
 
-Every thread is a **ticket** (or child of a ticket)—not ephemeral chat.
+### Requirements
 
-| Field | Purpose |
-|-------|---------|
-| **Status** | `open` → `in_review` → `waiting_for_member` → `escalated` → `closed` |
-| **Priority** | low / normal / high / urgent |
-| **Assigned manager** | Wilaya or admin queue |
-| **Wilaya** | R2 scope |
-| **Links** | Registration, listing, animal/QR |
+- Every conversation is a **ticket** with lifecycle: `open` → `in_review` → `waiting_for_member` → `escalated` → `closed`.
+- **Priority** (low / normal / high / urgent).
+- **Assignment** to admin or wilaya manager queue.
+- **Links:** registration, listing, animal/QR when applicable.
 
-Escalation: manager action + evidence → founder/admin (constitution).
+### Permissions
+
+- Status changes by authorized roles only; member can reply when `waiting_for_member`.
+
+### UX
+
+- Queue views for operators (urgent first, filter by wilaya/status).
+- Member sees ticket list with clear status labels.
+
+### Acceptance criteria
+
+- [ ] Create ticket → appears in correct operator queue.
+- [ ] Full status lifecycle exercisable in staging.
+- [ ] **Escalated** tickets visible to founder/admin per policy.
+- [ ] Closed tickets **archived**, still readable for audit; not deleted.
+- [ ] Automated tests for RLS on tickets **green**.
 
 ---
 
 ## 3. Linked context
 
-Every message carries links: member, registration, listing, animal, wilaya, vet case, **ticket id**.  
-Operational emails for ticket replies must open ticket context (extends [Member Operations](./MEMBER_OPERATIONS.md) email layer).
+### Requirements
+
+Each ticket/message displays: member, wilaya, ticket id, and links to registration, listing, animal, vet case as applicable.
+
+Operational emails for replies open the **same ticket context** in the product.
+
+### Acceptance criteria
+
+- [ ] Operator opens ticket → sees all linked ids without separate search.
+- [ ] Email link (when enabled) lands on correct ticket for logged-in user.
+- [ ] Search (when workspace search ships) cannot expose fields tickets don’t already authorize.
 
 ---
 
-## 4. Audit & security
+## 4. Audit & internal notes
 
-| Rule | Detail |
-|------|--------|
-| **No hard delete** | Archive only |
-| **Log replies & status changes** | Actor + timestamp |
-| **RLS + RPC** | Wilaya fence and rank rules |
+### Requirements
 
-### Internal notes (staff only)
+- Log every reply and status change (actor, timestamp).
+- **Internal notes:** staff-only; never shown to member.
+- Notes attach to ticket and/or registration for handoff.
 
-Never visible to the member. Examples: phone contact; extra document requested; resolved; follow up in one week.
+### Permissions
 
-| Who | Scope |
-|-----|--------|
+| Role | Internal notes |
+|------|----------------|
 | Founder / Admin | National |
-| Wilaya manager | Assigned wilaya only |
+| Wilaya manager | Assigned wilaya tickets/members only |
+| Member | **No access** |
 
-Attach to ticket and/or registration for handoff between managers.
+### UX
+
+- Clear visual distinction: **member-visible reply** vs **internal note**.
+
+### Acceptance criteria
+
+- [ ] Member cannot see internal notes (UI + API/RLS).
+- [ ] New manager opening old ticket sees **note history**.
+- [ ] No hard-delete API for messages; archive path only.
+- [ ] Audit export or query available to founder/admin.
 
 ---
 
-## Phase 2 execution order
+## Product acceptance (section complete)
 
-| Order | Deliverable |
-|-------|-------------|
-| **E.1** | Ticket data model + RLS |
-| **E.2** | Admin / support message types + UI |
-| **E.3** | Wilaya manager messaging |
-| **E.4** | Notification deep links to tickets |
-| **E.5** | (Later) Member-to-member messaging behind listing/service links |
-
-After track **E** (minimum viable) and tracks **A–D**, proceed to **Smart Workspace P0** ([ROADMAP.md](./ROADMAP.md)).
+Support & Messages is **done** when all acceptance checklists above are met in production, integrated with §5 notifications (deep links), and [ROADMAP.md](./ROADMAP.md) track **E** is signed off.
 
 ---
 
 ## Related docs
 
-- [MEMBER_OPERATIONS.md](./MEMBER_OPERATIONS.md) — review, recovery, email, notification center foundation  
-- [PRODUCT_CONSTITUTION.md](./PRODUCT_CONSTITUTION.md) — workspace notification center vision  
-- [GLOSSARY.md](./GLOSSARY.md) — Ticket, Support & Messages Center, internal notes
+- [MEMBER_OPERATIONS.md](./MEMBER_OPERATIONS.md) — email & notification foundation  
+- [GLOSSARY.md](./GLOSSARY.md) — Support & Messages Center, Ticket, Internal notes
