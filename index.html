@@ -540,6 +540,14 @@ body[data-lang="fr"] .btn{letter-spacing:0}
 .exchange-state{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:.86rem;font-weight:800}
 .exchange-cheapest{background:linear-gradient(135deg,#1d6747,#2f8f62);color:#fff;border-radius:18px;padding:14px 18px;margin:0 0 16px;font-weight:900;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
 .exchange-cheapest small{opacity:.9;font-weight:700}
+.exchange-summary{background:#fff;border:1px solid var(--line);border-radius:18px;padding:14px 16px;margin:0 0 14px;display:grid;gap:8px}
+.exchange-summary-item{margin:0;font-weight:850;font-size:.92rem;line-height:1.5;color:var(--g)}
+.exchange-summary-meta{color:var(--muted);font-size:.86rem;font-weight:800}
+.exchange-board-tools{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 12px}
+.exchange-search{flex:1;min-width:min(100%,200px);padding:10px 14px;border:1px solid var(--line);border-radius:999px;font:inherit;font-weight:800}
+.exchange-pin-btn.active{background:var(--mint);border-color:var(--g2)}
+.exchange-table tr.pinned-wilaya{background:#fff9e8}
+.exchange-pin-badge{display:inline-block;margin-inline-start:6px;padding:2px 8px;border-radius:999px;background:var(--gold);color:#3d3010;font-size:.68rem;font-weight:950;vertical-align:middle}
 .exchange-tabs,.exchange-products{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
 .exchange-tab,.exchange-product{border:1px solid var(--line);background:#fff;color:var(--g);padding:9px 13px;border-radius:999px;font:inherit;font-weight:900;cursor:pointer}
 .exchange-tab.active,.exchange-product.active{background:var(--g);color:#fff;border-color:var(--g)}
@@ -1812,7 +1820,17 @@ body[data-lang]:not([data-lang="ar"]) .hero-title-sub{white-space:normal!importa
    <div class="exchange-state"><span class="live-dot loading" id="exchangeLiveDot"></span><span id="exchangeStatus" data-i18n="exchangeLoading">جاري تحديث الأسعار...</span><button class="btn ghost" type="button" id="refreshExchangeBtn" data-i18n="exchangeRefresh">تحديث الآن</button></div>
   </div>
   <div class="exchange-products" id="exchangeProducts" aria-label="Products"></div>
-  <div class="exchange-cheapest" id="exchangeCheapest" hidden><span id="exchangeCheapestText"></span><small id="exchangeCheapestSource"></small></div>
+  <div class="exchange-summary" id="exchangeSummary" hidden>
+   <p class="exchange-summary-item" id="exchangeSummaryCheapest"></p>
+   <p class="exchange-summary-item" id="exchangeSummaryExpensive"></p>
+   <p class="exchange-summary-item" id="exchangeSummaryAverage"></p>
+   <p class="exchange-summary-item exchange-summary-meta" id="exchangeSummaryUpdated"></p>
+  </div>
+  <div class="exchange-board-tools" id="exchangeBoardTools" hidden>
+   <input type="search" class="exchange-search" id="exchangeWilayaSearch" autocomplete="off" data-i18n-placeholder="exchangeWilayaSearchPh" placeholder="🔍 ابحث عن ولايتك" aria-label="Wilaya search" />
+   <button type="button" class="btn ghost exchange-pin-btn" id="exchangePinWilayaBtn" data-i18n="exchangePinWilaya">📍 إظهار ولايتي أولًا</button>
+   <button type="button" class="btn ghost" id="exchangeToggleAllBtn" hidden></button>
+  </div>
   <div class="exchange-board">
    <table class="exchange-table">
     <thead><tr><th data-i18n="exchangeWilaya">الولاية</th><th id="exchangePriceHeader" data-i18n="exchangePriceKg">السعر (دج/كغ)</th><th data-i18n="exchangeChange">التغيير</th><th data-i18n="exchangeSource">المصدر</th></tr></thead>
@@ -2776,6 +2794,7 @@ async function openAccount(){
   const p=await fetchMyProfile(session.access_token);
   if(!p) throw new Error(t('authErrProfileMissing'));
   mdzAccountProfile=p;
+  try{const hint=mdzNormalizeWilayaName(p?.wilaya);if(hint)localStorage.setItem('mdz_account_wilaya_hint',hint);}catch{}
   mdzUserRoles=await fetchMyRoles(session.access_token);
   const dash=await import('./js/mdz-dashboards.mjs');
   box.innerHTML=dash.renderAccountDashboard(t,p,accountHelpers());
@@ -3161,6 +3180,88 @@ const PRICES_ENDPOINT='/api/livestock-prices';
 let mdzMarketSnapshot=null;
 let mdzExchangeTab='meat';
 let mdzExchangeProduct='sheep_meat';
+const MDZ_EXCHANGE_PREVIEW_COUNT=10;
+let mdzExchangeShowAllWilayas=false;
+let mdzExchangePinMyWilaya=localStorage.getItem('mdz_exchange_pin_wilaya')==='1';
+let mdzExchangeWilayaSearch='';
+
+function mdzResetExchangeTableUiState(){
+  mdzExchangeShowAllWilayas=false;
+  mdzExchangeWilayaSearch='';
+  const inp=document.getElementById('exchangeWilayaSearch');
+  if(inp) inp.value='';
+}
+
+function mdzNormalizeWilayaName(name){
+  return String(name||'').replace(/^\d+\s*-\s*/,'').trim();
+}
+
+function mdzGetExchangeUserWilaya(){
+  const w=mdzNormalizeWilayaName(mdzAccountProfile?.wilaya);
+  if(w) return w;
+  try{
+    const raw=localStorage.getItem('mdz_account_wilaya_hint');
+    if(raw) return mdzNormalizeWilayaName(raw);
+  }catch{}
+  return '';
+}
+
+function mdzWilayaMatchesQuery(wilaya, query){
+  const q=String(query||'').trim().toLowerCase();
+  if(!q) return true;
+  const plain=mdzNormalizeWilayaName(wilaya).toLowerCase();
+  return String(wilaya||'').toLowerCase().includes(q)||plain.includes(q);
+}
+
+function mdzBuildExchangeVisibleRows(sortedRows, opts){
+  const {showAll,pinWilaya,query,previewCount}=opts;
+  let list=sortedRows.filter(r=>mdzWilayaMatchesQuery(r.wilaya,query));
+  if(query) return list.sort((a,b)=>a.price-b.price);
+  let pinned=null;
+  if(pinWilaya){
+    pinned=list.find(r=>mdzNormalizeWilayaName(r.wilaya)===pinWilaya)||list.find(r=>r.wilaya===pinWilaya)||null;
+  }
+  const rest=list.filter(r=>r!==pinned);
+  if(showAll) return pinned?[pinned,...rest]:rest;
+  const slice=rest.slice(0,previewCount);
+  return pinned?[pinned,...slice]:slice;
+}
+
+function formatExchangeSummaryWhen(iso){
+  try{
+    const d=new Date(iso);
+    const now=new Date();
+    const time=new Intl.DateTimeFormat(mdzDateLocale(),{hour:'2-digit',minute:'2-digit'}).format(d);
+    if(d.toDateString()===now.toDateString()) return t('exchangeSummaryUpdatedToday',{time});
+    return t('exchangeSummaryUpdatedDate',{date:new Intl.DateTimeFormat(mdzDateLocale(),{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}).format(d)});
+  }catch{return '';}
+}
+
+function wireExchangeBoardControls(){
+  const search=document.getElementById('exchangeWilayaSearch');
+  const pin=document.getElementById('exchangePinWilayaBtn');
+  const toggle=document.getElementById('exchangeToggleAllBtn');
+  if(search&&!search.dataset.wired){
+    search.dataset.wired='1';
+    search.addEventListener('input',()=>{mdzExchangeWilayaSearch=search.value;renderExchangeBoard();});
+  }
+  if(pin&&!pin.dataset.wired){
+    pin.dataset.wired='1';
+    pin.addEventListener('click',()=>{
+      const hint=mdzGetExchangeUserWilaya();
+      if(!hint){showToast(t('exchangePinWilayaNeedLogin'));return;}
+      mdzExchangePinMyWilaya=!mdzExchangePinMyWilaya;
+      localStorage.setItem('mdz_exchange_pin_wilaya',mdzExchangePinMyWilaya?'1':'0');
+      pin.classList.toggle('active',mdzExchangePinMyWilaya);
+      pin.textContent=t(mdzExchangePinMyWilaya?'exchangePinWilayaOn':'exchangePinWilaya');
+      renderExchangeBoard();
+    });
+  }
+  if(toggle&&!toggle.dataset.wired){
+    toggle.dataset.wired='1';
+    toggle.addEventListener('click',()=>{mdzExchangeShowAllWilayas=!mdzExchangeShowAllWilayas;renderExchangeBoard();});
+  }
+}
 
 function mdzExchangeProductsForTab(tab){
   return (mdzMarketSnapshot?.products||[]).filter(p=>p.category===tab).map(p=>p.id);
@@ -3178,7 +3279,7 @@ function renderExchangeProductButtons(){
   if(!ids.includes(mdzExchangeProduct)) mdzExchangeProduct=ids[0]||'sheep_meat';
   wrap.innerHTML=ids.map(id=>`<button type="button" class="exchange-product${id===mdzExchangeProduct?' active':''}" data-exchange-product="${id}">${escapeNewsHTML(names[id]||id)}</button>`).join('');
   wrap.querySelectorAll('[data-exchange-product]').forEach(btn=>btn.addEventListener('click',()=>{
-    mdzExchangeProduct=btn.dataset.exchangeProduct; renderExchangeProductButtons(); renderExchangeBoard();
+    mdzExchangeProduct=btn.dataset.exchangeProduct; mdzResetExchangeTableUiState(); renderExchangeProductButtons(); renderExchangeBoard();
   }));
 }
 
@@ -3191,10 +3292,16 @@ function formatExchangeChange(pct){
 }
 
 function renderExchangeBoard(){
+  wireExchangeBoardControls();
   const body=document.getElementById('exchangeTableBody');
-  const cheapestBox=document.getElementById('exchangeCheapest');
-  const cheapestText=document.getElementById('exchangeCheapestText');
-  const cheapestSource=document.getElementById('exchangeCheapestSource');
+  const summary=document.getElementById('exchangeSummary');
+  const sumCheap=document.getElementById('exchangeSummaryCheapest');
+  const sumExp=document.getElementById('exchangeSummaryExpensive');
+  const sumAvg=document.getElementById('exchangeSummaryAverage');
+  const sumWhen=document.getElementById('exchangeSummaryUpdated');
+  const tools=document.getElementById('exchangeBoardTools');
+  const toggleBtn=document.getElementById('exchangeToggleAllBtn');
+  const pinBtn=document.getElementById('exchangePinWilayaBtn');
   const pulseSummary=document.getElementById('pulsePriceSummary');
   const priceHeader=document.getElementById('exchangePriceHeader');
   if(!body||!mdzMarketSnapshot) return;
@@ -3202,17 +3309,49 @@ function renderExchangeBoard(){
   if(priceHeader) priceHeader.textContent=getExchangePriceHeaderLabel(mdzExchangeTab);
   const rows=mdzMarketSnapshot.rows.filter(r=>r.productId===mdzExchangeProduct).sort((a,b)=>a.price-b.price);
   const cheapest=mdzMarketSnapshot.cheapestByProduct?.[mdzExchangeProduct];
-  if(cheapest&&cheapestBox&&cheapestText){
-    cheapestBox.hidden=false;
-    cheapestText.textContent=t('exchangeCheapest',{wilaya:cheapest.wilaya,price:cheapest.price.toLocaleString(mdzDateLocale()),unit:unitLabel});
-    const srcRow=rows.find(r=>r.wilayaCode===cheapest.wilayaCode)||rows[0];
-    if(cheapestSource&&srcRow) cheapestSource.innerHTML=`<a href="${escapeNewsHTML(srcRow.source)}" target="_blank" rel="noopener noreferrer">${escapeNewsHTML(srcRow.sourceName||t('exchangeSource'))}</a>`;
+  const expensive=rows.length?rows[rows.length-1]:null;
+  const avg=rows.length?Math.round(rows.reduce((s,r)=>s+r.price,0)/rows.length):0;
+  const when=mdzMarketSnapshot.updatedAt||new Date().toISOString();
+  const loc=mdzDateLocale();
+  const fmt=n=>n.toLocaleString(loc);
+  if(summary&&rows.length){
+    summary.hidden=false;
+    if(sumCheap&&cheapest) sumCheap.textContent=t('exchangeSummaryCheapest',{wilaya:cheapest.wilaya,price:fmt(cheapest.price),unit:unitLabel});
+    if(sumExp&&expensive) sumExp.textContent=t('exchangeSummaryExpensive',{wilaya:expensive.wilaya,price:fmt(expensive.price),unit:unitLabel});
+    if(sumAvg) sumAvg.textContent=t('exchangeSummaryAverage',{price:fmt(avg),unit:unitLabel});
+    if(sumWhen) sumWhen.textContent=formatExchangeSummaryWhen(when);
   }
-  if(pulseSummary&&cheapest) pulseSummary.textContent=t('exchangeCheapest',{wilaya:cheapest.wilaya,price:cheapest.price.toLocaleString(mdzDateLocale()),unit:unitLabel});
-  body.innerHTML=rows.map(r=>{
+  if(pulseSummary&&cheapest) pulseSummary.textContent=t('exchangeCheapest',{wilaya:cheapest.wilaya,price:fmt(cheapest.price),unit:unitLabel});
+  if(tools&&rows.length) tools.hidden=false;
+  const userWilaya=mdzGetExchangeUserWilaya();
+  if(pinBtn){
+    pinBtn.classList.toggle('active',mdzExchangePinMyWilaya&&!!userWilaya);
+    pinBtn.textContent=t(mdzExchangePinMyWilaya&&userWilaya?'exchangePinWilayaOn':'exchangePinWilaya');
+    pinBtn.disabled=!userWilaya;
+  }
+  const query=mdzExchangeWilayaSearch.trim();
+  const visible=mdzBuildExchangeVisibleRows(rows,{
+    showAll:mdzExchangeShowAllWilayas||!!query,
+    pinWilaya:mdzExchangePinMyWilaya?userWilaya:'',
+    query,
+    previewCount:MDZ_EXCHANGE_PREVIEW_COUNT,
+  });
+  const totalWilayas=rows.length;
+  if(toggleBtn){
+    if(query||totalWilayas<=MDZ_EXCHANGE_PREVIEW_COUNT){
+      toggleBtn.hidden=true;
+    }else{
+      toggleBtn.hidden=false;
+      toggleBtn.textContent=mdzExchangeShowAllWilayas?t('exchangeShowLess'):t('exchangeShowAllWilayas',{count:totalWilayas});
+    }
+  }
+  body.innerHTML=visible.length?visible.map(r=>{
     const isCheap=cheapest&&r.wilayaCode===cheapest.wilayaCode;
-    return `<tr class="${isCheap?'cheapest':''}"><td>${escapeNewsHTML(r.wilaya)}</td><td><strong>${r.price.toLocaleString(mdzDateLocale())}</strong></td><td>${formatExchangeChange(r.changePct)}</td><td><a href="${escapeNewsHTML(r.source)}" target="_blank" rel="noopener noreferrer">${escapeNewsHTML(r.sourceName||t('exchangeSource'))}</a></td></tr>`;
-  }).join('');
+    const isPinned=mdzExchangePinMyWilaya&&userWilaya&&(mdzNormalizeWilayaName(r.wilaya)===userWilaya||r.wilaya===userWilaya);
+    const cls=[isCheap?'cheapest':'',isPinned?'pinned-wilaya':''].filter(Boolean).join(' ');
+    const pinBadge=isPinned?` <span class="exchange-pin-badge">${escapeNewsHTML(t('exchangeYourWilaya'))}</span>`:'';
+    return `<tr class="${cls}"><td>${escapeNewsHTML(r.wilaya)}${pinBadge}</td><td><strong>${fmt(r.price)}</strong></td><td>${formatExchangeChange(r.changePct)}</td><td><a href="${escapeNewsHTML(r.source)}" target="_blank" rel="noopener noreferrer">${escapeNewsHTML(r.sourceName||t('exchangeSource'))}</a></td></tr>`;
+  }).join(''):`<tr><td colspan="4">${escapeNewsHTML(t('exchangeWilayaNoMatch'))}</td></tr>`;
 }
 
 function applyMarketSnapshot(data){
@@ -3272,6 +3411,7 @@ document.querySelectorAll('[data-exchange-tab]').forEach(button=>button.addEvent
   document.querySelectorAll('[data-exchange-tab]').forEach(x=>x.classList.remove('active'));
   button.classList.add('active');
   mdzExchangeTab=button.dataset.exchangeTab||'meat';
+  mdzResetExchangeTableUiState();
   renderExchangeProductButtons();
   renderExchangeBoard();
 }));
