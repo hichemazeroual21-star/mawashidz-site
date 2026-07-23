@@ -1,15 +1,28 @@
-# Product Vision: Smart Role Workspaces
+# Product Constitution: Smart Role Workspaces
 
 **Founder Vision – Smart Role Workspaces (Mandatory Product Direction)**
 
+> **Design gate:** Every new feature added to MawashiDZ must first answer one question: *“Which workspace benefits from it?”* If the answer is **“none”**, the feature should be **reconsidered**.
+
 | | |
 |--|--|
-| **Status** | Proposed — **mandatory direction** for all workspace and Hub work |
+| **Status** | **Approved product constitution** — mandatory for all workspace and Hub work |
 | **Owner** | Product / Founder / MawashiDZ |
 | **Audience** | Engineering (Cursor), design, ops |
 | **Constraint** | Ship in **dedicated branches and PRs**. Do **not** mix with registration, Auth, or existing RLS changes unless an approved migration explicitly covers them. |
 
-This document is **one product vision**: role workspaces, Smart Hub framework, notification center, search, security, and phased engineering. It is **not** a feature wishlist. Treat it as **how MawashiDZ is built** for the next several years.
+This document is the **MawashiDZ product constitution**: role **Smart Workspaces**, Smart Hub framework, notification center, search, security, and phased engineering. It is **not** a feature wishlist. Treat it as **how the platform is built** for the next several years.
+
+### Terminology: Smart Workspace (not “Dashboard”)
+
+Do **not** label member or role surfaces as **Dashboard** in product copy, specs, or new code names.
+
+| Dashboard (avoid) | Smart Workspace (use) |
+|-------------------|------------------------|
+| Displays information | **See**, **do**, **manage**, **track**, **sell**, **buy** |
+| Passive | Operational home |
+
+Use **Smart Workspace** for breeder, vet, feed seller, buyer, wilaya manager, and founder/admin surfaces. Legacy code paths (e.g. `mdz-dashboards.mjs`) may keep historical names until refactored; **new work** uses workspace language.
 
 ---
 
@@ -44,11 +57,12 @@ Every workspace combines **five pillars**:
 4. **Statistics & performance** (views, conversions, regional activity)
 5. **Notifications & workflow** (unified notification center + tasks)
 
-The interface must **prioritize actions over articles**.
+The interface must **prioritize actions over articles** (see **Smart actions before smart content**).
 
 ```text
 ┌─────────────────────────────────────────────────────────┐
-│  Workspace shell (role + rank resolved server-side)      │
+│  Smart Workspace shell (role + rank, server-side)       │
+│  [ Quick Actions bar — fixed, never hidden ]            │
 │  ┌─────────────┐  ┌──────────────────────────────────┐ │
 │  │ Global      │  │ Pillar 1: Daily insights (Hub)   │ │
 │  │ search      │  │ Pillar 2–4: Role operations        │ │
@@ -57,6 +71,46 @@ The interface must **prioritize actions over articles**.
 │  └─────────────┘                                         │
 └─────────────────────────────────────────────────────────┘
 ```
+
+### Quick Actions bar (fixed)
+
+At the **top of every Smart Workspace**, a **persistent** action strip (icons + labels; RTL-safe). It does **not** scroll away or disappear on small screens (collapse to icon row if needed).
+
+| Slot | Breeder example | Manager example | Vet example |
+|------|-----------------|-----------------|-------------|
+| Primary create | ➕ Add livestock | ➕ Local announcement (approved) | ➕ Log visit / case note |
+| Messages | 📩 Messages | 📩 Messages | 📩 Messages |
+| Notifications | 🔔 Notifications | 🔔 Notifications | 🔔 Notifications |
+| Stats | 📊 Statistics | 📊 Wilaya statistics | 📊 Activity |
+| Profile | 👤 Profile | 👤 Profile | 👤 Profile |
+
+Map actions to the role’s **most frequent operations**; deep-link into workspace sections. Permissions still enforced server-side.
+
+### Smart actions before smart content
+
+Hub and workspace surfaces lead with **operational signals**, not generic tips.
+
+| Avoid (content-first) | Prefer (action-first) |
+|-----------------------|------------------------|
+| “Tip of the day” as hero | “You have **3 listings** missing a price.” |
+| Static article card | “**New purchase request** — reply now.” |
+| Generic reminder | “**Listing photo expired** — update to stay visible.” |
+
+**Order:** **Action** (task, alert, CTA) → **then** supporting content (weather, prices, guidance). Editorial cards remain, but **below** actionable cards in rank.
+
+### Empty states (guided, never blank)
+
+If the user has no data yet, show **one clear next step**—not an empty grid.
+
+| Role / situation | Copy direction (AR examples) |
+|------------------|------------------------------|
+| Breeder, no listings | «ابدأ أول عرض لك» / *Start your first listing* + ➕ CTA |
+| Vet, no visibility | «أكمل ملفك ليظهر للأعضاء» / *Complete your profile to appear to members* |
+| Buyer, no requests | «تصفّح المواشي القريبة» / *Browse animals near you* |
+| Feed seller, no products | «أضف أول منتج» / *Add your first product* |
+| Manager, no pending tasks | «لا مهام عاجلة — راجع نشاط الولاية» / *No urgent tasks — review wilaya activity* |
+
+Hub offline/cached content still follows **Offline** rules; empty state is for **no business objects**, not for network failure.
 
 ---
 
@@ -90,9 +144,33 @@ Implement: **RLS + RPC** as source of truth; workspace UI is a view on authorize
 
 ---
 
-## 1. Breeder workspace (Breeder Dashboard)
+## 1. Breeder Smart Workspace
 
 The breeder manages his livestock business **entirely** from this workspace.
+
+### Member lifecycle (breeder)
+
+Guides product, onboarding, cards, and achievements—every release should advance someone along this path:
+
+```text
+Registers
+    ↓
+Approved
+    ↓
+Completes profile
+    ↓
+Publishes first animal listing
+    ↓
+Receives first purchase request
+    ↓
+Completes first sale
+    ↓
+Receives first rating
+    ↓
+Trusted Breeder progress
+    ↓
+Growing activity (repeat listings, faster response, higher trust)
+```
 
 ### Livestock listings
 
@@ -112,9 +190,29 @@ Today’s tip; local weather; feed prices; livestock prices; disease alerts; bio
 
 ---
 
-## 2. Veterinarian workspace
+## 2. Veterinarian Smart Workspace
 
 The veterinarian manages **professional** activity—not commerce.
+
+### Member lifecycle (veterinarian)
+
+```text
+Registers (vet role)
+    ↓
+Approved
+    ↓
+Completes professional profile (clinic, area, hours)
+    ↓
+Visible to members in service area
+    ↓
+Receives first consultation / assignment request
+    ↓
+Completes first case with documented notes
+    ↓
+Builds rating & regional activity
+    ↓
+Contributes knowledge (suggest content → published guidance)
+```
 
 ### Professional profile
 
@@ -136,7 +234,27 @@ Consultations; active requests; ratings; regional activity (aggregated, privacy-
 
 ---
 
-## 3. Feed seller workspace
+## 3. Feed seller Smart Workspace
+
+### Member lifecycle (feed seller)
+
+```text
+Registers
+    ↓
+Approved
+    ↓
+Completes shop profile
+    ↓
+Adds first product (stock, price, delivery)
+    ↓
+Receives first order / inquiry
+    ↓
+Fulfills order; manages inventory
+    ↓
+Repeat sales; low-stock alerts drive restock
+    ↓
+Trusted seller / demand trends visible in workspace stats
+```
 
 ### Products
 
@@ -152,7 +270,27 @@ Storage guidance; feed quality; market trends; seasonal recommendations.
 
 ---
 
-## 4. Buyer workspace
+## 4. Buyer Smart Workspace
+
+### Member lifecycle (buyer)
+
+```text
+Registers
+    ↓
+Approved
+    ↓
+Completes profile (wilaya, preferences)
+    ↓
+Saves first animal or sets price alert
+    ↓
+Sends first purchase request
+    ↓
+Message / reservation with seller
+    ↓
+Completed purchase (or documented withdrawal)
+    ↓
+Repeat buying; QR / health literacy via workspace tips
+```
 
 ### Buying
 
@@ -164,9 +302,27 @@ Buying tips; healthy animal checklist; new offers; seasonal advice.
 
 ---
 
-## 5. Wilaya manager workspace
+## 5. Wilaya manager Smart Workspace
 
 Wilaya managers supervise operations **inside their wilaya only**.
+
+### Operational lifecycle (wilaya manager)
+
+```text
+Assigned to wilaya by Founder/Admin
+    ↓
+First login → wilaya-scoped workspace only
+    ↓
+Clears pending membership queue (approve / reject / request docs)
+    ↓
+Reviews first listings & reports
+    ↓
+Publishes first approved local announcement
+    ↓
+Routine: urgent tasks → statistics → member/listing moderation
+    ↓
+Escalates sensitive case to Founder/Admin with evidence
+```
 
 ### Visibility (wilaya-scoped only)
 
@@ -180,7 +336,7 @@ Review membership applications (approve, reject, request additional information)
 
 Managers must **never**: access another wilaya; modify Founder/Admin roles; change platform policies; modify Auth; modify RLS; delete audit logs; delete users permanently; publish national alerts without approval; modify global content providers; grant themselves permissions.
 
-### Dashboard sections
+### Workspace sections
 
 - **Urgent tasks:** pending applications; reports; listings awaiting review; verification requests
 - **Statistics:** members; listings; veterinarians; feed sellers; new registrations; open reports
@@ -196,9 +352,25 @@ Sensitive cases escalate: **Manager → temporary action → evidence → Founde
 
 ---
 
-## 6. Founder / Admin workspace
+## 6. Founder / Admin Smart Workspace
 
 The Founder manages the **entire platform**.
+
+### Platform lifecycle (founder / admin)
+
+```text
+Platform live with registrations
+    ↓
+Admin operations stable (approve, audit, roles)
+    ↓
+Smart Workspace + Hub framework (P0–P1, breeder-first)
+    ↓
+Marketplace modules plug in as cards + workspace sections
+    ↓
+Wilaya managers operational at scale
+    ↓
+Data-driven iteration (analytics + operational success metrics)
+```
 
 | Area | Scope |
 |------|--------|
@@ -216,7 +388,24 @@ Founder analytics (card views, articles read, wilaya activity, alert opens, enga
 
 The Smart Hub is a **modular framework inside MawashiDZ**, not a separate product.
 
-Every future service becomes a **Card** (optional deep link for heavy flows). **Never** create separate member dashboards if a Card (+ workspace section) can solve discovery and daily use.
+Every future service becomes a **Card** (optional deep link for heavy flows). **Never** create separate member **dashboards** or one-off home pages if a Card (+ workspace section) can solve discovery and daily use.
+
+### Future marketplace compatibility
+
+> **Smart Hub must remain compatible with future marketplace modules** without redesigning the workspace shell or Hub engine.
+
+Planned verticals (each = Card Provider + workspace deep links, not a new account paradigm):
+
+- Equipment
+- Veterinary medicines
+- Feed (extends feed seller workspace)
+- Insurance
+- Transport / logistics
+- Laboratories
+- Auctions
+- Professional services
+
+Same **Card Provider**, **event bus**, and **Provider → Service → RPC** stack for all verticals.
 
 ```text
 Hub Engine (mdz-hub-core)
@@ -252,6 +441,24 @@ Every Card Provider defines only:
 | **Priority** | Rank for top-4 vs lazy tier |
 
 The **UI must never depend directly on external APIs.** Shell renders `card_type` + `payload` + `meta` only.
+
+### Data access rule (no card → SQL)
+
+**No Card may execute SQL or talk to the database directly.**
+
+```text
+Card (UI shell)
+    ↓
+Card Provider (client adapter)
+    ↓
+Service layer (domain logic)
+    ↓
+RPC / API (authorized boundary)
+    ↓
+Database (RLS)
+```
+
+This keeps the platform **testable**, **swappable**, and safe when new marketplace modules are added.
 
 **Client layout (target):**
 
@@ -298,7 +505,29 @@ When offline, show **cached** information. Display:
 > **Last updated: X minutes ago**  
 > **آخر تحديث: منذ X دقيقة**
 
-Never show **empty** dashboards if any cached payload exists.
+Never show an **empty workspace** if any cached payload exists.
+
+---
+
+## Platform event bus
+
+Avoid hard-wiring every feature to every other feature. **Domain operations emit events**; subscribers update Hub, stats, notifications, analytics, and achievements independently.
+
+```text
+Animal Listed (domain event)
+    ↓
+    ├── Hub: refresh listing/action cards
+    ├── Statistics: update breeder metrics
+    ├── Notifications: alert interested buyers (rules)
+    ├── Analytics: record operational event
+    └── Achievements: trusted breeder progress (later)
+```
+
+**Principles:**
+
+- Events are **named, versioned payloads** (not ad-hoc cross-imports between modules).
+- Producers do not call Hub UI directly; consumers subscribe via a small **event bus** (client queue + server-side outbox/RPC as needed).
+- Aligns with notification center and founder analytics without spaghetti dependencies.
 
 ---
 
@@ -315,7 +544,22 @@ Track (append-only events; use analytics to **improve the product**, not only to
 | `dismiss` | Not relevant / swiped away |
 | `return` | Revisited same card type later |
 
-Founder dashboard: most viewed cards, read content, active wilayas, opened alerts, engagement by role.
+Founder workspace (analytics): most viewed cards, read content, active wilayas, opened alerts, engagement by role.
+
+### Success metrics (operational, not vanity)
+
+Do **not** treat **time on page** as the primary success measure. Track outcomes that prove the workspace works:
+
+| Metric | Why |
+|--------|-----|
+| **Listings published** (count, velocity) | Breeders/sellers actually operating |
+| **Time to first approval / first response** | Platform responsiveness |
+| **Messages answered** (rate, median delay) | Real conversations |
+| **Completed operations** (sales, orders fulfilled, cases closed) | End-to-end value |
+| **Weekly return rate** (WAU / relevant cohort) | Daily workspace habit |
+| **Profile completion rate** | Onboarding quality |
+
+Combine with card analytics (`impression`, `cta_click`, etc.) to decide what to build next—not guesswork.
 
 ---
 
@@ -399,6 +643,7 @@ Search must use the **same authorization** as list/detail APIs—no “search by
 | **Always alive** | Freshness, TTL, seasonal rules |
 | **Role-native** | Templates per role; no one-size feed |
 | **Practical over editorial** | Actions and snippets first |
+| **Action before content** | Task/alert cards outrank generic tips (see above) |
 
 **Personalization (roadmap):** role → wilaya → season → activity → interests. Persist via `profiles.hub_preferences` jsonb first; dedicated table only if needed. Even v1 uses **role templates**, not one global grid.
 
@@ -423,8 +668,8 @@ States: `draft` | `in_review` | `published` | `archived`. **No browser PATCH** f
 ## UX principles
 
 - Card-first, mobile-first, RTL-safe; MawashiDZ visual language
-- Freshness indicators; teach empty states (“Set wilaya to see Today in your wilaya”)
-- Reuse dashboard card patterns from `mdz-dashboards.mjs` where appropriate—**different data paths** per rank
+- Freshness indicators; **guided empty states** (see **Empty states**)
+- Reuse card layout patterns from `mdz-dashboards.mjs` (legacy module name) where appropriate—**different data paths** per rank
 
 ---
 
@@ -462,10 +707,10 @@ openAccount / workspace entry
 | Phase | Deliverable | Touches stable core? |
 |-------|-------------|----------------------|
 | **P0** | This vision + **minimal** `hub_cards` + `hub_engagement_events` migration | No runtime |
-| **P1** | `mdz-hub-core`, providers, top-4, offline, **Today in your wilaya**, analytics | Workspace/Hub only |
+| **P1** | `mdz-hub-core`, providers, top-4, offline, **Today in your wilaya**, analytics; **Breeder Smart Workspace first** | Workspace/Hub only |
 | **P2** | Preferences jsonb; optional `hub_feed_items`; notification center MVP; search MVP (scoped) | New tables/RPC as needed |
 | **P3** | Breeder listing/request workspace sections (MVP); CMS RPC | Hub + marketplace modules |
-| **P4** | Vet / buyer / feed workspaces; manager dashboard alignment | Wilaya RLS unchanged unless approved |
+| **P4** | Vet / buyer / feed Smart Workspaces; manager workspace alignment | Wilaya RLS unchanged unless approved |
 | **P5** | External ingest; ranking v1 |
 | **P6** | Founder analytics + engagement cards |
 | **P7** | AI assistant provider |
@@ -517,8 +762,19 @@ Each phase: **one branch, one PR**, green `npm test`.
 
 ---
 
-## Decision requested
+## Approved execution sequence (Founder)
 
-Approve **this document as mandatory product direction**, then **P0 + P1** after admin operations (008) is live in production.
+Order is fixed to protect production stability:
 
-**Implementers:** build **mdz-hub-core** + Card Providers and **workspace shell** toward the five pillars—**not** a monolithic settings page. New services = **cards** + workspace sections. Respect **rank order and wilaya fence** in every API and UI surface.
+1. **Finish Admin Operations** (e.g. migration **008**, approve/reject, audit)—merge and deploy.
+2. **Merge this product constitution** after review (docs PR).
+3. **P0** on branch `cursor/smart-profile-hub-p0-6004` (or successor): minimal `hub_cards` + `hub_engagement_events` only—**no** registration, Auth, or RLS changes.
+4. **P1 breeder-first:** `mdz-hub-core` + Card Providers + **Breeder Smart Workspace** as the first daily user (highest expected workspace traffic)—then expand other roles.
+
+**Implementers:** build **mdz-hub-core** + Card Providers and **Smart Workspace shell** toward the five pillars—**not** a monolithic settings page. Every feature passes the **design gate** at the top of this document. New services = **cards** + workspace sections + **events**. Respect **rank order and wilaya fence**. **No Card → SQL.**
+
+---
+
+## Decision recorded
+
+**Founder:** this document is the **product constitution** for Smart Role Workspaces. **P0 + P1 (breeder-first)** proceed after Admin Operations are live, under the constraints above.
