@@ -22,8 +22,10 @@ Use these terms consistently in specs, PRs, and UI copy. See [PRODUCT_CONSTITUTI
 | **Product Constitution** | Binding product direction document; canonical path `docs/product/PRODUCT_CONSTITUTION.md`. |
 | **Event bus** | Domain events (e.g. `AnimalListed`) fan out to Hub, stats, notifications, analytics. |
 | **P0 minimal schema** | `hub_cards` + `hub_engagement_events`; defer large CMS/ingest tables until proven. |
-| **Notification center** | Unified inbox—Phase 1 in [MEMBER_OPERATIONS.md](./MEMBER_OPERATIONS.md); ticket links in Phase 2 [SUPPORT_AND_MESSAGES_CENTER.md](./SUPPORT_AND_MESSAGES_CENTER.md). |
-| **Support & Messages Center** | Purpose-bound messaging (not “chat”); becomes **tickets**. |
+| **Notification center** | Unified inbox—tracks **D** in [MEMBER_OPERATIONS.md](./MEMBER_OPERATIONS.md); ticket deep-links after track **E**. |
+| **Admin operations** | Engineering name for RPC, audit log, admin/manager dashboards implementing registration review (e.g. migration 008). **Not** renamed—subsection of [Member Operations & Communication](./MEMBER_OPERATIONS_AND_COMMUNICATION.md). |
+| **Member Operations & Communication** | **Roadmap Phase 1** umbrella: review, admin ops, recovery, email, notifications, support & messages—**multiple delivery tracks**, not one mega-PR. |
+| **Support & Messages Center** | Official product name for tickets & messaging (section 6 / track E); not “chat”. |
 | **Ticket** | Thread with status, priority, wilaya, links to registration/listing/animal. |
 | **Internal notes** | Staff-only notes on ticket/registration; founder, admin, assigned wilaya manager. |
 | **Global search** | Permission-aware workspace search; same rules as list/detail APIs. |

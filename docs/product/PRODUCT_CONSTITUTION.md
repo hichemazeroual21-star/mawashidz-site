@@ -9,7 +9,7 @@
 | | |
 |--|--|
 | **Status** | **Approved product constitution** — mandatory for all workspace and Hub work |
-| **Constitution version** | **1.3** (see [version history](#version-history)) |
+| **Constitution version** | **1.4** (see [version history](#version-history)) |
 | **Owner** | Product / Founder / MawashiDZ |
 | **Audience** | Engineering (Cursor), design, ops |
 | **Constraint** | Ship in **dedicated branches and PRs**. Do **not** mix with registration, Auth, or existing RLS changes unless an approved migration explicitly covers them. |
@@ -772,11 +772,9 @@ Each phase: **one branch, one PR**, green `npm test`.
 
 Order is fixed to protect production stability:
 
-1. **Finish [Member Operations](./MEMBER_OPERATIONS.md) Phase 1** (registration review, recovery, email, notifications).
-2. **Finish [Support & Messages Center](./SUPPORT_AND_MESSAGES_CENTER.md) Phase 2** (tickets, admin/wilaya messaging).
-3. **Merge product library** on `main` (done).
-4. **P0** Hub on `cursor/smart-profile-hub-p0-6004` — after Phase 1–2 gates in [ROADMAP](./ROADMAP.md).
-5. **P1 breeder-first** Hub + Breeder Smart Workspace.
+1. **Complete [Member Operations & Communication](./MEMBER_OPERATIONS_AND_COMMUNICATION.md)** — tracks **A–E** (admin operations first; support & messages last within the phase).
+2. **Smart Workspace P0** on `cursor/smart-profile-hub-p0-6004` after roadmap gates.
+3. **P1 breeder-first** Hub + Breeder Smart Workspace.
 
 **Implementers:** build **mdz-hub-core** + Card Providers and **Smart Workspace shell** toward the five pillars—**not** a monolithic settings page. Every feature passes the **design gate** at the top of this document. New services = **cards** + workspace sections + **events**. Respect **rank order and wilaya fence**. **No Card → SQL.**
 
@@ -811,6 +809,7 @@ When you change a decision, add a new PDR or mark the old one **Superseded** and
 | **1.0** | 2026-07-23 | Initial Product Constitution (Smart Role Workspaces founder vision) |
 | **1.1** | 2026-07-23 | Smart Workspace framework, Hub, Card Provider, PDR index, execution order |
 | **1.2** | 2026-07-23 | Alignment with member ops / messaging phases; SSOT clause; product library |
-| **1.3** | 2026-07-23 | Split specs: [MEMBER_OPERATIONS](./MEMBER_OPERATIONS.md) vs [SUPPORT_AND_MESSAGES_CENTER](./SUPPORT_AND_MESSAGES_CENTER.md); roadmap tree |
+| **1.3** | 2026-07-23 | Split detail specs; roadmap phases |
+| **1.4** | 2026-07-23 | Phase umbrella Member Operations & Communication; Admin Operations named; Hub = roadmap Phase 2 |
 
 Update this table when the constitution changes materially; bump **Constitution version** in the header metadata.

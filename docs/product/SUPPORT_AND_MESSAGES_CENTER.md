@@ -1,12 +1,12 @@
-# Support & Messages Center (Phase 2)
+# Support & Messages Center (section 6)
 
-**After [Member Operations](./MEMBER_OPERATIONS.md) Phase 1 — before Smart Workspace Hub P0**
+Part of **[Member Operations & Communication](./MEMBER_OPERATIONS_AND_COMMUNICATION.md)** — **separate delivery track** from admin ops / notifications foundation (own branches, tests, PRs).
 
 | | |
 |--|--|
 | **Status** | Approved product specification |
 | **Owner** | Founder / Product / Operations |
-| **Roadmap** | [ROADMAP.md](./ROADMAP.md) — Phase 2 |
+| **Roadmap** | [ROADMAP.md](./ROADMAP.md) — track **E** within Member Operations & Communication |
 | **Product name** | **Support & Messages Center** — not “Chat” |
 
 Purpose-bound messaging tied to **tickets** and operational objects—not a social network.
@@ -98,13 +98,13 @@ Attach to ticket and/or registration for handoff between managers.
 
 | Order | Deliverable |
 |-------|-------------|
-| **2.1** | Ticket data model + RLS |
-| **2.2** | Admin / support message types + UI |
-| **2.3** | Wilaya manager messaging |
-| **2.4** | Notification deep links to tickets |
-| **2.5** | (Later) Member-to-member messaging behind listing/service links |
+| **E.1** | Ticket data model + RLS |
+| **E.2** | Admin / support message types + UI |
+| **E.3** | Wilaya manager messaging |
+| **E.4** | Notification deep links to tickets |
+| **E.5** | (Later) Member-to-member messaging behind listing/service links |
 
-After Phase 2 is **production-ready**, proceed to **Smart Workspace P0** ([ROADMAP.md](./ROADMAP.md)).
+After track **E** (minimum viable) and tracks **A–D**, proceed to **Smart Workspace P0** ([ROADMAP.md](./ROADMAP.md)).
 
 ---
 

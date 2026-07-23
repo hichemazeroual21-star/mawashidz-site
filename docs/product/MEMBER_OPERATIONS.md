@@ -1,96 +1,85 @@
-# Member Operations (Phase 1)
+# Member Operations (sections 1–5)
 
-**Mandatory before [Support & Messages Center](./SUPPORT_AND_MESSAGES_CENTER.md) and before Smart Workspace Hub P0**
+Part of **[Member Operations & Communication](./MEMBER_OPERATIONS_AND_COMMUNICATION.md)** — **not** Support & Messages (see [SUPPORT_AND_MESSAGES_CENTER.md](./SUPPORT_AND_MESSAGES_CENTER.md)).
 
 | | |
 |--|--|
-| **Status** | Approved product specification |
-| **Owner** | Founder / Product / Operations |
-| **Roadmap** | [ROADMAP.md](./ROADMAP.md) — Phase 1 |
-| **Constraint** | Dedicated branches/PRs; **RPC + RLS + audit**; no hidden-UI-only security |
+| **Constraint** | Dedicated branches/PRs per track; **RPC + RLS + audit** |
 
-Member journey covered here:
-
-```text
-Registration → review → password recovery → email/notifications → (then messaging phase) → Smart Workspace
-```
-
-Vision and rank rules: [PRODUCT_CONSTITUTION.md](./PRODUCT_CONSTITUTION.md).
+Vision and ranks: [PRODUCT_CONSTITUTION.md](./PRODUCT_CONSTITUTION.md).
 
 ---
 
-## 1. Registration review workflow
+## 1. Registration review
 
-Founders, admins, and wilaya managers (wilaya-scoped) run one **auditable** review pipeline.
+Product workflow for new members (founder, admin, wilaya manager within wilaya).
 
 | Capability | Detail |
 |------------|--------|
-| **Approve** | Update `profiles.status`; trigger notifications and stats |
-| **Reject** | Reason visible to member (own request only) |
-| **Request information** | Structured ask; member responds when messaging phase is live |
-| **View profile** | Registration + profile context (rank-scoped) |
-| **Secure RPC** | `admin_set_profile_status` and related RPCs—not browser PostgREST PATCH |
-| **Audit log** | Every approve/reject/suspend/request-info (`admin_audit_log` pattern) |
-| **Notifications** | Member informed on state change (hooks into notification center) |
-| **Statistics** | Admin/manager dashboards: queue depth and outcomes |
-| **Founder / Admin** | National scope |
-| **Wilaya manager** | **Wilaya fence only** |
+| Approve / reject / request information | Rank-scoped |
+| View profile | Registration + profile context |
+| Member-visible outcomes | Reject reasons for **own** request only |
+| Wilaya manager | **Wilaya fence only** |
 
-**Implementation:** migration **008** (audit + extended admin RPC) belongs to this pillar.
+Triggers notifications and dashboard statistics (see **Admin operations**).
 
 ---
 
-## 2. Password recovery
+## 2. Admin operations
 
-Complete before Hub launch.
+**Official engineering name** for the administration layer—**not** a replacement for registration review; it **implements** it securely.
+
+| Capability | Detail |
+|------------|--------|
+| **Secure RPC** | `admin_set_profile_status` and related; no browser PostgREST PATCH for sensitive status |
+| **Audit log** | `admin_audit_log` pattern; no silent deletes |
+| **Dashboards** | Founder/admin and wilaya manager queues (read paths + actions via RPC) |
+| **Role grants** | Founder/admin only; managers cannot self-elevate |
+| **Migration 008** | Audit + extended admin RPC (when merged/deployed) |
+
+This track is what teams often label **“Admin Operations”** in PRs and migrations.
+
+---
+
+## 3. Password recovery
 
 | Step | Requirement |
 |------|-------------|
-| Forgot password | From login; email or approved identifier |
-| Reset / confirm password | Token link; strength and match validation |
-| Redirect & re-login | Clear success path |
-| Link expiry & errors | Actionable AR/FR/EN copy |
-
-**Supabase Auth**; customize templates where allowed.
+| Forgot / reset / confirm | Supabase Auth |
+| Redirect, expiry, errors | Actionable AR/FR/EN |
+| Re-login | Session + profile load |
 
 ---
 
-## 3. Email architecture
+## 4. Email architecture
 
-| Channel | Owner | Use |
-|---------|--------|-----|
-| **Authentication emails** | Supabase Auth | Confirm, magic link, password reset |
-| **Operational emails** | Resend or Brevo | Approval, rejection, status changes (ticket replies added in Phase 2) |
-| **In-app notifications** | MawashiDZ + RLS | Feeds notification center |
-| **Push** | Future | Same events as in-app |
+| Channel | Owner |
+|---------|--------|
+| Authentication | Supabase Auth |
+| Operational | Resend or Brevo — approvals, rejections, status |
+| In-app | Feeds notification center |
+| Push | Future |
 
----
-
-## 4. Notification center (member)
-
-In-app inbox in account / workspace shell (see constitution).
-
-Examples: membership approved; listing rejected; health alert; *(“manager replied” deep-links to tickets in Phase 2)*.
-
-Requirements: mark read / mark all; filter by type; deep links; **rank-safe** payloads.
+Ticket reply emails: extend in [Support & Messages](./SUPPORT_AND_MESSAGES_CENTER.md).
 
 ---
 
-## Phase 1 execution order
+## 5. Notifications (in-app center)
 
-| Order | Deliverable |
-|-------|-------------|
-| **1.1** | Registration review (RPC, audit, dashboards) |
-| **1.2** | Password recovery UX verified in production |
-| **1.3** | Email architecture (Auth + operational provider for **status** events) |
-| **1.4** | Notification center MVP (status + platform alerts; not full ticketing) |
+MVP: membership status, platform alerts.  
+Later: deep links to tickets (after Support & Messages track).
 
-Then proceed to **[Phase 2 — Support & Messages Center](./SUPPORT_AND_MESSAGES_CENTER.md)**.
+Mark read, filters, rank-safe payloads.
 
 ---
 
-## Related docs
+## Delivery tracks (this file only)
 
-- [SUPPORT_AND_MESSAGES_CENTER.md](./SUPPORT_AND_MESSAGES_CENTER.md) — tickets and messaging (separate delivery)  
-- [ROADMAP.md](./ROADMAP.md) — full tree  
-- `docs/REGISTRATION_FLOW_AUDIT.md` — do not break signup
+| Track | Sections |
+|-------|----------|
+| **A** | §1 + §2 (review + admin operations) |
+| **B** | §3 |
+| **C** | §4 |
+| **D** | §5 |
+
+Then §6 → [SUPPORT_AND_MESSAGES_CENTER.md](./SUPPORT_AND_MESSAGES_CENTER.md).

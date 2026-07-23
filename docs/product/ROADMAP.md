@@ -1,9 +1,9 @@
 # MawashiDZ product roadmap
 
 **Last updated:** 2026-07-23  
-**Authority:** [PRODUCT_CONSTITUTION.md](./PRODUCT_CONSTITUTION.md) (vision) + phase specs below (delivery)
+**Authority:** [PRODUCT_CONSTITUTION.md](./PRODUCT_CONSTITUTION.md) + [MEMBER_OPERATIONS_AND_COMMUNICATION.md](./MEMBER_OPERATIONS_AND_COMMUNICATION.md)
 
-Delivery order is **not** a calendar. Each item: dedicated branch(es), PR(s), green `npm test`.
+Delivery order is **not** a calendar. Each **track** uses its own branch(es) and PR(s); green `npm test`.
 
 ---
 
@@ -12,90 +12,72 @@ Delivery order is **not** a calendar. Each item: dedicated branch(es), PR(s), gr
 ```text
 ROADMAP
 │
-├── Phase 1: Member Operations          → MEMBER_OPERATIONS.md
+├── Phase 1: Member Operations & Communication   → MEMBER_OPERATIONS_AND_COMMUNICATION.md
 │      ├── Registration review
+│      ├── Admin operations          (RPC, audit, dashboards — incl. migration 008)
 │      ├── Password recovery
 │      ├── Email architecture
-│      └── Notifications (in-app center)
+│      ├── Notifications
+│      └── Support & messages center   (separate delivery track E)
 │
-├── Phase 2: Support & Messages Center  → SUPPORT_AND_MESSAGES_CENTER.md
-│      ├── Tickets
-│      ├── Admin messages
-│      ├── Wilaya manager messages
-│      └── Future member-to-member messaging
-│
-└── Phase 3: Smart Workspace & Hub      → PRODUCT_CONSTITUTION.md
+└── Phase 2: Smart Workspace & Hub               → PRODUCT_CONSTITUTION.md
        ├── P0 — hub_cards, engagement events
        ├── P1 — mdz-hub-core, breeder-first
-       └── P2–P7 — see constitution phased table
+       └── P2–P7 — constitution phased table
 ```
 
----
-
-## Phase 1 — Member Operations
-
-**Spec:** [MEMBER_OPERATIONS.md](./MEMBER_OPERATIONS.md)
-
-| Step | Deliverable | Status (as of doc) |
-|------|-------------|---------------------|
-| **1.1** | Registration review — RPC, audit, dashboards | In progress (e.g. 008) |
-| **1.2** | Password recovery — full Auth UX | Verify production |
-| **1.3** | Email — Supabase Auth + operational provider (status events) | Not started |
-| **1.4** | Notification center MVP (status/alerts; not full ticketing) | Not started |
-
-**Gate:** Phase 1 core live before starting Phase 2 at scale.
+**Answer (Founder):** *Member Operations & Communication* is the **phase title** for multiple **sections**—Admin Operations remains a named section; Support & Messages is the **last section**, not a second top-level product phase.
 
 ---
 
-## Phase 2 — Support & Messages Center
+## Phase 1 — Member Operations & Communication
 
-**Spec:** [SUPPORT_AND_MESSAGES_CENTER.md](./SUPPORT_AND_MESSAGES_CENTER.md)
+**Umbrella:** [MEMBER_OPERATIONS_AND_COMMUNICATION.md](./MEMBER_OPERATIONS_AND_COMMUNICATION.md)
 
-| Step | Deliverable | Status |
-|------|-------------|--------|
-| **2.1** | Ticket system (model + RLS) | Not started |
-| **2.2** | Admin / support channels | Not started |
-| **2.3** | Wilaya manager messaging | Not started |
-| **2.4** | Ticket deep links in notifications | Not started |
-| **2.5** | Member-to-member (marketplace-linked) | Later |
+| Track | Section | Spec | Status (as of doc) |
+|-------|---------|------|---------------------|
+| **A** | Registration review + **Admin operations** | [MEMBER_OPERATIONS.md](./MEMBER_OPERATIONS.md) §1–2 | In progress (008) |
+| **B** | Password recovery | §3 | Verify production |
+| **C** | Email architecture | §4 | Not started |
+| **D** | Notifications | §5 | Not started |
+| **E** | Support & messages | [SUPPORT_AND_MESSAGES_CENTER.md](./SUPPORT_AND_MESSAGES_CENTER.md) | Not started |
 
-**Gate:** Tickets + admin/wilaya messaging usable before **Smart Workspace P0**.
+**Gates:** Track **A** live before **E** at scale; **D** before ticket deep-links; **A–E** (min. viable) before Smart Workspace **P0**.
 
 ---
 
-## Phase 3 — Smart Workspace & Hub
+## Phase 2 — Smart Workspace & Hub
 
 **Spec:** [PRODUCT_CONSTITUTION.md](./PRODUCT_CONSTITUTION.md)
 
 | Step | Deliverable |
 |------|-------------|
-| **P0** | `hub_cards`, `hub_engagement_events` — `cursor/smart-profile-hub-p0-6004` |
-| **P1** | `mdz-hub-core`, Card Providers, breeder-first workspace |
-| **P2–P7** | Preferences, search, CMS, roles, ingest, analytics, AI |
+| **P0** | `hub_cards`, `hub_engagement_events` |
+| **P1** | `mdz-hub-core`, breeder-first |
+| **P2–P7** | See constitution |
 
 ---
 
-## Product library & parallel work
+## Parallel work
 
 | Item | Notes |
 |------|--------|
-| `docs/product/` | Official reference — **merged to main** |
-| Exchange wilaya UX | `cursor/exchange-wilaya-preview-6004` — independent |
-| Dashboard premium UI | Visual polish — independent |
+| Exchange wilaya UX | Independent branch |
+| Dashboard premium UI | Visual polish |
 
 ---
 
 ## Gates before Smart Workspace P0
 
 - [x] Product library on `main`  
-- [ ] Phase **1** registration review + recovery + email + notifications foundation  
-- [ ] Phase **2** ticket system + admin/wilaya messaging (minimum viable)  
+- [ ] Phase 1 track **A** (admin operations + review) in production  
+- [ ] Tracks **B–D** foundation  
+- [ ] Track **E** core (tickets + admin/wilaya messaging)  
 - [ ] Founder approval for `cursor/smart-profile-hub-p0-6004`  
 
 ---
 
 ## Success signals
 
-**Phase 1:** approval latency, recovery success, notification delivery.  
-**Phase 2:** ticket response time, escalation quality.  
-**Phase 3:** constitution operational + Hub engagement metrics.
+**Phase 1:** approval latency, recovery success, notification delivery, ticket response time.  
+**Phase 2 (Hub):** constitution operational + Hub engagement metrics.
