@@ -4,7 +4,16 @@
 
 This folder is the **official product reference** for MawashiDZ: member operations, constitution, decisions, roadmap, and shared vocabulary. Engineering ADRs (e.g. member ID allocation) live under `docs/adr/`; **product direction and workspace philosophy** live here.
 
-**Hierarchy:** Constitution → [ROADMAP](./ROADMAP.md) → phase umbrella **[Member Operations & Communication](./MEMBER_OPERATIONS_AND_COMMUNICATION.md)** (sections + separate delivery tracks)—not one undifferentiated epic.
+**Document types (do not mix):**
+
+| Type | Files | Contains |
+|------|--------|----------|
+| **Product requirements** | `MEMBER_OPERATIONS_AND_COMMUNICATION.md`, `MEMBER_OPERATIONS.md`, `SUPPORT_AND_MESSAGES_CENTER.md`, `PRODUCT_CONSTITUTION.md` | Goals, requirements, permissions, UX, scenarios, **acceptance criteria**, **non-goals** |
+| **Delivery plan** | `ROADMAP.md` | Tracks, steps, gates, branches, migrations, status |
+| **Decisions** | `PRODUCT_DECISIONS/` | PDR — why we chose X |
+| **Terms** | `GLOSSARY.md` | Naming |
+
+**Hierarchy:** For **product vision** conflicts, **[PRODUCT_CONSTITUTION.md](./PRODUCT_CONSTITUTION.md)** wins unless a newer **approved PDR** supersedes it. **When to build:** [ROADMAP.md](./ROADMAP.md) only.
 
 **Governance (Founder-approved):** Do not scatter major product decisions in random files. **Update the constitution** when vision changes; **add a PDR** for each important product/architecture choice; **update the roadmap** when execution order changes.
 
@@ -18,7 +27,8 @@ This folder is the **official product reference** for MawashiDZ: member operatio
 | **1.1** | 2026-07-23 | Member Operations & Communication System (Phase 1 before Hub) |
 | **1.2** | 2026-07-23 | Constitution SSOT clause; version history; Founder merge approval |
 | **1.3** | 2026-07-23 | Split detail specs; roadmap tree |
-| **1.4** | 2026-07-23 | Umbrella [MEMBER_OPERATIONS_AND_COMMUNICATION](./MEMBER_OPERATIONS_AND_COMMUNICATION.md); **Admin Operations** named; Support & Messages = section 6 / track E |
+| **1.4** | 2026-07-23 | Umbrella phase; Admin Operations named |
+| **1.5** | 2026-07-23 | PRD vs ROADMAP split; non-goals; per-section acceptance criteria |
 
 Constitution-only versions: see [PRODUCT_CONSTITUTION.md#version-history](./PRODUCT_CONSTITUTION.md#version-history).
 
