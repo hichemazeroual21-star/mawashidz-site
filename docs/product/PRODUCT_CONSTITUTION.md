@@ -2,11 +2,14 @@
 
 **Founder Vision – Smart Role Workspaces (Mandatory Product Direction)**
 
+> **Single source of truth:** This document is the **highest product vision authority** for MawashiDZ. If any other document conflicts with this constitution, **this document takes precedence** unless explicitly superseded by a newer **approved** [Product Decision Record (PDR)](./PRODUCT_DECISIONS/).
+
 > **Design gate:** Every new feature added to MawashiDZ must first answer one question: *“Which workspace benefits from it?”* If the answer is **“none”**, the feature should be **reconsidered**.
 
 | | |
 |--|--|
 | **Status** | **Approved product constitution** — mandatory for all workspace and Hub work |
+| **Constitution version** | **1.2** (see [version history](#version-history)) |
 | **Owner** | Product / Founder / MawashiDZ |
 | **Audience** | Engineering (Cursor), design, ops |
 | **Constraint** | Ship in **dedicated branches and PRs**. Do **not** mix with registration, Auth, or existing RLS changes unless an approved migration explicitly covers them. |
@@ -797,3 +800,15 @@ Important product and engineering choices are recorded separately so future cont
 | [PDR-005](./PRODUCT_DECISIONS/PDR-005.md) | Server-side workspace preferences |
 
 When you change a decision, add a new PDR or mark the old one **Superseded** and link forward—do not silently contradict the constitution.
+
+---
+
+## Version history
+
+| Version | Date | Summary |
+|---------|------|---------|
+| **1.0** | 2026-07-23 | Initial Product Constitution (Smart Role Workspaces founder vision) |
+| **1.1** | 2026-07-23 | Smart Workspace framework, Hub, Card Provider, PDR index, execution order |
+| **1.2** | 2026-07-23 | Alignment with [Member Operations & Communication](./MEMBER_OPERATIONS_AND_COMMUNICATION.md); SSOT clause; product library canonical paths |
+
+Update this table when the constitution changes materially; bump **Constitution version** in the header metadata.

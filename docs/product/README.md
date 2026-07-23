@@ -4,6 +4,22 @@
 
 This folder is the **official product reference** for MawashiDZ: member operations, constitution, decisions, roadmap, and shared vocabulary. Engineering ADRs (e.g. member ID allocation) live under `docs/adr/`; **product direction and workspace philosophy** live here.
 
+**Hierarchy:** For **product vision** conflicts, **[PRODUCT_CONSTITUTION.md](./PRODUCT_CONSTITUTION.md)** wins unless a newer **approved PDR** explicitly supersedes it. Phase 1 operations detail lives in [MEMBER_OPERATIONS_AND_COMMUNICATION.md](./MEMBER_OPERATIONS_AND_COMMUNICATION.md); delivery order in [ROADMAP.md](./ROADMAP.md).
+
+**Governance (Founder-approved):** Do not scatter major product decisions in random files. **Update the constitution** when vision changes; **add a PDR** for each important product/architecture choice; **update the roadmap** when execution order changes.
+
+---
+
+## Product library version history
+
+| Version | Date | Summary |
+|---------|------|---------|
+| **1.0** | 2026-07-23 | `docs/product/` created; Product Constitution, PDR-001–005, Glossary, Roadmap |
+| **1.1** | 2026-07-23 | Member Operations & Communication System (Phase 1 before Hub) |
+| **1.2** | 2026-07-23 | Constitution SSOT clause; version history; Founder merge approval |
+
+Constitution-only versions: see [PRODUCT_CONSTITUTION.md#version-history](./PRODUCT_CONSTITUTION.md#version-history).
+
 ---
 
 ## What is the official reference?
@@ -11,7 +27,7 @@ This folder is the **official product reference** for MawashiDZ: member operatio
 | Document | Role |
 |----------|------|
 | **[MEMBER_OPERATIONS_AND_COMMUNICATION.md](./MEMBER_OPERATIONS_AND_COMMUNICATION.md)** | **Phase 1 (before Hub):** review, tickets, recovery, email, notifications |
-| **[PRODUCT_CONSTITUTION.md](./PRODUCT_CONSTITUTION.md)** | Binding direction: Smart Workspaces, Hub framework, security, Hub phases |
+| **[PRODUCT_CONSTITUTION.md](./PRODUCT_CONSTITUTION.md)** | **Highest product vision authority** — Smart Workspaces, Hub, security, Hub phases |
 | **[PRODUCT_DECISIONS/](./PRODUCT_DECISIONS/)** | Product Decision Records (PDR) — *why* we chose X over Y |
 | **[ROADMAP.md](./ROADMAP.md)** | Approved execution order and phased delivery |
 | **[GLOSSARY.md](./GLOSSARY.md)** | Terms every contributor should use consistently |
