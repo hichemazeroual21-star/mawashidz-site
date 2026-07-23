@@ -31,6 +31,115 @@ The hub **complements** marketplace and registration; it does **not** replace th
 
 ---
 
+## Founder notes (long-term vision)
+
+> **Golden rule:** The profile is no longer an account page. It is the member’s **personal workspace** inside MawashiDZ.
+
+This Smart Hub is **not** a settings screen with articles bolted on. It is intended to become each member’s **default daily destination** on the platform—designed once so new services (AI, new data providers, engagement mechanics) can plug in **without rebuilding the page every year**.
+
+### Principles (non-negotiable for implementers)
+
+| Principle | Meaning for engineering |
+|-----------|-------------------------|
+| **No static homepage** | Cards and feeds are **generated** from data + rules + time; avoid hard-coded HTML blocks that never change. |
+| **Always alive** | TTL, refresh timestamps, “new since last visit”, seasonal rules. |
+| **Role-native** | Layout and ranking differ by role; never one generic feed for everyone. |
+| **Practical over editorial** | Prefer actionable snippets (price move, alert, task, reminder) over long reads. |
+
+### Daily workspace (target experience)
+
+On each visit, the member should be able to see—**as cards, not walls of text**:
+
+- News and updates **for their role**
+- Weather in **their wilaya**
+- Health alerts (when available)
+- Market prices (livestock / feed as applicable)
+- Notifications (platform + hub)
+- Recent activity (their listings, requests, hub interactions)
+- Suggested **tasks** (complete profile, verify animal, read alert, etc.)
+
+MVP may ship a subset; **schema and card types** must allow all of the above later.
+
+### Smart personalization (ranking, not only show/hide)
+
+Card order and prominence should eventually consider:
+
+1. **Role** (`profiles.role` / `user_type`)
+2. **Wilaya** (and later daira/commune if useful)
+3. **Season** (hemisphere-agnostic rules: Ramadan, heat, breeding season templates)
+4. **Prior activity** (opens, dismissals, last seen card types—privacy-preserving aggregates)
+5. **Explicit interests** (user toggles + inferred from marketplace behavior)
+
+**Do not** ship a single default grid for all users. Even v1 should use **role templates**; v1.1+ adds scoring.
+
+Persist preferences and ranking hints **server-side** (`hub_user_preferences`, `hub_engagement_events`).
+
+### Engagement layer (later phases—design hooks now)
+
+Reserve card types and event names for:
+
+- **Daily tip** (one card, rotates)
+- **Weekly summary** (digest card + optional email later)
+- **Achievement badges** (display-only at first)
+- **Trusted member level** (ties to `profiles.status`, tenure, verified actions)
+- **Profile completion** (progress meter card)
+- **Smart reminders** (rule-based before ML)
+
+Implementation can wait; **event logging** (`hub_card_impression`, `hub_card_click`) should be in P1 schema so Founder Dashboard has data later.
+
+### AI-ready architecture
+
+From day one, treat **“MawashiDZ AI Assistant”** as a **pluggable surface**:
+
+- Dedicated card slot: `card_type: 'assistant'` (placeholder → chat panel later)
+- Assistant consumes the same **normalized hub context** (role, wilaya, recent alerts, prices)—not ad-hoc DOM scraping
+- No coupling between `mdz-account-hub.mjs` and a specific LLM vendor; future module `mdz-hub-assistant.mjs` + Edge Function
+
+### Content engine (provider-agnostic)
+
+Do **not** hard-wire the UI to WOAH, FAO, or one weather API.
+
+```text
+┌──────────────┐     ┌─────────────────────┐     ┌─────────────┐
+│  Providers   │ --> │  hub_content_engine │ --> │  hub_feed   │
+│  WOAH, FAO,  │     │  normalize, tag,    │     │  (RPC/view) │
+│  DZ official,│     │  locale, role_tags  │     └──────┬──────┘
+│  weather,    │     └─────────────────────┘            │
+│  market API  │                                        v
+└──────────────┘                              ┌─────────────────┐
+                                              │  Card renderer  │
+                                              │  (stable UI)    │
+                                              └─────────────────┘
+```
+
+Adding a provider = new **ingest adapter** + mapping config; **card renderer and account UI unchanged**.
+
+### Founder dashboard (analytics product)
+
+Founders need **usage truth**, not guesswork. Plan an admin view (separate from member hub UI) showing:
+
+- Most viewed **card types**
+- Most read **content items**
+- Most active **wilayas**
+- Most opened **alerts**
+- **Engagement rate by role** (DAU/WAU on hub, clicks per role)
+
+Requires `hub_engagement_events` (append-only) and aggregated views or nightly rollups—aligned with `admin_audit_log` access model.
+
+### Implications for phased delivery
+
+| Phase | Must include (vision-aligned) |
+|-------|-------------------------------|
+| P0 schema | `hub_card_definitions`, `hub_feed_items`, `hub_user_preferences`, `hub_engagement_events`, `content_provider` registry |
+| P1 UI | Role templates + at least one **live** provider + impression logging |
+| P2 CMS | Editorial workflow + vet suggest |
+| P3 | Ranking v1 (role + wilaya + season) |
+| P4 | External ingest workers per provider |
+| P5 | Founder analytics dashboard + engagement cards |
+| P6 | AI assistant slot |
+
+---
+
 ## Goals
 
 | Goal | Description |
@@ -92,6 +201,8 @@ The hub **complements** marketplace and registration; it does **not** replace th
 
 ## Trusted content sources (architecture)
 
+See **Content engine** under Founder notes. Providers include:
+
 | Source | Use |
 |--------|-----|
 | **WOAH / WAHIS** | Official animal health alerts and disease events (API or curated sync—respect terms of use). |
@@ -108,6 +219,7 @@ All external items stored as **normalized records**: `source_id`, `title`, `summ
 - Per-user **card visibility** preferences (show/hide hub widgets).
 - Persisted in `profiles.hub_preferences` (JSON) or `member_hub_settings` table—**not** `localStorage` only (so preferences follow the user across devices).
 - Default layout per role; user overrides merge on top.
+- **Roadmap:** card **ordering** via smart personalization signals (see Founder notes)—visibility is step one only.
 
 This small feature significantly increases **ownership** and perceived product quality.
 
@@ -147,15 +259,19 @@ Wireframes can mirror admin dashboard card patterns already introduced in `mdz-d
 ┌─────────────────────────────────────────┐
 │  accountModal / openAccount             │
 │  └─ import hub module (lazy)            │
-│       ├─ resolve role + wilaya + prefs  │
-│       ├─ fetch hub_feed (RPC or view)   │
-│       └─ render role dashboard cards    │
+│       ├─ resolve role + wilaya + prefs    │
+│       ├─ fetch hub_feed (RPC; ranked)   │
+│       ├─ log impressions (async)        │
+│       └─ render cards (+ AI slot stub)  │
 └─────────────────────────────────────────┘
           │
           ▼
 ┌─────────────────────────────────────────┐
-│  Supabase: hub_content, hub_cards,      │
-│  hub_user_preferences, ingest_jobs      │
+│  Content engine + Supabase              │
+│  hub_providers, hub_feed_items,         │
+│  hub_card_definitions,                  │
+│  hub_user_preferences,                  │
+│  hub_engagement_events                  │
 │  RLS: read published for authenticated  │
 │  Writes: RPC only (editor/admin)        │
 └─────────────────────────────────────────┘
@@ -213,3 +329,5 @@ Each phase: **one branch, one PR**, green `npm test`, `verify:prod` unchanged un
 ## Decision requested
 
 Approve **P0 + P1** as the next product epic after admin operations (008) is live in production, implemented **only** on `cursor/smart-profile-hub-*` branches without mixing registration or Auth changes.
+
+**Implementers:** read **Founder notes (long-term vision)** before writing schema or UI; optimize for extensibility (content engine, engagement events, AI slot), not for a one-off “articles tab”.
