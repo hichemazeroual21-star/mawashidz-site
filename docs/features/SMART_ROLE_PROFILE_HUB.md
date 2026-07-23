@@ -1,39 +1,222 @@
-# Feature Proposal: Smart Role-Based Profile Hub
+# Product Vision: Smart Role Workspaces
 
-**Status:** Proposed (not implemented)  
-**Owner:** Product / MawashiDZ  
-**Target:** Post–admin-operations foundation (read-only dashboards + RPC approve/reject live)  
-**Constraint:** Implement in a **dedicated branch and PR**. Do **not** modify registration, Auth, existing RLS policies, or other stable production paths in the same change set.
+**Founder Vision – Smart Role Workspaces (Mandatory Product Direction)**
 
----
+| | |
+|--|--|
+| **Status** | Proposed — **mandatory direction** for all workspace and Hub work |
+| **Owner** | Product / Founder / MawashiDZ |
+| **Audience** | Engineering (Cursor), design, ops |
+| **Constraint** | Ship in **dedicated branches and PRs**. Do **not** mix with registration, Auth, or existing RLS changes unless an approved migration explicitly covers them. |
 
-## Executive summary
-
-Transform **«حسابي» / Mon compte** from a static settings screen into a **Smart Hub**: a role-aware home that delivers **actionable value daily**—not a wall of articles.
-
-Success is measured by **return visits**, **time-to-value after login**, and **perceived professionalism** of the member profile—not by article count.
+This document is **one product vision**: role workspaces, Smart Hub framework, notification center, search, security, and phased engineering. It is **not** a feature wishlist. Treat it as **how MawashiDZ is built** for the next several years.
 
 ---
 
-## Problem today
+## Core principle
 
-- The account area correctly shows identity, status, and tabs (profile, request, invites, security).
-- It does **not** answer: *“Why should I open MawashiDZ today?”*
-- Admin/founder tooling is separate; **member-facing value** is still mostly on the public homepage and news modules.
+**The member profile is no longer an account page.**
+
+It becomes the **primary daily workspace** for every member inside MawashiDZ.
+
+Every role must log in and immediately find:
+
+- Information relevant to them
+- Their operational tasks
+- Their business activity
+- Their notifications
+- Their statistics
+- The actions they perform most often
+
+**Objective:** members open MawashiDZ **every day**, not only when buying or selling.
+
+> **Golden rule:** This is not a content portal. This is not a settings page. This is the **daily operational workspace** for every MawashiDZ member.
 
 ---
 
-## Vision
+## Universal workspace structure
 
-When a member opens their account, they see a **living dashboard**: cards, icons, short insights, and light stats—**personalized by registration role** (`profiles.role` / `user_type`) and optionally **user preferences** (which cards to show).
+Every workspace combines **five pillars**:
 
-The hub **complements** marketplace and registration; it does **not** replace them.
+1. **Daily insights** (Hub cards, local context, trends)
+2. **Operational management** (listings, orders, requests, cases)
+3. **Quick actions** (create, approve, message, publish)
+4. **Statistics & performance** (views, conversions, regional activity)
+5. **Notifications & workflow** (unified notification center + tasks)
+
+The interface must **prioritize actions over articles**.
+
+```text
+┌─────────────────────────────────────────────────────────┐
+│  Workspace shell (role + rank resolved server-side)      │
+│  ┌─────────────┐  ┌──────────────────────────────────┐ │
+│  │ Global      │  │ Pillar 1: Daily insights (Hub)   │ │
+│  │ search      │  │ Pillar 2–4: Role operations        │ │
+│  │ + Notif.    │  │ Pillar 5: Notifications & tasks    │ │
+│  │   center    │  └──────────────────────────────────┘ │
+│  └─────────────┘                                         │
+└─────────────────────────────────────────────────────────┘
+```
 
 ---
 
-## Hub framework (not a separate product)
+## Role hierarchy, routing & privacy
 
-Smart Hub is **not** a side project or a one-off account redesign. It is the **MawashiDZ Hub Engine**—a **framework inside the platform**. Any future capability (insurance, financing, equipment marketplace, labs, AI, training, events, QR analytics, etc.) **does not get a new top-level “service page”** as the primary member entry; it **registers a new Card** in the Hub.
+Workspaces and data access follow a **strict rank order**. A member must **never** see another rank’s **private operational surface** or **internal-only fields** reserved for higher ranks.
+
+### Rank order (low → high)
+
+| Rank | Typical roles | Workspace |
+|------|----------------|-----------|
+| **R1 — Member** | `buyer`, `breeder`, `vet`, `feed` (and other member `user_type` values) | Role-specific member workspace (sections below) |
+| **R2 — Wilaya manager** | `manager` | Wilaya Manager Workspace (**one wilaya only**) |
+| **R3 — Platform admin** | `admin` | Founder/Admin Workspace (subset per policy) |
+| **R4 — Founder / super** | `founder`, `super_admin` | Full Founder/Admin Workspace |
+
+**Effective rank** = highest role granted in `user_roles` (resolved server-side). UI may show **one primary workspace** with optional entry points (e.g. manager who is also a breeder sees manager workspace as default; breeder tools remain available only for **their own** commercial data, not wilaya-wide admin).
+
+### Privacy rules (non-negotiable)
+
+| Rule | Meaning |
+|------|---------|
+| **No upward leakage** | R1 never sees R2+ internal queues, audit detail, suspension reasons for *other* users, or cross-wilaya aggregates. |
+| **Wilaya fence** | R2 sees **only** data tied to their assigned wilaya (members, listings, reports, alerts scoped to that wilaya). **Never** another wilaya. |
+| **Professional boundaries** | Veterinarians **never** modify ownership, prices, or commercial listing fields (see Veterinarian Workspace). |
+| **Admin surface** | Provider toggles, national alerts, global CMS, role grants, and audit exports are **R3/R4 only**—never exposed via hidden DOM alone. |
+| **Search & notifications** | Results and notification payloads are **filtered by rank + RLS**; search must not return fields the caller’s rank cannot read via normal APIs. |
+| **Escalation visibility** | Manager temporary actions and evidence are visible to R2 within wilaya; **final policy decisions** and platform-wide escalation notes are R3/R4. |
+
+Implement: **RLS + RPC** as source of truth; workspace UI is a view on authorized data only.
+
+---
+
+## 1. Breeder workspace (Breeder Dashboard)
+
+The breeder manages his livestock business **entirely** from this workspace.
+
+### Livestock listings
+
+Create livestock listings; draft before publishing; edit or archive; set price (negotiable or fixed); quantity; breed; species; gender; age; approximate weight; wilaya & commune; delivery / pickup; photos; QR / animal profile integration when available.
+
+### Listing management
+
+Active; pending review; rejected (with reasons **for their own** listings); sold; expired; performance (views, saves, buyer contacts).
+
+### Buyer requests
+
+Incoming purchase requests; conversations; reservation status; sold status; history.
+
+### Daily Hub (cards + tasks)
+
+Today’s tip; local weather; feed prices; livestock prices; disease alerts; biosecurity; vaccination reminders; farm health reminders; profile completion; trusted breeder progress.
+
+---
+
+## 2. Veterinarian workspace
+
+The veterinarian manages **professional** activity—not commerce.
+
+### Professional profile
+
+Clinic; service area; working hours; availability.
+
+### Veterinary activity
+
+Assigned requests; animal health records; visit notes; vaccination history; recommendations; health certificates (within permissions).
+
+### Knowledge
+
+Official disease alerts; veterinary guidance; suggest educational content; review queue.
+
+### Statistics
+
+Consultations; active requests; ratings; regional activity (aggregated, privacy-safe).
+
+**Veterinarians must never modify ownership, prices, or commercial information.**
+
+---
+
+## 3. Feed seller workspace
+
+### Products
+
+Add products; prices; stock; delivery; pickup; promotions; categories.
+
+### Management
+
+Orders; inventory; low stock alerts; product statistics; demand trends.
+
+### Daily information
+
+Storage guidance; feed quality; market trends; seasonal recommendations.
+
+---
+
+## 4. Buyer workspace
+
+### Buying
+
+Saved animals; purchase requests; reservation history; messages; QR explanation; health information; recommended listings; price alerts; new animals nearby.
+
+### Daily information
+
+Buying tips; healthy animal checklist; new offers; seasonal advice.
+
+---
+
+## 5. Wilaya manager workspace
+
+Wilaya managers supervise operations **inside their wilaya only**.
+
+### Visibility (wilaya-scoped only)
+
+Membership requests; breeders; veterinarians; feed sellers; buyers (where operationally needed); livestock listings; feed listings; reports; disease alerts; statistics; municipal activity. **Never data from other wilayas.**
+
+### Operational permissions
+
+Review membership applications (approve, reject, request additional information); temporarily suspend accounts; review livestock and feed listings; hide inappropriate content; handle reports; contact members; publish **approved local** announcements; generate wilaya reports.
+
+### Restrictions
+
+Managers must **never**: access another wilaya; modify Founder/Admin roles; change platform policies; modify Auth; modify RLS; delete audit logs; delete users permanently; publish national alerts without approval; modify global content providers; grant themselves permissions.
+
+### Dashboard sections
+
+- **Urgent tasks:** pending applications; reports; listings awaiting review; verification requests
+- **Statistics:** members; listings; veterinarians; feed sellers; new registrations; open reports
+- **Activity:** municipality activity; growth; new members; marketplace activity
+- **Member management:** search; review; suspend; approve; reject; request documents
+- **Listings:** pending; active; flagged; hidden; sold
+- **Local alerts:** weather; animal health; local announcements; market information
+- **Audit log:** every action recorded
+
+### Escalation
+
+Sensitive cases escalate: **Manager → temporary action → evidence → Founder/Admin review → final decision**.
+
+---
+
+## 6. Founder / Admin workspace
+
+The Founder manages the **entire platform**.
+
+| Area | Scope |
+|------|--------|
+| **Members** | Roles; status; approval; suspension; audit |
+| **Wilaya managers** | Assign; remove; performance |
+| **Content** | Cards; providers; sources; CMS; moderation |
+| **Platform** | Analytics; adoption; engagement; marketplace; reports; alerts |
+| **Configuration** | Enable or disable **providers** without changing the UI shell |
+
+Founder analytics (card views, articles read, wilaya activity, alert opens, engagement by role) uses hub + workspace events—see **Analytics**.
+
+---
+
+## Smart Hub philosophy
+
+The Smart Hub is a **modular framework inside MawashiDZ**, not a separate product.
+
+Every future service becomes a **Card** (optional deep link for heavy flows). **Never** create separate member dashboards if a Card (+ workspace section) can solve discovery and daily use.
 
 ```text
 Hub Engine (mdz-hub-core)
@@ -41,118 +224,110 @@ Hub Engine (mdz-hub-core)
 ├── Weather Card
 ├── Disease Alerts Card
 ├── Feed Prices Card
-├── Today in your wilaya Card  ← flagship composite (see below)
+├── Today in your wilaya Card     ← Hero (see below)
 ├── AI Assistant Card
-├── Insurance Card              (future)
-├── Equipment Marketplace Card  (future)
-├── Events Card
+├── Insurance Card                 (future)
+├── Financing Card                 (future)
+├── Equipment Marketplace Card     (future)
 ├── Training Card
 ├── QR Statistics Card
-└── … (new card = hours, not days)
+├── Local Events Card
+└── …
 ```
 
-**Rule for product and engineering:** if a feature is member-facing and recurring, default delivery path is **Card Provider + optional deep link**, not a new account tab or standalone route—unless there is a strong reason (legal checkout flows may still have dedicated pages, but **discovery** stays in the Hub).
+**Product rule:** insurance, financing, equipment market, labs, AI, etc. → **register Card Provider**; do not add a new top-level “account tab” for each service.
 
 ---
 
-## Card Provider model
+## Card Provider architecture
 
-Each card is implemented as a **Card Provider**: a small contract the Hub Engine understands. The **shell UI** (grid, skeletons, RTL, lazy regions) knows only **normalized card payloads**—never WOAH, a weather API, or insurance backend details.
+Every Card Provider defines only:
 
-| Provider responsibility | Description |
-|-------------------------|-------------|
-| **Data source** | Where payload comes from (RPC, Edge Function, client adapter reading cached feed, composite of other providers). |
-| **Audience** | Who may see it: roles, wilaya rules, feature flags, `profiles.status`. |
-| **Refresh policy** | TTL, stale-while-revalidate, “on scroll into view”, push invalidation later. |
-| **Rank / slot** | Default order, priority tier (above-the-fold vs deferred), personalization hooks. |
+| Concern | Description |
+|---------|-------------|
+| **Data source** | RPC, Edge Function, normalized feed, or composite orchestrator |
+| **Refresh policy** | TTL, stale-while-revalidate, on-visible |
+| **Visibility rules** | Role, rank, wilaya, `profiles.status`, feature flags |
+| **Cache** | Keys for offline / SWR |
+| **Priority** | Rank for top-4 vs lazy tier |
 
-| UI responsibility | Description |
-|-------------------|-------------|
-| Render `card_type` + `payload` + `meta` (title, icon, freshness, CTAs). |
-| Enforce lazy boundaries and offline shell. |
-| Emit **engagement events** (see Analytics). |
+The **UI must never depend directly on external APIs.** Shell renders `card_type` + `payload` + `meta` only.
 
-**Adding a service** = register provider id in config/registry + implement `fetchPayload(context)` (+ optional server ingest). **No change** to card chrome or account layout.
-
-Suggested client layout (conceptual):
+**Client layout (target):**
 
 ```text
-js/mdz-hub-core.mjs          ← engine: registry, rank, lazy, offline cache keys
-js/hub/providers/*.mjs       ← one module per card provider
-js/mdz-account-hub.mjs       ← wires engine into account modal only
+js/mdz-hub-core.mjs          ← registry, rank, lazy, offline, events
+js/hub/providers/*.mjs     ← one module per provider
+js/mdz-account-hub.mjs       ← attaches Hub to workspace shell
+js/mdz-workspace-shell.mjs   ← (future) pillars, search, notifications
 ```
 
-Server-side mirror for P0+: minimal `hub_cards` registry row per provider (visibility, default_rank, refresh_seconds)—not one table per future product.
+**Server (P0 minimal):** `hub_cards` registry row per provider (`enabled`, `default_rank`, `roles[]`, `refresh_seconds`).
 
 ---
 
-## Founder notes (long-term vision)
+## «Today in your wilaya» / Today in your wilaya
 
-> **Golden rule:** The profile is no longer an account page. It is the member’s **personal workspace** inside MawashiDZ.
+**Hero Card** — first of the **top four** when wilaya is set.
 
-This Smart Hub is **not** a settings screen with articles bolted on. It is intended to become each member’s **default daily destination** on the platform—designed once so new services (AI, new data providers, engagement mechanics) can plug in **without rebuilding the page every year**.
+| Row | Content |
+|-----|---------|
+| 🌤️ | Weather |
+| 🐑 | Livestock prices |
+| 🌾 | Feed prices |
+| 🚨 | Animal health alerts |
+| 📅 | Local events |
+| 📰 | Important news |
 
-### Principles (non-negotiable for implementers)
+Implemented as a **composite Card Provider** (orchestrator), not six full-width cards on mobile.
 
-| Principle | Meaning for engineering |
-|-----------|-------------------------|
-| **No static homepage** | Cards and feeds are **generated** from data + rules + time; avoid hard-coded HTML blocks that never change. |
-| **Always alive** | TTL, refresh timestamps, “new since last visit”, seasonal rules. |
-| **Role-native** | Layout and ranking differ by role; never one generic feed for everyone. |
-| **Practical over editorial** | Prefer actionable snippets (price move, alert, task, reminder) over long reads. |
+---
 
-### Daily workspace (target experience)
+## Performance
 
-On each visit, the member should be able to see—**as cards, not walls of text**:
+- Load only the **four most important** cards on open.
+- Everything else: **lazy loading**, **dynamic import** per provider, **cache**, **offline** support.
+- Hub module: lazy-imported from workspace; isolated fetches so one slow provider does not block the shell.
 
-- News and updates **for their role**
-- Weather in **their wilaya**
-- Health alerts (when available)
-- Market prices (livestock / feed as applicable)
-- Notifications (platform + hub)
-- Recent activity (their listings, requests, hub interactions)
-- Suggested **tasks** (complete profile, verify animal, read alert, etc.)
+---
 
-MVP may ship a subset; **schema and card types** must allow all of the above later.
+## Offline
 
-### Smart personalization (ranking, not only show/hide)
+When offline, show **cached** information. Display:
 
-Card order and prominence should eventually consider:
+> **Last updated: X minutes ago**  
+> **آخر تحديث: منذ X دقيقة**
 
-1. **Role** (`profiles.role` / `user_type`)
-2. **Wilaya** (and later daira/commune if useful)
-3. **Season** (hemisphere-agnostic rules: Ramadan, heat, breeding season templates)
-4. **Prior activity** (opens, dismissals, last seen card types—privacy-preserving aggregates)
-5. **Explicit interests** (user toggles + inferred from marketplace behavior)
+Never show **empty** dashboards if any cached payload exists.
 
-**Do not** ship a single default grid for all users. Even v1 should use **role templates**; v1.1+ adds scoring.
+---
 
-Persist preferences and ranking hints **server-side** (`profiles.hub_preferences` jsonb first; dedicated `hub_user_preferences` table only if jsonb becomes insufficient).
+## Analytics
 
-### Engagement layer (later phases—design hooks now)
+Track (append-only events; use analytics to **improve the product**, not only to collect data):
 
-Reserve card types and event names for:
+| Signal | Purpose |
+|--------|---------|
+| `impression` | Card in viewport |
+| `dwell_ms` / reading time | Attention |
+| `cta_click` | Link or primary action |
+| `hide` | User disabled card |
+| `dismiss` | Not relevant / swiped away |
+| `return` | Revisited same card type later |
 
-- **Daily tip** (one card, rotates)
-- **Weekly summary** (digest card + optional email later)
-- **Achievement badges** (display-only at first)
-- **Trusted member level** (ties to `profiles.status`, tenure, verified actions)
-- **Profile completion** (progress meter card)
-- **Smart reminders** (rule-based before ML)
+Founder dashboard: most viewed cards, read content, active wilayas, opened alerts, engagement by role.
 
-Implementation can wait; **event logging** should start in P1 (see **Analytics** below)—schema can stay one append-only table with flexible `event_type` + JSON `props` to avoid premature column explosion.
+---
 
-### AI-ready architecture
+## AI ready
 
-From day one, treat **“MawashiDZ AI Assistant”** as a **pluggable surface**:
+Architecture must allow **“MawashiDZ AI Assistant”** as `card_type: 'assistant'` + future `mdz-hub-assistant.mjs` and Edge Function—**without redesigning** the Hub shell. Assistant consumes **normalized hub context** (role, wilaya, alerts, prices), not DOM scraping.
 
-- Dedicated card slot: `card_type: 'assistant'` (placeholder → chat panel later)
-- Assistant consumes the same **normalized hub context** (role, wilaya, recent alerts, prices)—not ad-hoc DOM scraping
-- No coupling between `mdz-account-hub.mjs` and a specific LLM vendor; future module `mdz-hub-assistant.mjs` + Edge Function
+---
 
-### Content engine (provider-agnostic)
+## Content engine (provider-agnostic)
 
-Do **not** hard-wire the UI to WOAH, FAO, or one weather API.
+External and editorial content flows through a **normalization layer**—not straight into UI.
 
 ```text
 ┌──────────────┐     ┌─────────────────────┐     ┌─────────────┐
@@ -163,276 +338,161 @@ Do **not** hard-wire the UI to WOAH, FAO, or one weather API.
 │  market API  │                                        v
 └──────────────┘                              ┌─────────────────┐
                                               │  Card renderer  │
-                                              │  (stable UI)    │
                                               └─────────────────┘
 ```
 
-Adding a provider = new **ingest adapter** + mapping config; **card renderer and account UI unchanged**.
-
-### Founder dashboard (analytics product)
-
-Founders need **usage truth**, not guesswork. Plan an admin view (separate from member hub UI) showing:
-
-- Most viewed **card types**
-- Most read **content items**
-- Most active **wilayas**
-- Most opened **alerts**
-- **Engagement rate by role** (DAU/WAU on hub, clicks per role)
-
-Requires append-only **hub events** (or equivalent) and aggregated views or nightly rollups—aligned with `admin_audit_log` access model. Event richness matters (see **Analytics**).
-
-### Flagship card: «اليوم في ولايتك» / Today in your wilaya
-
-A **composite Card Provider** that may become the **daily habit** hook for MawashiDZ—one scannable card, one wilaya context:
-
-| Row | Content |
-|-----|---------|
-| 🌤️ | Weather for member’s wilaya |
-| 🐑 | Livestock price highlight |
-| 🌾 | Feed price highlight |
-| 🚨 | Health alert (if any) |
-| 📅 | Nearby ag event (when calendar exists) |
-| 📰 | One important role-relevant headline |
-
-Implementation: **orchestrator provider** that calls other providers (or reads normalized feed slices)—not six separate above-the-fold cards on mobile. Target **P1 hero slot** (first of the “top 4”).
-
-### Implications for phased delivery
-
-| Phase | Must include (vision-aligned) |
-|-------|-------------------------------|
-| **P0 — Minimal schema** | Prove the framework; **smallest table set** (see **P0 database MVP** below)—defer CMS tables, per-provider ingest tables, and heavy rollups until usage is real. |
-| **P1 — Engine + MVP cards** | `mdz-hub-core`, registry, **top-4 eager + lazy rest**, offline cache, **Today in your wilaya** + 1–2 atomic providers (weather/prices), engagement events |
-| **P2** | `hub_user_preferences` server-side + hide/dismiss; optional normalized `hub_feed_items` when editorial/external volume justifies it |
-| **P3** | CMS RPC + vet suggest |
-| **P4** | Ranking v1 (role + wilaya + season) |
-| **P5** | External ingest workers per content provider |
-| **P6** | Founder analytics dashboard + engagement product cards |
-| **P7** | AI assistant provider slot |
+New provider = **ingest adapter** + config; card renderer unchanged. Founders enable/disable providers in configuration **without UI redeploy**.
 
 ---
 
-## Goals
+## Security
 
-| Goal | Description |
-|------|-------------|
-| **Role relevance** | Breeders, vets, feed sellers, and buyers each see a distinct default layout. |
-| **Habit formation** | Daily or weekly reasons to return (tips, alerts, weather, prices). |
-| **Trust** | Content sourced or labeled from reputable references; path for Algerian official sources later. |
-| **Governance** | CMS-style workflow: draft → review → publish; vet suggestions; founder approval; audit log. |
-| **No regression** | Zero changes to signup pipeline, session handling, or dashboard RLS in the hub MVP PR. |
+- Permissions enforced **server-side** (RLS + RPC). **Never** rely on hidden buttons alone.
+- Every sensitive operation: secure authorization, RPC where appropriate, **complete audit log** (align with `admin_audit_log` pattern).
+- Managers and admins: all mutating actions logged; no silent bypass of wilaya or rank rules.
 
 ---
 
-## Non-goals (this initiative)
+## Unified notification center (cross-cutting)
 
-- Replacing Supabase Auth or `openAccount` session flow.
-- Changing `registrations` insert or Phase 0 `member_id` allocation.
-- Building a full social network or unlimited UGC without moderation.
-- Shipping long-form article pages as the primary UX (cards and snippets first).
+**One notification center** for the entire workspace:
 
----
+- Purchase requests and messages
+- Approvals and rejections
+- Health and market alerts
+- Offers and platform notices
+- Wilaya/local announcements (scoped by rank)
 
-## Role-based hub content (v1 scope)
+**Requirements:**
 
-### Breeder (موال)
+- Mark as read / mark all read
+- Filter by type (requests, messages, alerts, admin, marketplace, …)
+- Deep link into the correct workspace section or card context
+- Server-backed inbox (not browser-only); RLS per recipient
+- Badge counts on workspace shell; respect rank (no R1 seeing R3-only system alerts)
 
-- Tip of the day (short).
-- Feeding guidance (seasonal snippets).
-- Biosecurity and prevention checklist.
-- Disease / health alerts (aggregated, not alarmist).
-- Weather for member’s wilaya (`profiles.wilaya`).
-- Livestock and feed price highlights (reuse or extend existing price/news engines where possible).
-- Reminders (e.g. vaccination windows—static templates first).
-- Curated short videos/articles (title + link + 2-line summary).
-
-### Veterinarian (طبيب بيطري)
-
-- Latest health alerts (region-aware when data allows).
-- Latest veterinary guidance cards.
-- **Suggest content** (submission → review queue).
-- Cases flagged for review (operational queue—future integration with tickets).
-- Light regional stats (aggregated, privacy-safe).
-
-### Feed seller (بائع أعلاف)
-
-- Storage and quality tips.
-- Market trend cards.
-- Technical articles (short).
-- **My offers / products** (links to future marketplace listings).
-
-### Buyer (مشتري)
-
-- How to choose an animal (checklist card).
-- QR / animal ID explainer (ties to MDZ passport narrative).
-- Pre-purchase tips.
-- New listings highlights.
-- Relevant offers.
+**Phasing:** minimal event types in P1; expand with marketplace and manager workflows.
 
 ---
 
-## Trusted content sources (architecture)
+## Global search (cross-cutting)
 
-See **Content engine** under Founder notes. Providers include:
+**One search bar** inside the workspace (permission-aware):
 
-| Source | Use |
-|--------|-----|
-| **WOAH / WAHIS** | Official animal health alerts and disease events (API or curated sync—respect terms of use). |
-| **FAO** | General livestock guidance; cite and link out. |
-| **Algerian official** | Pluggable provider interface; no hard dependency until URLs/APIs are approved. |
-| **Editorial (MawashiDZ)** | Founder-approved posts in `hub_content` tables. |
+| Entity (examples) | Who may search |
+|-------------------|----------------|
+| Own listings, requests, messages | R1 (own data) |
+| Members, listings, reports (wilaya) | R2 within wilaya |
+| Platform-wide members, content, providers | R3/R4 |
 
-All external items stored as **normalized records**: `source_id`, `title`, `summary`, `url`, `fetched_at`, `locale`, `role_tags[]`.
+Search must use the **same authorization** as list/detail APIs—no “search bypass.” Results grouped by type; empty state explains scope (“Search your listings” vs “Search wilaya members”). Saves time for **members and operations**.
 
----
-
-## Personalization (recommended v1.1)
-
-- Per-user **card visibility** preferences (show/hide hub widgets).
-- Persisted in `profiles.hub_preferences` (JSON) or `member_hub_settings` table—**not** `localStorage` only (so preferences follow the user across devices).
-- Default layout per role; user overrides merge on top.
-- **Roadmap:** card **ordering** via smart personalization signals (see Founder notes)—visibility is step one only.
-
-This small feature significantly increases **ownership** and perceived product quality.
+**Phasing:** P2+ after workspace shell; start with listings + members (manager/founder) behind RPC.
 
 ---
 
-## CMS & permissions (aligned with admin RPC direction)
+## Hub principles (engineering)
+
+| Principle | Meaning |
+|-----------|---------|
+| **No static homepage** | Generated from data + rules + time |
+| **Always alive** | Freshness, TTL, seasonal rules |
+| **Role-native** | Templates per role; no one-size feed |
+| **Practical over editorial** | Actions and snippets first |
+
+**Personalization (roadmap):** role → wilaya → season → activity → interests. Persist via `profiles.hub_preferences` jsonb first; dedicated table only if needed. Even v1 uses **role templates**, not one global grid.
+
+**Engagement (later):** daily tip, weekly summary, badges, trusted level, profile completion, smart reminders—reserve card types and event names early.
+
+---
+
+## CMS & governance (content)
 
 | Capability | Who |
 |------------|-----|
-| Create draft | Editor / vet (role-gated) |
+| Create draft | Editor / vet (gated) |
 | Review | Admin / founder |
-| Publish | Founder (or `super_admin`) |
-| Suggest article | Vet → queue |
-| Audit | Same pattern as `admin_audit_log` (extend or sibling table) |
+| Publish | Founder / `super_admin` |
+| Vet suggest | Queue → review |
+| Audit | Same discipline as admin audit |
 
-States: `draft` | `in_review` | `published` | `archived`.
-
-**No direct PostgREST PATCH** from the browser for publish actions—use **RPC / Edge Functions** like `admin_set_profile_status`.
+States: `draft` | `in_review` | `published` | `archived`. **No browser PATCH** for publish—use RPC / Edge Functions.
 
 ---
 
 ## UX principles
 
-- **Card-first**, not article-first: icon, title, one metric or one sentence, optional CTA.
-- **Scannable** on mobile (primary audience).
-- **Freshness indicators**: “Updated 2h ago”, live dot where data is real-time.
-- **Empty states** that teach (“Connect your wilaya in profile to see weather”).
-- **RTL-safe**; reuse existing MawashiDZ visual language (greens, gold accents for premium actions).
-
-Wireframes can mirror admin dashboard card patterns already introduced in `mdz-dashboards.mjs` without copying admin data paths.
-
-### Performance (mobile-first)
-
-- **Do not** fetch and render ~20 cards on account open.
-- **Eager:** load and paint only the **top 4** cards by rank (include **Today in your wilaya** when wilaya is set).
-- **Deferred:** remaining providers load via **intersection observer** (scroll into view) or explicit “Load more”—each provider fetch is isolated so one slow API does not block the shell.
-- Hub module stays **lazy-imported**; providers can be **dynamic import** per card id.
-- Budget: first meaningful paint for top 4 on mid-tier mobile; show skeletons with stable layout (no CLS).
-
-### Offline-first
-
-When the network fails or is slow, the Hub **must not** go blank.
-
-- Persist **last successful payload** per provider (and composite wilaya card) in **IndexedDB** or Cache API keyed by `(user_id, card_id, wilaya)`.
-- Show cached content with clear stale UX, e.g. **«آخر تحديث: منذ 35 دقيقة»** / *Last updated: 35 min ago*.
-- Prefer showing stale tips, prices, and alerts over empty states.
-- Online refresh updates cache in background (stale-while-revalidate).
-
-### Analytics (beyond “opened”)
-
-Log structured events (single `hub_engagement_events` table with `event_type` + `props` jsonb is enough for P0–P1):
-
-| Event / signal | Why it matters |
-|----------------|----------------|
-| `impression` | Card entered viewport |
-| `dwell_ms` / read time | Estimated attention |
-| `cta_click` | Followed link or primary action |
-| `dismiss` | Swiped away or “not relevant” |
-| `hide` | User turned off card (preference) |
-| `return` | Same card type opened again in a later session |
-
-After months, founders can answer: **what breeders actually care about** vs what nobody reads—feeds product and provider retirement.
+- Card-first, mobile-first, RTL-safe; MawashiDZ visual language
+- Freshness indicators; teach empty states (“Set wilaya to see Today in your wilaya”)
+- Reuse dashboard card patterns from `mdz-dashboards.mjs` where appropriate—**different data paths** per rank
 
 ---
 
 ## P0 database MVP (minimal tables)
 
-**Founder directive:** do not design a large schema before real usage. P0 migration should be **the minimum** to register providers, store optional shared feed rows, and append events.
+Do **not** design a large schema before usage is proven.
 
-| Table (P0) | Purpose |
-|------------|---------|
-| **`hub_cards`** | Registry: `card_id`, `provider_key`, `default_rank`, `roles[]`, `refresh_seconds`, `enabled`, metadata jsonb. |
-| **`hub_feed_items`** (optional at first) | Normalized snippets for editorial + ingested content **only if** P1 needs server-side feed; otherwise start with client providers + cache and add this in P2 when CMS/ingest ships. |
-| **`hub_engagement_events`** | Append-only: `user_id`, `card_id`, `event_type`, `props`, `created_at`. |
+| Table | Purpose |
+|-------|---------|
+| **`hub_cards`** | Registry: `card_id`, `provider_key`, `default_rank`, `roles[]`, `refresh_seconds`, `enabled`, metadata jsonb |
+| **`hub_engagement_events`** | `user_id`, `card_id`, `event_type`, `props`, `created_at` |
+| **`hub_feed_items`** | **Optional in P0** — add when server-side editorial/ingest is required |
 
-**Defer until needed:** separate `content_provider` table, `hub_card_definitions` duplicate of registry, `hub_user_preferences` table (can use `profiles.hub_preferences` jsonb column in P1), nightly rollup views, CMS workflow tables (P3).
+**Defer:** CMS tables, per-provider ingest tables, rollup views, `hub_user_preferences` table (use jsonb first), notification/search tables until P2+ (design hooks in this doc).
 
-**P0 success criterion:** migration applies cleanly; RLS allows authenticated read on published feed (if table exists) and insert-own events; founders can enable/disable cards via `hub_cards.enabled` without redeploying UI chrome.
+**P0 done when:** migration + RLS; founders can toggle `hub_cards.enabled`; members can insert own engagement events.
 
 ---
 
-## Technical approach (high level)
+## Technical approach
 
 ```text
-┌─────────────────────────────────────────┐
-│  accountModal / openAccount             │
-│  └─ import mdz-hub-core (lazy)          │
-│       ├─ resolve context (role, wilaya)   │
-│       ├─ rank providers → top 4 eager     │
-│       ├─ hydrate from offline cache       │
-│       ├─ lazy-fetch on scroll / idle      │
-│       ├─ log engagement (async)           │
-│       └─ render via card shell only       │
-└─────────────────────────────────────────┘
-          │
-          ▼
-┌─────────────────────────────────────────┐
-│  Card Providers (client + optional RPC) │
-│  weather, prices, wilaya-today, …       │
-└─────────────────────────────────────────┘
-          │
-          ▼
-┌─────────────────────────────────────────┐
-│  Supabase (P0 minimal)                  │
-│  hub_cards (registry)                   │
-│  hub_feed_items (when needed)           │
-│  hub_engagement_events                  │
-│  RLS: read feed; insert own events      │
-│  Admin: RPC for registry / CMS later    │
-└─────────────────────────────────────────┘
+openAccount / workspace entry
+  └─ mdz-workspace-shell (future) or account modal bridge
+       ├─ resolve rank, role, wilaya (server-trusted)
+       ├─ notification center + search (phased)
+       ├─ mdz-hub-core: top 4 + lazy + offline + events
+       └─ role workspace panels (listings, requests, … phased)
 ```
-
-**Integration point:** `renderAccountHub` in `js/mdz-account-hub.mjs` delegates to **`js/mdz-hub-core.mjs`**; one dynamic import from account modal—**do not** bloat `index.html` beyond that.
-
-**Tests:** unit tests for role → default card set; contract tests for feed RPC; layout tests for hub overflow on 320px width.
 
 ---
 
-## Phased delivery (recommended)
+## Phased delivery
 
 | Phase | Deliverable | Touches stable core? |
 |-------|-------------|----------------------|
-| **P0 — Spec + minimal schema** | This doc + migration for **P0 database MVP** only (`hub_cards`, events; feed optional) | No runtime change |
-| **P1 — Hub engine MVP** | `mdz-hub-core`, Card Providers, top-4 + lazy, offline cache, **Today in your wilaya**, analytics | Account UI only |
-| **P2 — CMS RPC** | Draft/review/publish + audit | New tables + RPC |
-| **P3 — Vet suggest + buyer/feed layouts** | Role expansions | Hub module only |
-| **P4 — External ingest** | WOAH/FAO jobs (scheduled) | Worker/cron separate from site |
+| **P0** | This vision + **minimal** `hub_cards` + `hub_engagement_events` migration | No runtime |
+| **P1** | `mdz-hub-core`, providers, top-4, offline, **Today in your wilaya**, analytics | Workspace/Hub only |
+| **P2** | Preferences jsonb; optional `hub_feed_items`; notification center MVP; search MVP (scoped) | New tables/RPC as needed |
+| **P3** | Breeder listing/request workspace sections (MVP); CMS RPC | Hub + marketplace modules |
+| **P4** | Vet / buyer / feed workspaces; manager dashboard alignment | Wilaya RLS unchanged unless approved |
+| **P5** | External ingest; ranking v1 |
+| **P6** | Founder analytics + engagement cards |
+| **P7** | AI assistant provider |
 
-Each phase: **one branch, one PR**, green `npm test`, `verify:prod` unchanged unless new static assets are added.
+Each phase: **one branch, one PR**, green `npm test`.
 
 ---
 
-## Acceptance criteria (MVP — Breeder hub)
+## Acceptance criteria (P1 — Hub proof)
 
-1. **Hub Engine** loads; **≤4 cards** fetch/render on open; additional cards appear only after lazy trigger (scroll or load-more).
-2. **Today in your wilaya** visible when `profiles.wilaya` is set (composite or clear empty state if data missing).
-3. At least **one atomic provider** uses live or cached platform data (weather and/or prices).
-4. **Offline:** with network disabled after one successful visit, user still sees last payloads with **last updated** label.
-5. **Analytics:** impression + at least one of `cta_click`, `dwell_ms`, or `hide` recorded to `hub_engagement_events`.
-6. No change to registration success rate, login error rate, or admin RPC behavior (regression check).
-7. Mobile layout: no horizontal scroll on 320px (layout tests).
-8. **Hide preference** may ship P1.1; not a blocker for P1 engine proof.
+1. Hub Engine: **≤4 cards** on open; rest lazy-loaded.
+2. **Today in your wilaya** when wilaya set.
+3. At least one live or cached data provider (weather and/or prices).
+4. Offline shows cache + last-updated label.
+5. Analytics: impression + at least one of `cta_click`, `dwell_ms`, `hide`.
+6. No regression on registration, login, or existing admin RPCs.
+7. No horizontal scroll at 320px.
+8. Rank rules: member UI does not expose founder-only provider toggles or cross-wilaya manager data.
+
+---
+
+## Non-goals
+
+- Replacing Supabase Auth or `openAccount` flow in Hub P1
+- Changing `registrations` insert or `member_id` allocation in Hub PRs
+- Unlimited UGC without moderation
+- Long-form article portal as primary UX
 
 ---
 
@@ -440,25 +500,25 @@ Each phase: **one branch, one PR**, green `npm test`, `verify:prod` unchanged un
 
 | Risk | Mitigation |
 |------|------------|
-| Scope creep (“full CMS”) | Phase gates; founder approves P2 before build |
-| Unvetted health advice | Disclaimer + link to source; no diagnostic claims |
-| API dependency failures | Cached fallback cards; degrade gracefully |
-| Performance | Top-4 eager; provider-level lazy load; dynamic import per provider |
-| Over-engineered P0 schema | Founder rule: minimal tables; add `hub_feed_items`/CMS when proven |
-| Blank offline UX | IndexedDB/cache + stale timestamp copy |
+| Scope creep | Phase gates; founder approves each workspace expansion |
+| Rank leakage | RLS + RPC; search/notifications use same rules |
+| Health advice liability | Source links; no diagnostic claims |
+| Performance | Top-4, lazy providers, dynamic import |
+| P0 schema bloat | Minimal tables per founder directive |
+| Offline blank UI | IndexedDB/cache + stale copy |
 
 ---
 
 ## References
 
-- Current account UI: `js/mdz-dashboards.mjs` → `renderAccountDashboard`
-- Admin audit pattern: `supabase/migrations/008_admin_audit_and_roles.sql` (when merged)
-- News/prices: `netlify/functions/news.mjs`, `assets/market-engine.js` (evaluate reuse)
+- Account UI today: `js/mdz-dashboards.mjs` → `renderAccountDashboard`
+- Admin audit: `supabase/migrations/008_admin_audit_and_roles.sql`
+- News/prices: `netlify/functions/news.mjs`, `assets/market-engine.js`
 
 ---
 
 ## Decision requested
 
-Approve **P0 + P1** as the next product epic after admin operations (008) is live in production, implemented **only** on `cursor/smart-profile-hub-*` branches without mixing registration or Auth changes.
+Approve **this document as mandatory product direction**, then **P0 + P1** after admin operations (008) is live in production.
 
-**Implementers:** read **Hub framework**, **Card Provider model**, **Founder notes**, **P0 database MVP**, **Performance**, **Offline-first**, and **Analytics** before coding. Build **mdz-hub-core** + providers—not a monolithic account page. New platform services ship as **cards**, not new profile tabs.
+**Implementers:** build **mdz-hub-core** + Card Providers and **workspace shell** toward the five pillars—**not** a monolithic settings page. New services = **cards** + workspace sections. Respect **rank order and wilaya fence** in every API and UI surface.
