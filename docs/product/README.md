@@ -2,7 +2,7 @@
 
 **Last updated:** 2026-07-23
 
-This folder is the **official product reference** for MawashiDZ: constitution, decisions, roadmap, and shared vocabulary. Engineering ADRs (e.g. member ID allocation) live under `docs/adr/`; **product direction and workspace philosophy** live here.
+This folder is the **official product reference** for MawashiDZ: member operations, constitution, decisions, roadmap, and shared vocabulary. Engineering ADRs (e.g. member ID allocation) live under `docs/adr/`; **product direction and workspace philosophy** live here.
 
 ---
 
@@ -10,7 +10,8 @@ This folder is the **official product reference** for MawashiDZ: constitution, d
 
 | Document | Role |
 |----------|------|
-| **[PRODUCT_CONSTITUTION.md](./PRODUCT_CONSTITUTION.md)** | Binding direction: Smart Workspaces, Hub framework, security, phases |
+| **[MEMBER_OPERATIONS_AND_COMMUNICATION.md](./MEMBER_OPERATIONS_AND_COMMUNICATION.md)** | **Phase 1 (before Hub):** review, tickets, recovery, email, notifications |
+| **[PRODUCT_CONSTITUTION.md](./PRODUCT_CONSTITUTION.md)** | Binding direction: Smart Workspaces, Hub framework, security, Hub phases |
 | **[PRODUCT_DECISIONS/](./PRODUCT_DECISIONS/)** | Product Decision Records (PDR) — *why* we chose X over Y |
 | **[ROADMAP.md](./ROADMAP.md)** | Approved execution order and phased delivery |
 | **[GLOSSARY.md](./GLOSSARY.md)** | Terms every contributor should use consistently |
@@ -35,10 +36,11 @@ When in doubt: ask *which workspace benefits?* (constitution design gate) and ch
 ## Recommended reading order
 
 1. **This README** — scope and ownership  
-2. **[PRODUCT_CONSTITUTION.md](./PRODUCT_CONSTITUTION.md)** — full vision (mandatory before Hub/workspace work)  
-3. **[PRODUCT_DECISIONS/](./PRODUCT_DECISIONS/)** — skim index; read PDRs relevant to your task  
-4. **[ROADMAP.md](./ROADMAP.md)** — what ships when; stability constraints  
-5. **[GLOSSARY.md](./GLOSSARY.md)** — naming (Smart Workspace vs dashboard, Card Provider, ranks)
+2. **[MEMBER_OPERATIONS_AND_COMMUNICATION.md](./MEMBER_OPERATIONS_AND_COMMUNICATION.md)** — Phase 1 journey (mandatory before Hub)  
+3. **[PRODUCT_CONSTITUTION.md](./PRODUCT_CONSTITUTION.md)** — Smart Workspace vision (after Phase 1 gates)  
+4. **[PRODUCT_DECISIONS/](./PRODUCT_DECISIONS/)** — skim index; read PDRs relevant to your task  
+5. **[ROADMAP.md](./ROADMAP.md)** — what ships when; stability constraints  
+6. **[GLOSSARY.md](./GLOSSARY.md)** — naming (Smart Workspace vs dashboard, Card Provider, ranks)
 
 For registration, Auth, and production recovery, also read `docs/REGISTRATION_FLOW_AUDIT.md`, `docs/PRODUCTION_RECOVERY_MANIFEST.md`, and applicable `docs/adr/` entries.
 
@@ -55,6 +57,7 @@ For registration, Auth, and production recovery, also read `docs/REGISTRATION_FL
 
 ## Quick links
 
+- Member ops: [MEMBER_OPERATIONS_AND_COMMUNICATION.md](./MEMBER_OPERATIONS_AND_COMMUNICATION.md)  
 - Constitution: [PRODUCT_CONSTITUTION.md](./PRODUCT_CONSTITUTION.md)  
 - PDR index: [PRODUCT_DECISIONS/PDR-001.md](./PRODUCT_DECISIONS/PDR-001.md) … [PDR-005](./PRODUCT_DECISIONS/PDR-005.md)  
 - Roadmap: [ROADMAP.md](./ROADMAP.md)  

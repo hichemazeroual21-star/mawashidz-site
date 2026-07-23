@@ -769,10 +769,10 @@ Each phase: **one branch, one PR**, green `npm test`.
 
 Order is fixed to protect production stability:
 
-1. **Finish Admin Operations** (e.g. migration **008**, approve/reject, audit)—merge and deploy.
-2. **Merge this product constitution** after review (docs PR).
+1. **Finish [Member Operations & Communication](./MEMBER_OPERATIONS_AND_COMMUNICATION.md) Phase 1** (steps 1–5: admin ops → tickets → recovery → email → notification center).
+2. **Merge product library** (`docs/product/`) after review.
 3. **P0** on branch `cursor/smart-profile-hub-p0-6004` (or successor): minimal `hub_cards` + `hub_engagement_events` only—**no** registration, Auth, or RLS changes.
-4. **P1 breeder-first:** `mdz-hub-core` + Card Providers + **Breeder Smart Workspace** as the first daily user (highest expected workspace traffic)—then expand other roles.
+4. **P1 breeder-first:** `mdz-hub-core` + Card Providers + **Breeder Smart Workspace** as the first daily user.
 
 **Implementers:** build **mdz-hub-core** + Card Providers and **Smart Workspace shell** toward the five pillars—**not** a monolithic settings page. Every feature passes the **design gate** at the top of this document. New services = **cards** + workspace sections + **events**. Respect **rank order and wilaya fence**. **No Card → SQL.**
 

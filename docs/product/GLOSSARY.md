@@ -22,7 +22,10 @@ Use these terms consistently in specs, PRs, and UI copy. See [PRODUCT_CONSTITUTI
 | **Product Constitution** | Binding product direction document; canonical path `docs/product/PRODUCT_CONSTITUTION.md`. |
 | **Event bus** | Domain events (e.g. `AnimalListed`) fan out to Hub, stats, notifications, analytics. |
 | **P0 minimal schema** | `hub_cards` + `hub_engagement_events`; defer large CMS/ingest tables until proven. |
-| **Notification center** | Unified inbox for requests, messages, approvals, alerts—server-backed, filtered by rank. |
+| **Notification center** | Unified inbox for requests, messages, approvals, alerts—server-backed, filtered by rank. Spec: [MEMBER_OPERATIONS_AND_COMMUNICATION.md](./MEMBER_OPERATIONS_AND_COMMUNICATION.md). |
+| **Support & Messages Center** | Purpose-bound messaging (not “chat”); becomes **tickets**. |
+| **Ticket** | Thread with status, priority, wilaya, links to registration/listing/animal. |
+| **Internal notes** | Staff-only notes on ticket/registration; founder, admin, assigned wilaya manager. |
 | **Global search** | Permission-aware workspace search; same rules as list/detail APIs. |
 | **Trusted Breeder** | Lifecycle stage after sales/ratings; see breeder lifecycle in constitution. |
 | **ADR** | Architecture Decision Record (engineering); lives in `docs/adr/`, complements PDR. |
