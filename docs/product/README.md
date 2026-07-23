@@ -1,0 +1,61 @@
+# MawashiDZ — Product documentation library
+
+**Last updated:** 2026-07-23
+
+This folder is the **official product reference** for MawashiDZ: constitution, decisions, roadmap, and shared vocabulary. Engineering ADRs (e.g. member ID allocation) live under `docs/adr/`; **product direction and workspace philosophy** live here.
+
+---
+
+## What is the official reference?
+
+| Document | Role |
+|----------|------|
+| **[PRODUCT_CONSTITUTION.md](./PRODUCT_CONSTITUTION.md)** | Binding direction: Smart Workspaces, Hub framework, security, phases |
+| **[PRODUCT_DECISIONS/](./PRODUCT_DECISIONS/)** | Product Decision Records (PDR) — *why* we chose X over Y |
+| **[ROADMAP.md](./ROADMAP.md)** | Approved execution order and phased delivery |
+| **[GLOSSARY.md](./GLOSSARY.md)** | Terms every contributor should use consistently |
+
+Legacy path `docs/features/SMART_ROLE_PROFILE_HUB.md` redirects here; do not fork the constitution in feature folders.
+
+---
+
+## Who owns decisions?
+
+| Area | Owner | Notes |
+|------|--------|--------|
+| **Product constitution & PDRs** | Founder / Product | Changes via reviewed PR; Founder approval for new PDRs or constitution amendments |
+| **Roadmap phases & gates** | Founder + engineering lead | P0+ work does not start without phase approval in ROADMAP |
+| **Technical ADRs** | Engineering | `docs/adr/` for database, Auth, security mechanics |
+| **Implementation** | Engineering (Cursor, humans) | Must comply with constitution + PDRs + RLS/RPC rules |
+
+When in doubt: ask *which workspace benefits?* (constitution design gate) and check whether a **PDR** already answers *why*.
+
+---
+
+## Recommended reading order
+
+1. **This README** — scope and ownership  
+2. **[PRODUCT_CONSTITUTION.md](./PRODUCT_CONSTITUTION.md)** — full vision (mandatory before Hub/workspace work)  
+3. **[PRODUCT_DECISIONS/](./PRODUCT_DECISIONS/)** — skim index; read PDRs relevant to your task  
+4. **[ROADMAP.md](./ROADMAP.md)** — what ships when; stability constraints  
+5. **[GLOSSARY.md](./GLOSSARY.md)** — naming (Smart Workspace vs dashboard, Card Provider, ranks)
+
+For registration, Auth, and production recovery, also read `docs/REGISTRATION_FLOW_AUDIT.md`, `docs/PRODUCTION_RECOVERY_MANIFEST.md`, and applicable `docs/adr/` entries.
+
+---
+
+## Adding or changing documentation
+
+- **New product/architecture choice** → add `PRODUCT_DECISIONS/PDR-NNN.md` (next number), link from constitution if strategic.  
+- **Phase or priority change** → update `ROADMAP.md` + Founder approval in PR description.  
+- **New term** → add to `GLOSSARY.md`.  
+- **Constitution change** → rare; requires Founder sign-off; update **Last updated** on this README.
+
+---
+
+## Quick links
+
+- Constitution: [PRODUCT_CONSTITUTION.md](./PRODUCT_CONSTITUTION.md)  
+- PDR index: [PRODUCT_DECISIONS/PDR-001.md](./PRODUCT_DECISIONS/PDR-001.md) … [PDR-005](./PRODUCT_DECISIONS/PDR-005.md)  
+- Roadmap: [ROADMAP.md](./ROADMAP.md)  
+- Glossary: [GLOSSARY.md](./GLOSSARY.md)

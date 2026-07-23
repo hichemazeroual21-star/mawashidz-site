@@ -1,4 +1,3 @@
-<<<<<<< Updated upstream
 # Product Constitution: Smart Role Workspaces
 
 **Founder Vision – Smart Role Workspaces (Mandatory Product Direction)**
@@ -13,6 +12,9 @@
 | **Constraint** | Ship in **dedicated branches and PRs**. Do **not** mix with registration, Auth, or existing RLS changes unless an approved migration explicitly covers them. |
 
 This document is the **MawashiDZ product constitution**: role **Smart Workspaces**, Smart Hub framework, notification center, search, security, and phased engineering. It is **not** a feature wishlist. Treat it as **how the platform is built** for the next several years.
+
+**Canonical location:** `docs/product/PRODUCT_CONSTITUTION.md`  
+**Related:** [Product decisions (PDR)](./PRODUCT_DECISIONS/), [Roadmap](./ROADMAP.md), [Glossary](./GLOSSARY.md), [Product docs README](./README.md).
 
 ### Terminology: Smart Workspace (not “Dashboard”)
 
@@ -779,17 +781,19 @@ Order is fixed to protect production stability:
 ## Decision recorded
 
 **Founder:** this document is the **product constitution** for Smart Role Workspaces. **P0 + P1 (breeder-first)** proceed after Admin Operations are live, under the constraints above.
-=======
-# Smart Role Workspaces (moved)
 
-The **Product Constitution** and all product library docs now live under:
+---
 
-**[docs/product/README.md](../product/README.md)**
+## Architecture decisions (PDR index)
 
-- Constitution: [docs/product/PRODUCT_CONSTITUTION.md](../product/PRODUCT_CONSTITUTION.md)
-- Decisions (PDR): [docs/product/PRODUCT_DECISIONS/](../product/PRODUCT_DECISIONS/)
-- Roadmap: [docs/product/ROADMAP.md](../product/ROADMAP.md)
-- Glossary: [docs/product/GLOSSARY.md](../product/GLOSSARY.md)
+Important product and engineering choices are recorded separately so future contributors do not re-debate settled topics:
 
-Do not edit this stub; change files under `docs/product/` only.
->>>>>>> Stashed changes
+| ID | Title |
+|----|--------|
+| [PDR-001](./PRODUCT_DECISIONS/PDR-001.md) | Smart Workspace replaces traditional Dashboard |
+| [PDR-002](./PRODUCT_DECISIONS/PDR-002.md) | Card Provider architecture |
+| [PDR-003](./PRODUCT_DECISIONS/PDR-003.md) | Platform event bus |
+| [PDR-004](./PRODUCT_DECISIONS/PDR-004.md) | Hub lazy loading (top four cards) |
+| [PDR-005](./PRODUCT_DECISIONS/PDR-005.md) | Server-side workspace preferences |
+
+When you change a decision, add a new PDR or mark the old one **Superseded** and link forward—do not silently contradict the constitution.
