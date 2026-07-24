@@ -1,29 +1,36 @@
 # MawashiDZ Constitution Library
 
-**Last updated:** 2026-07-24
+**Last updated:** 2026-07-24  
+**Strategic phase:** COMPLETE — Constitution v3.0 FROZEN
 
-This folder holds the **master strategic constitution** and supporting governance documents for MawashiDZ.
+## Authoritative documents
 
-## Document hierarchy
+| Document | Role |
+|----------|------|
+| **[MAWASHIDZ_CONSTITUTION.md](./MAWASHIDZ_CONSTITUTION.md)** | Frozen source of truth — identity + commerce thesis |
+| **[ARCHITECTURAL_PRINCIPLES.md](./ARCHITECTURAL_PRINCIPLES.md)** | Engineering invariants |
+| **[ROADMAP.md](./ROADMAP.md)** | Canonical sequencing + phase exit criteria |
+| **[FOUNDER_DECISIONS.md](./FOUNDER_DECISIONS.md)** | Irreversible Founder choices (Proposed / Decided) |
+| **[DECISION_LOG.md](./DECISION_LOG.md)** | Settled why |
+| **[ARCHITECTURE_REVIEW_CHECKLIST.md](./ARCHITECTURE_REVIEW_CHECKLIST.md)** | PR review gate |
+| **[TECHNICAL_DEBT_REGISTER.md](./TECHNICAL_DEBT_REGISTER.md)** | Known debt |
+| **[STRATEGIC_PHASE_COMPLETE.md](./STRATEGIC_PHASE_COMPLETE.md)** | Freeze declaration + self-assessment |
 
-| Document | Role | Authority |
-|----------|------|-----------|
-| **[MAWASHIDZ_CONSTITUTION.md](./MAWASHIDZ_CONSTITUTION.md)** | Master strategic constitution (vision, governance, roles, platform systems, engineering principles) | **Highest authority** for platform direction (pending Founder approval of amendments) |
-| **[FOUNDER_STRATEGIC_REVIEW.md](./FOUNDER_STRATEGIC_REVIEW.md)** | CTO / Technical Co-Founder challenge of constitution, roadmap, and prior recommendations | Advisory — read before approving Constitution |
-| **[CONSTITUTION_GAP_ANALYSIS.md](./CONSTITUTION_GAP_ANALYSIS.md)** | Gap analysis, risk register, field research needs, implementation reality check | Advisory — reviewed before major releases |
-| **[IMPLEMENTATION_ROADMAP.md](./IMPLEMENTATION_ROADMAP.md)** | Recommended phased delivery plan (Phases 0–7) after full analysis | Advisory — Founder approval required; see Strategic Review for sequencing amendments |
-| **[../product/PRODUCT_CONSTITUTION.md](../product/PRODUCT_CONSTITUTION.md)** | Smart Workspace & Hub implementation detail (v1.4) | Subordinate to master constitution; wins on Hub/workspace mechanics until superseded by PDR |
-| **[../product/ROADMAP.md](../product/ROADMAP.md)** | Current engineering delivery tracks and gates | Execution order for in-flight Phase 1–2 work |
+## Subordinate
 
-**Rule:** Implementation follows the Constitution. Never the opposite.
+| Document | Role |
+|----------|------|
+| [../product/PRODUCT_CONSTITUTION.md](../product/PRODUCT_CONSTITUTION.md) | Smart Workspace / Hub mechanics detail |
+| [../product/ROADMAP.md](../product/ROADMAP.md) | Phase 1 track detail — sequencing yields to constitution ROADMAP |
+| [archive/](./archive/) | Historical reviews — **not authoritative** |
 
-When documents conflict:
-1. **MAWASHIDZ_CONSTITUTION.md** wins on vision, governance, and platform identity.
-2. **PRODUCT_CONSTITUTION.md** wins on Smart Workspace / Hub technical patterns until a PDR supersedes.
-3. **ROADMAP.md** defines *when*, not *what*.
+## Conflict resolution
 
-## Governance
+1. Constitution v3.0 wins on vision, trust, roles, NON-GOALS, sequencing principles.  
+2. Constitution ROADMAP wins on phase order (Animals before Hub).  
+3. Product Constitution wins only on Hub card mechanics when Hub is built.  
+4. Archive documents never override.
 
-- Constitution changes require **Founder approval** via reviewed PR.
-- Gap analysis should be updated after major architecture or product shifts.
-- Every conclusion in gap analysis must be labeled: **Verified Fact**, **Assumption**, **Recommendation**, or **Long-Term Idea**.
+## Freeze rule
+
+Reopen strategy only for verified field research, legal requirements, production experience, or major architectural discovery — via Founder-approved amendment + Decision Log entry.

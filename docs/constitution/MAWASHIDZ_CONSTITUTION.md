@@ -1,604 +1,434 @@
 # MawashiDZ Master Constitution
 
-**Version:** 2.0 (Reconstructed)  
-**Status:** Draft for Founder review  
-**Last updated:** 2026-07-24  
-**Supersedes:** Fragmented constitution drafts (v1.0 chat messages)  
-**Related:** [Gap Analysis](./CONSTITUTION_GAP_ANALYSIS.md) · [Smart Workspace detail](../product/PRODUCT_CONSTITUTION.md) · [Roadmap](../product/ROADMAP.md)
+**Version:** 3.0  
+**Status:** FROZEN — strategic architecture phase complete  
+**Effective:** 2026-07-24  
+**Owner:** Founder  
+**Supersedes:** Constitution v2.0 drafts, fragmented chat drafts, conflicting roadmap notes  
+
+**Product thesis (non-negotiable):**
+
+> MawashiDZ is the trusted digital identity and commerce platform for livestock in Algeria.
+
+Every Years 1–2 decision must serve that sentence. If it does not, postpone or delete it.
+
+**Related (subordinate):**
+- [ROADMAP.md](./ROADMAP.md) — when to build  
+- [FOUNDER_DECISIONS.md](./FOUNDER_DECISIONS.md) — irreversible choices  
+- [ARCHITECTURAL_PRINCIPLES.md](./ARCHITECTURAL_PRINCIPLES.md) — engineering invariants  
+- [DECISION_LOG.md](./DECISION_LOG.md) — settled why  
+- [../product/PRODUCT_CONSTITUTION.md](../product/PRODUCT_CONSTITUTION.md) — Smart Workspace / Hub mechanics only  
+
+**Freeze rule:** Do not reopen strategy unless justified by verified field research, legal requirements, production experience, or a major architectural discovery. Record amendments via Decision Log + Founder approval.
 
 ---
 
-## Preamble
-
-MawashiDZ is **not** a marketplace alone, **not** a website alone, and **not** a mobile app alone. It is a **national digital ecosystem** designed to become Algeria's trusted reference for livestock management and livestock commerce.
-
-This Constitution is the **source of truth** for all product, engineering, security, and operational decisions. Implementation follows the Constitution — never the opposite.
-
-This is a **living document**. When architecture, permissions, business rules, or security posture change, the Constitution must be reviewed and updated.
-
-### Classification of statements
-
-Throughout MawashiDZ documentation, every significant conclusion must be labeled:
-
-| Label | Meaning |
-|-------|---------|
-| **Verified Fact** | Confirmed by code, documentation, research, or trusted sources |
-| **Assumption** | Believed true but not yet verified |
-| **Recommendation** | Proposed improvement based on analysis |
-| **Long-Term Idea** | Valuable future direction — not for immediate implementation |
-
----
-
-## Part I — Mission, Vision & Principles
+## 1. Mission & Scope
 
 ### 1.1 Mission
 
-Build the most **trusted**, **secure**, **scalable**, **maintainable**, and **user-friendly** digital livestock ecosystem in Algeria.
+Build the most trusted, secure, scalable, and usable digital livestock identity and commerce platform in Algeria.
 
-### 1.2 Long-term vision
+### 1.2 Years 1–2 scope (in)
 
-The architecture must support continuous growth across:
+- Member identity, verification, and operator governance  
+- Livestock identity (animals, ownership events)  
+- QR verification for members and animals  
+- Marketplace listings and purchase requests with moderation  
+- Support tickets and essential notifications  
+- Breeder / broker / buyer / thin vet workspaces as needed for the above  
 
-- Livestock marketplace
-- Feed marketplace
-- Veterinary services
-- Equipment marketplace
-- Transportation marketplace
-- Livestock health records and vaccination tracking
-- Herd management
-- Membership cards and professional invitations
-- QR identity ecosystem
-- Analytics, reports, and (when justified) AI assistance
-- Mobile applications and offline-aware workflows
-- Future government integrations (if legally and technically appropriate)
-- Future international expansion (only if justified by research)
+### 1.3 Years 1–2 scope (out) — NON-GOALS
 
-*Classification: Vision statement — requires Founder decision on Algeria-only vs expansion (see Gap Analysis §3).*
+Explicitly **not** goals for Years 1–2:
 
-### 1.3 Core principles
+- Feed, equipment, transport, insurance, or auction marketplaces  
+- Voice / video messaging, group chat, E2E encryption  
+- Escrow or full payment rails  
+- AI assistants, medical AI, or price-AI products  
+- Blockchain / cryptocurrency  
+- Microservices or multi-region active-active  
+- International expansion  
+- Government API integration (unless legally mandated)  
+- Daily farm ERP completeness (breeding OS, full herd analytics) before identity+commerce works  
+- Staffing all 58 wilaya managers on day one  
 
-1. **Technology serves people** — people never serve technology.
-2. **Research before assumptions** — field validation before major features.
-3. **Architecture before implementation** — design for five-year sustainability.
-4. **Trust before growth** — monetization must not damage trust.
-5. **Security before convenience** — server-side enforcement always.
-6. **Quality before quantity** — reject feature creep.
-7. **Maintainability before shortcuts** — readable code over clever code.
-8. **Reality before opinions** — challenge every idea, including this document.
+### 1.4 Horizon (Years 3–5) — not commitments
 
-### 1.4 Design gate
+Architecture must not prevent later: deeper vet tools, feed vertical, mobile apps, offline write sync, payments partners, partner APIs, optional regional expansion — **only after** identity+commerce trust is proven in Algeria.
 
-Before any feature is approved, answer:
+### 1.5 Design gates
 
-> **Which responsibility does this serve, and which role benefits?**
+Before any feature:
 
-If the answer is "none" or "everyone equally without purpose," the feature must be **reconsidered**.
+1. Does it strengthen **trusted livestock identity** or **trusted commerce** in Algeria in Years 1–2?  
+2. Which role responsibility does it serve?  
+3. Can a simpler design achieve the same outcome?  
 
-For member-facing surfaces, also apply the Smart Workspace gate from [PRODUCT_CONSTITUTION.md](../product/PRODUCT_CONSTITUTION.md):
-
-> **Which workspace benefits from it?**
-
-### 1.5 Terminology: Smart Workspace (not Dashboard)
-
-**Recommendation** (approved in PDR-001): Use **Smart Workspace** for role operational homes. Avoid "Dashboard" in new product copy, specs, and code names. Legacy modules (e.g. `mdz-dashboards.mjs`) may retain historical names until refactored.
+If unanswered → do not build.
 
 ---
 
-## Part II — Governance & Platform Roles
+## 2. Core Principles
 
-### 2.1 Design around responsibilities, not pages
-
-The platform is designed around **responsibilities** and **permissions**, not around static pages. Every role exists because it solves a real business need. Every permission exists because it supports a real responsibility — nothing more.
-
-### 2.2 Role hierarchy
-
-| Rank | Platform roles | Scope |
-|------|----------------|-------|
-| **R4 — Founder / CEO** | `founder`, `super_admin` | Full platform authority |
-| **R3 — Platform admin** | `admin` | National operations (subset per policy) |
-| **R2 — Wilaya manager** | `wilaya_manager`, `manager`, `wilaya_mgr` | **One wilaya only** (58 wilayas in Algeria — **Verified Fact**) |
-| **R1 — Member** | `breeder`, `vet`, `feed`, `buyer`, (+ optional `broker`) | Own commercial and professional data |
-
-**Verified Fact:** Current implementation stores membership type in `profiles.role` and operational elevation in `user_roles.role`. These are **two separate systems** and must not be conflated.
-
-**Assumption:** The title "CEO" in strategic documents maps to the **Founder** role (`founder` / `super_admin`) in implementation. A separate `ceo` role is **not recommended** — it duplicates Founder authority.
-
-### 2.3 Founder / CEO
-
-The Founder permanently owns the platform. The Founder is not simply another administrator.
-
-**Capabilities include:**
-- Global platform supervision and configuration
-- Permission and employee management
-- Platform roadmap and feature approval
-- Architecture and security review
-- Emergency controls and audit oversight
-- Financial and business analytics (future)
-- System health and deployment monitoring
-
-**Recommendation:** Support one Founder identity linked to multiple verified login emails when justified. Never duplicate founder accounts.
-
-### 2.4 Platform administrators
-
-Administrators manage platform operations. They must **not** automatically receive every permission. Permissions are assigned individually, including:
-
-- Registration approval
-- Marketplace moderation
-- Content moderation
-- Veterinary verification
-- Reports and support
-- User verification
-- Announcements
-
-### 2.5 Wilaya managers
-
-Each Wilaya Manager is responsible **only** for their assigned wilaya.
-
-**May:**
-- Approve/reject registrations and request documents
-- Review reports and moderate local listings
-- View wilaya statistics and support local users
-
-**Must never:**
-- View another wilaya's data
-- Modify global settings or permissions
-- Access Founder-only configuration
-- Change Auth, RLS, or audit policies
-- Delete audit logs or permanently delete users
-
-**Verified Fact:** Wilaya fencing is enforced server-side via RLS (`003_dashboard_rls.sql`) and RPC checks (`007_review_registration_status.sql`).
-
-### 2.6 Member roles
-
-#### Breeder (heart of the platform)
-
-Manages animals, herds, vaccinations, treatments, medical history, weights, breeding, feed consumption, marketplace listings, messages, notifications, documents, membership, QR cards, and statistics.
-
-#### Broker
-
-**Assumption:** Brokers are significant in Algeria's livestock trade but are **not yet** in the schema or UI.
-
-**Recommendation:** Do **not** create a separate broker role until field research confirms distinct workflows from breeders. Initially, extend breeder capabilities (multiple listings, client notes) rather than a new role.
-
-#### Buyer
-
-Requires simplicity: search, filter, compare, favorites, trusted sellers, messaging, notifications, purchase history, QR verification, and veterinary records (when available).
-
-#### Veterinarian
-
-Professional tools only. **Must never** modify ownership, prices, or commercial listing fields.
-
-**Verified Fact:** Registration role is `vet` in current schema.
-
-#### Feed seller
-
-Product catalog, orders, inventory — see Smart Workspace detail in [PRODUCT_CONSTITUTION.md](../product/PRODUCT_CONSTITUTION.md) §3.
-
-### 2.7 Support employees
-
-Support staff receive only permissions required for assigned tasks. No employee receives administrator permissions by default.
-
-### 2.8 Permission philosophy
-
-- **Least privilege** everywhere.
-- **Frontend restrictions are not security** — all authorization via RLS + RPC.
-- Every permission must answer: *Why does this role need this permission?*
-
-### 2.9 Privacy rules (non-negotiable)
-
-| Rule | Meaning |
-|------|---------|
-| **No upward leakage** | R1 never sees R2+ internal queues, audit detail, or cross-user suspension reasons |
-| **Wilaya fence** | R2 sees only their wilaya |
-| **Professional boundaries** | Vets never modify commercial/ownership data |
-| **Admin surface** | Provider toggles, national alerts, role grants — R3/R4 only |
-| **Search & notifications** | Filtered by rank + RLS — no search bypass |
+1. Technology serves people.  
+2. Trust before growth and before monetization.  
+3. Security before convenience — **server-side RLS + RPC are the source of truth**.  
+4. Research before assumptions about Algerian users.  
+5. Identity before marketplace transactions.  
+6. Animals (and ownership truth) before Hub chrome.  
+7. Tickets before open member chat.  
+8. Quality and maintainability before feature count.  
+9. Complexity must justify itself for five years.  
+10. Reality over opinions — including this Constitution when evidence contradicts it (via formal amendment only).
 
 ---
 
-## Part III — Data Governance
+## 3. Platform Roles & Governance
 
-### 3.1 Immutable data policy
+### 3.1 Rank model
 
-Never permanently delete:
+| Rank | Roles | Scope |
+|------|-------|-------|
+| **R4** | `founder`, `super_admin` | Break-glass + full platform authority |
+| **R3** | `admin` | National operations per assigned permissions |
+| **R2** | `wilaya_manager` (aliases `manager`, `wilaya_mgr` until normalized) | **One wilaya only** |
+| **R1** | `breeder`, `broker`, `buyer`, `vet`, `feed` | Own data; commercial/professional surfaces |
 
-- Audit logs, security logs
-- Registration and approval history
-- Permission and role change history
-- Vaccination and veterinary history
-- Livestock ownership history
-- Critical financial references
-- Important system notifications and events
+**Two systems (do not conflate):**
+- **Membership type** → `profiles.role` (who they are commercially)  
+- **Operational elevation** → `user_roles` (admin/manager powers)
 
-For every dataset, classify as: **Immutable**, **Versioned**, **Archived**, or **Soft Deleted** — with documented rationale.
+### 3.2 Founder vs super_admin
 
-**Verified Fact:** `admin_audit_log` is designed in migration 008 (branch only — not yet on `main`).
+- **Founder:** ownership, policy, break-glass, irreversible product decisions.  
+- **super_admin:** technical emergency access; same rank, not a second “CEO.”  
+- No separate `ceo` database role.  
+- Maintain a **break-glass procedure**: secondary Founder-controlled recovery path, documented offline, tested periodically.
 
-### 3.2 Audit policy
+### 3.3 Wilaya managers
 
-Every important action records: **who**, **when**, **what changed**, **previous value**, **new value**, **reason** (when applicable). Audit logs must not be editable.
+- May review registrations, moderate local listings/reports, support local users, view wilaya stats.  
+- Must never see other wilayas, change global policy, grant themselves roles, delete audit logs, or permanently delete users.  
+- **Year-1 staffing reality:** not all 58 wilayas need managers. Unassigned wilayas escalate to R3/R4.
 
-### 3.3 Employee management
+### 3.4 Membership types (R1)
 
-Employees have one identity, may have multiple verified emails if justified, and receive role-based permissions only.
+| Type | Purpose Years 1–2 |
+|------|-------------------|
+| **Breeder** | Own animals, list owned animals, respond to requests |
+| **Broker** | Distinct type — commercial seller/dealer; multi-listings; **not** farm-management clone |
+| **Buyer** | Discover, save, request, verify |
+| **Veterinarian** | Thin: verified profile + consented health notes on animals |
+| **Feed** | Registration reserved; **no catalog product in Years 1–2** |
 
----
+Broker depth (commissions, CRM) waits for field research. Shared infrastructure: listings, media, messaging hooks — not breeder herd tools.
 
-## Part IV — User Experience & Smart Workspaces
+### 3.5 Least privilege
 
-### 4.1 Experience strategy
+Permissions are assigned individually. Frontend hiding is UX, not security.
 
-Every role must immediately feel that MawashiDZ was designed for them. Each Smart Workspace answers: **What is this user trying to accomplish today?**
+### 3.6 Privacy ranks
 
-Display only relevant information. Remove distractions. Prioritize daily tasks and **actions before content**.
-
-### 4.2 Universal workspace structure
-
-Every Smart Workspace combines **five pillars** (detail in [PRODUCT_CONSTITUTION.md](../product/PRODUCT_CONSTITUTION.md)):
-
-1. **Daily insights** (Hub cards, local context, trends)
-2. **Operational management** (listings, orders, requests, cases)
-3. **Quick actions** (create, approve, message, publish)
-4. **Statistics & performance**
-5. **Notifications & workflow**
-
-### 4.3 Role workspace summaries
-
-| Role | Primary focus |
-|------|---------------|
-| **Breeder** | Reminders, vaccinations, listings, messages, market prices, QR, trusted breeder progress |
-| **Broker** | Negotiations, client history, sales performance (future — extend breeder first) |
-| **Buyer** | Discovery, saved searches, favorites, comparison, trusted sellers |
-| **Veterinarian** | Appointments, cases, vaccination schedules, certificates |
-| **Wilaya manager** | Urgent tasks, wilaya queue, reports, local moderation |
-| **Founder / admin** | Platform health, security, registrations, marketplace stats, audit, roadmap |
-
-**Verified Fact:** Today only a **generic account modal** plus admin/manager registration queues exist (`js/mdz-dashboards.mjs`). Role-specific Smart Workspaces are **not implemented** — planned Phase 2 per [ROADMAP.md](../product/ROADMAP.md).
-
-### 4.4 Smart Hub
-
-The Smart Hub is a modular card framework inside each workspace — not a separate product. Every future vertical (equipment, transport, insurance, etc.) registers as a **Card Provider**, not a new top-level paradigm.
-
-**Architecture rule:** No Card may execute SQL directly. Flow: Card → Provider → Service → RPC → Database (RLS).
-
-See [PRODUCT_CONSTITUTION.md](../product/PRODUCT_CONSTITUTION.md) and PDR-002 for full Hub specification.
-
-### 4.5 UX principles
-
-- Card-first, mobile-first, RTL-safe
-- One primary objective per screen
-- Guided empty states — never blank grids
-- Consistent MawashiDZ visual language
-- No deep navigation or hidden functionality
-- No decorative dashboards or unnecessary animations
+No upward leakage. Wilaya fence. Vets never modify ownership or commercial fields. Search and notifications obey the same RLS as APIs.
 
 ---
 
-## Part V — Platform Systems
+## 4. Trust, Fraud & Verification
 
-### 5.1 Messaging
+Trust is the product. Without it, MawashiDZ is classifieds with livestock photos.
 
-Messaging is a core professional communication channel.
+### 4.1 Trust signals (product)
 
-**Phase 1 (Recommendation):** Support & Messages Center — typed tickets, wilaya-scoped threads, staff internal notes. See [SUPPORT_AND_MESSAGES_CENTER.md](../product/SUPPORT_AND_MESSAGES_CENTER.md).
+- Verified membership status  
+- Animal registration linked to listings (verified path)  
+- QR verification pages with clear “what is verified”  
+- Wilaya/admin moderation and report handling  
+- Visible seller response behavior over time (later metrics)
 
-**Phase 2+:** Member-to-member messaging linked to listings and animals.
+### 4.2 Fraud surfaces (must design against)
 
-**Long-Term Ideas** (require Founder decision + research before build):
-- Voice messages, video sharing, location sharing
-- Group conversations
-- End-to-end encryption (vs encrypted transport/storage — evaluate cost/benefit)
+- Fake accounts and stolen phones/emails  
+- Fake veterinarians  
+- Fake or recycled animal photos; QR/photo swap  
+- Speculative spam listings  
+- Manager favoritism / insider abuse  
+- Scam negotiation outside moderated channels  
 
-**Verified Fact:** Only `contact_messages` and `feedback_tickets` public inserts exist today. No ticket threads, no member messaging.
+### 4.3 Controls (Years 1–2)
 
-### 5.2 Notifications
+- Manual registration review (hybrid)  
+- Listing moderation queue  
+- User reports → wilaya/admin  
+- Rate limits on public inserts and verification endpoints  
+- Audit log for all privileged mutations  
+- No “verified vet” badge without human review  
 
-Unified notification center (server-backed inbox, RLS per recipient):
+### 4.4 Listing ↔ animal rule (Founder Decision FD-02)
 
-- Registration outcomes, messages, marketplace events
-- Vaccination and medical reminders
-- Price alerts, listing expiration
-- Wilaya/local announcements (rank-scoped)
-- User-customizable preferences
-
-**Phasing:** Track D in Phase 1 ([MEMBER_OPERATIONS.md](../product/MEMBER_OPERATIONS.md) §5) before Hub deep-links.
-
-**Long-Term Ideas:** Push, SMS, WhatsApp — only after core inbox is stable.
-
-**Verified Fact:** Only EmailJS operator alert on registration exists. No notification center.
-
-### 5.3 QR ecosystem
-
-QR codes are a core identity system for:
-
-- Livestock, members, veterinarians, listings, membership cards, certificates, invitations, documents, farms
-
-**Requirements:**
-- Offline identification where technically feasible
-- Online retrieval of verified records when connected
-- Security against forgery and tampering
-
-**Verified Fact:** Only a static marketing site QR exists. No generation, verification, or `qr_codes` table.
-
-**Recommendation:** Implement QR in Phase 2 alongside first animal profiles — not before livestock entities exist in schema.
-
-### 5.4 Membership cards
-
-Every verified member may receive a professional membership card with unique member ID, QR, verification status, role, wilaya, and membership date. Printable and downloadable as PDF.
-
-**Verified Fact:** Member IDs (`MDZ-F-000001` format) are allocated server-side. PDF/card generation is **not implemented**.
-
-### 5.5 PDF system
-
-Generate professional PDFs for membership cards, invitations, livestock reports, medical/vaccination reports, certificates, and marketplace reports. Include QR where appropriate.
-
-**Status:** Not implemented.
-
-### 5.6 Invitation system
-
-Role-specific invitation templates (vet, breeder, broker, buyer, employee, partner) maintaining MawashiDZ visual identity.
-
-**Verified Fact:** Registration form collects `invite_code` / `invited_by` but full invitation workflow is not built.
-
-### 5.7 Media system
-
-Support images, videos, documents with compression, optimization, secure storage, metadata, and preview generation.
-
-**Verified Fact:** No Supabase storage buckets or upload pipeline in repository.
-
-**Recommendation:** Define watermark policy, upload limits, and retention before enabling uploads.
-
-### 5.8 Brand system
-
-One visual identity: colors, typography, spacing, icons, components, PDF templates, email templates, notification design. Consistency is mandatory.
-
-### 5.9 User education
-
-Role-specific educational content (breeding, buying guides, fraud prevention, moderation guidelines). Content must be manageable and updatable — not hardcoded marketing copy.
-
-### 5.10 Localization
-
-**Verified Fact:** i18n exists for AR/EN/FR/DE (`assets/i18n.js`, `assets/i18n-content.js`).
-
-**Recommendation:** Arabic-first for Algeria; maintain RTL safety as non-negotiable.
+**Settled engineering recommendation pending Founder confirm:** Verified listings **require** a registered animal. Unverified/draft listings without animal — only if Founder explicitly allows a labeled untrusted path; default preference is strict verified path for brand.
 
 ---
 
-## Part VI — Livestock & Veterinary Domain
+## 5. Livestock Identity & Lifecycle
 
-### 6.1 Livestock lifecycle (required workflows)
+### 5.1 Core entities
 
-The Constitution must govern complete animal lifecycles. These workflows are **missing from v1.0 draft implementation** and require schema + RPC design:
+- **Animal** — species, identifiers, photos, status, wilaya, owner  
+- **Herd** (optional grouping) — not required for MVP  
+- **Ownership event** — append-only ledger (register, transfer, sale, death/cull)  
+- **Health event** (later thin) — vaccination/treatment; vet-authored when applicable  
 
-| Workflow | Priority | Notes |
-|----------|----------|-------|
-| Animal registration | Critical | Foundation for QR, health, marketplace |
-| Ownership transfer | Critical | Legal and trust implications — Founder + legal review |
-| Sale completion | Critical | Links marketplace to ownership history |
-| Death / culling record | High | Immutable event; affects herd stats |
-| Breeding lifecycle | High | Mating, gestation, offspring linkage |
-| Vaccination & treatment | High | Vet-authored; immutable history |
-| Weight tracking | Medium | Breeder-operational |
-
-### 6.2 Marketplace
-
-**Verified Fact:** Public livestock exchange board (simulated prices) and news RSS are implemented. **Transactional marketplace** (listings, orders, purchase requests) is not.
-
-**Marketplace policy** (Founder decisions required):
-- Allowed/prohibited listings
-- Verification requirements
-- Broker participation
-- Pricing transparency
-- Moderation and dispute escalation
-
-### 6.3 Veterinary workflows
-
-Veterinarians document visits, vaccinations, and certificates within permission boundaries. Medical liability disclaimers require **professional legal review** — not engineering judgment alone.
-
-### 6.4 Algerian ecosystem context
-
-**Assumption:** Algeria's livestock trade involves breeders, brokers (smaâ), weekly markets, seasonal demand, cash-heavy transactions, and variable internet quality.
-
-**Recommendation:** All major marketplace and payment features require **field research** before implementation (see Gap Analysis §2).
-
----
-
-## Part VII — Security & Performance
-
-### 7.1 Security philosophy
-
-Security is a design principle, not a feature.
-
-Assume: attackers exist, permissions will be abused, users and employees make mistakes.
-
-**Enforce server-side:** Auth, authorization, RLS, RPC, storage, uploads, rate limiting, session management, account recovery, secrets management.
-
-**Review regularly:** SQL injection, XSS, CSRF, privilege escalation, QR forgery, fake listings, fake veterinarians, account takeover.
-
-**Verified Fact:** Core RLS and RPC patterns are sound for Phase 0 registration review. Gaps: open INSERT on `registrations`/`contact_messages`, no rate limiting at edge, publishable key in client bundle (expected for Supabase anon pattern).
-
-### 7.2 Performance strategy
-
-Measure — do not guess. Index appropriately, paginate, lazy-load Hub cards (top 4 only), optimize images/video, use background jobs when needed.
-
-**Verified Fact:** Hub performance patterns are specified but Hub is not implemented.
-
-### 7.3 Offline strategy
-
-Support weak connectivity for: QR identity, membership cards, cached Hub content, previously synchronized records.
-
-**Requirements:** Show "last updated" timestamps; never empty workspace if cache exists; conflict resolution must preserve data integrity.
-
----
-
-## Part VIII — Engineering Standards
-
-### 8.1 Database philosophy
-
-Design tables around **business entities**, not pages. Every table needs clear responsibility, relationships, scalability, auditability, performance, and security.
-
-**Verified Fact:** Phase 0 schema covers `profiles`, `registrations`, `member_id_counters`, `contact_messages`, `feedback_tickets`. `user_roles` is assumed pre-existing but **not created in `setup.sql`**.
-
-**Recommendation:** Consolidate to one canonical migration path. Merge `setup.sql` with migrations 002–007 before any fresh install.
-
-### 8.2 API strategy
-
-Versioned, documented APIs with consistent auth, authorization, rate limits, error handling, and logging. Design for future mobile and partner integrations.
-
-### 8.3 Mobile strategy
-
-Assume mobile becomes primary: simple navigation, offline awareness, fast loading, minimal bandwidth, accessibility, battery efficiency.
-
-**Assumption:** Most Algerian users will access via smartphone — requires field research confirmation.
-
-### 8.4 Testing strategy
-
-Unit, integration, security, performance, accessibility, mobile, regression, and user acceptance testing.
-
-**Verified Fact:** Node test suite exists (`tests/`). No CI workflow in `.github/`.
-
-### 8.5 Documentation strategy
-
-```
-/docs
-  /constitution     ← this library
-  /product          ← PRDs, PDRs, roadmap
-  /architecture
-  /database
-  /security
-  /api
-  /decisions
-  /risks
-  /glossary
-```
-
-### 8.6 Deployment & operations
-
-**Verified Fact:** Production deploys via Cloudflare Worker (`worker.mjs`). `DEPLOYMENT.md` is canonical.
-
-**Missing (Recommendation — Critical/High):**
-- Monitoring and alerting strategy
-- Incident response procedures
-- Backup and disaster recovery documentation
-- Release management and staging gates
-- API documentation for RPCs
-
-### 8.7 AI strategy
-
-AI must solve measurable problems — never marketing decoration.
-
-**Founder approval required** before AI features affecting user decisions: price estimation, medical suggestions, recommendations, auto-moderation, fraud detection.
-
-**Long-Term Idea:** AI assistant as Hub Card Provider (P7 in product roadmap).
-
----
-
-## Part IX — Business & Roadmap
-
-### 9.1 Business model (Founder decision required)
-
-Options requiring explicit Founder approval:
-- Free platform vs premium memberships
-- Veterinarian/broker/enterprise subscriptions
-- Advertising (and which types are acceptable)
-- Revenue must never outweigh user trust
-
-### 9.2 Five-year roadmap structure
-
-Classify all work as: **Must Have**, **Should Have**, **Could Have**, **Won't Implement** (with explanation).
-
-**Verified Fact:** Current engineering roadmap:
+### 5.2 Lifecycle (minimum)
 
 ```text
-Phase 1 — Member Operations & Communication (in progress)
-    ↓
-Phase 2 — Smart Workspace & Hub
-    ↓
-Phase 3+ — Marketplace modules
-    ↓
-Phase 7 — AI assistant slot
+Register animal → Own → (optional health notes) → List → Request → Sale/transfer event
+                                                      ↘ Archive / death event
 ```
 
-**Recommendation:** Do not start marketplace transactions before Phase 1 gates complete and breeder workspace MVP exists.
+Breeding OS, weight graphs, feed consumption: **postpone** until identity+commerce habit exists.
 
-### 9.3 Decision log & risk register
+### 5.3 Ownership truth
 
-Maintain permanent decision log and risk register. Review before every major release.
-
-See [CONSTITUTION_GAP_ANALYSIS.md](./CONSTITUTION_GAP_ANALYSIS.md) for initial risk register.
-
-### 9.4 Feature validation checklist
-
-Before implementing any feature:
-
-1. Does it solve a real problem?
-2. Who benefits and how often?
-3. Can a simpler solution achieve the same result?
-4. Does it add unnecessary complexity, maintenance, or security risk?
-5. Can it scale and be understood by new developers?
-6. Will users discover it?
-7. Would removing it make the platform worse?
-
-If most answers are "no" — **do not implement**.
-
-### 9.5 Features to reject or postpone
-
-**Reject without research:**
-- Blockchain/cryptocurrency integration
-- Microservices before scale requires them
-- Decorative dashboards and duplicate workflows
-- Excessive notifications and large registration forms
-- AI without data and governance
-
-**Postpone until prerequisites exist:**
-- Broker role (until research confirms need)
-- Voice/video messaging (until text messaging stable)
-- National government integration (until legal framework clear)
-- Offline sync of writable data (until conflict model designed)
+Ownership changes only via RPC that writes an ownership event. No silent UI edits of owner. History is immutable.
 
 ---
 
-## Part X — Legal & Compliance (Founder + legal counsel)
+## 6. QR Trust Model
 
-Professional legal review required before finalizing:
+QR is an **identity pointer**, not a marketing sticker.
 
-- Terms of Service, Privacy Policy, Cookie Policy
-- Data retention periods
-- Marketplace and veterinary liability disclaimers
-- Fraud policies and dispute handling
-- Livestock ownership verification standards
+### 6.1 Design
 
-**Recommendation:** Engineering must not publish legal text without counsel approval.
+1. QR encodes an **opaque public ID** (member or animal) — not sensitive PII.  
+2. Online verification hits a **rate-limited API** returning only fields the viewer may see.  
+3. Server remains source of truth.  
+4. Offline: show last cached verification with explicit **stale** label — never invent freshness.  
+5. Printed certificates (later): short-lived signed verification receipts.  
 
----
+### 6.2 Threats
 
-## Part XI — Contradictions Resolved
+Forgery, photocopy replay, swapping QR on photos, scraping IDs, social engineering of verification pages.
 
-| Topic | Draft v1.0 | Existing product docs | Resolution |
-|-------|------------|----------------------|------------|
-| CEO vs Founder | "CEO" used throughout | `founder`, `super_admin` roles | Use **Founder** in implementation; CEO = strategic title for same authority |
-| Dashboard vs Smart Workspace | "Dashboard" for all roles | PDR-001 rejects "Dashboard" | **Smart Workspace** is canonical term |
-| Broker role | Full broker role and dashboard | Not in schema | **Defer** separate role; extend breeder until research confirms |
-| 58 Wilaya managers | Explicit count | Wilaya fence in RLS | **Confirmed** — one manager per wilaya is operational target, not automatic assignment |
-| Messaging scope | Full chat platform day one | Phased ticket system (Track E) | **Phase 1 tickets first**, member messaging after marketplace hooks |
-| E2E encryption | Listed as consideration | Not in product PRDs | **Long-Term Idea** — encrypted transport + storage sufficient for v1 |
-| Constitution authority | New master draft | PRODUCT_CONSTITUTION v1.4 approved | Master constitution governs vision/governance; product constitution governs Hub/workspace mechanics until merged in v2.1 |
+### 6.3 Non-goals for QR
+
+Blockchain passports, offline cryptographic animal DNA claims, QR for every document type on day one.
 
 ---
 
-## Part XII — Related Documents
+## 7. Marketplace
 
-| Document | Path |
-|----------|------|
-| Gap Analysis & Risk Register | [CONSTITUTION_GAP_ANALYSIS.md](./CONSTITUTION_GAP_ANALYSIS.md) |
-| Smart Workspace & Hub detail | [../product/PRODUCT_CONSTITUTION.md](../product/PRODUCT_CONSTITUTION.md) |
-| Phase 1 PRDs | [../product/MEMBER_OPERATIONS.md](../product/MEMBER_OPERATIONS.md) |
-| Support & Messages | [../product/SUPPORT_AND_MESSAGES_CENTER.md](../product/SUPPORT_AND_MESSAGES_CENTER.md) |
-| Roadmap | [../product/ROADMAP.md](../product/ROADMAP.md) |
-| PDRs | [../product/PRODUCT_DECISIONS/](../product/PRODUCT_DECISIONS/) |
-| Glossary | [../product/GLOSSARY.md](../product/GLOSSARY.md) |
-| Database schema | [../database-schema.md](../database-schema.md) |
-| ADR: Member ID | [../adr/001-member-id-allocation.md](../adr/001-member-id-allocation.md) |
+### 7.1 MVP
+
+- Listing lifecycle: draft → review → active → sold/archived  
+- Linked to animal for verified status  
+- Purchase requests + listing-linked threads (after tickets foundation)  
+- Moderation, hide, report  
+- Favorites (should-have)
+
+### 7.2 Payments philosophy (Years 1–2)
+
+**Cash / offline settlement by default.** Platform may later record “deal confirmed” — not move money. Escrow and payment partners require Founder + legal approval and real volume.
+
+### 7.3 Pricing & browsing
+
+Public browse of active listings without login is preferred for adoption; messaging/requests require authenticated verified-capable accounts (Founder Decision FD-08).
+
+---
+
+## 8. Communication
+
+### 8.1 Order
+
+1. Support & Messages Center (tickets, wilaya-scoped, audited)  
+2. Listing-linked threads  
+3. Optional general DM between verified users (later)  
+
+### 8.2 Notifications
+
+Server-backed inbox for: registration outcomes, ticket updates, listing/request events, security alerts, wilaya announcements (scoped). User preferences later. Push/SMS/WhatsApp: not Years 1–2.
+
+### 8.3 Rejected near-term
+
+Voice, video, location sharing as core chat, E2E encryption (blocks moderation and disputes).
+
+---
+
+## 9. Smart Workspaces & Hub
+
+### 9.1 Terminology
+
+**Smart Workspace** = operational home. Avoid “Dashboard” in new copy/code names (PDR-001).
+
+### 9.2 Sequencing
+
+**Livestock Identity MVP before Hub framework investment.**  
+Hub cards project real objects (animals, listings, requests). Do not build a card engine to display empty weather as the flagship.
+
+### 9.3 Role surfaces (Years 1–2)
+
+| Role | Surface |
+|------|---------|
+| Breeder | Animals, listings, requests, tickets, notifications |
+| Broker | Listings, requests, thin seller tools |
+| Buyer | Search/browse, saves, requests, verification |
+| Vet | Profile, verification, consented notes |
+| Manager | Queues, moderation, wilaya stats |
+| Founder/Admin | National ops, audit, roles, config |
+
+Buyer/broker surfaces stay simpler than breeder. Do not clone five pillars for every role.
+
+### 9.4 Hub mechanics
+
+When built: Card Provider pattern, no Card→SQL, top-4 lazy load, offline cache with last-updated — see product constitution. Event bus only when domain events exist.
+
+---
+
+## 10. Data Classification & Privacy
+
+| Class | Examples | Policy |
+|-------|----------|--------|
+| **Immutable ledger** | Ownership events, approval history, role/permission changes, audit logs, health events once written | Append-only; no hard delete |
+| **Soft-delete operational** | Listings, tickets, messages, notifications | Soft-delete + retention window |
+| **Media** | Animal photos, documents | Lifecycle: active → cold → delete per policy |
+| **Profile PII** | Name, phone, email | Soft-delete / anonymize on lawful erasure where required; legal review owns final rules |
+
+Absolute “never delete anything” is **rejected**. Ledgers are forever; clutter is not.
+
+Retention periods: Founder Decision FD-06 + counsel.
+
+---
+
+## 11. Media & Storage
+
+- Supabase Storage (or equivalent) with bucket RLS  
+- Image compression, size limits, MIME allowlists  
+- No executable uploads  
+- Lifecycle rules from day one (cost control at scale)  
+- Watermark policy: Founder brand decision; optional for public listing images later  
+
+---
+
+## 12. Security
+
+- Assume abuse by users and insiders  
+- RLS + SECURITY DEFINER RPCs for mutations of status, roles, ownership, moderation  
+- Harden public INSERTs (rate limit, validation RPC)  
+- Session: Supabase Auth; document expiry expectations  
+- Secrets never in git; publishable anon key is expected — RLS must hold  
+- Threat model living notes: QR, listings, fake vets, privilege escalation  
+
+---
+
+## 13. Reliability: Backup, DR, Incidents
+
+- **Backup:** Rely on platform automated backups (Supabase) + documented restore drill quarterly  
+- **DR:** Document RTO/RPO targets when traffic justifies; Year 1 = restore-from-backup + status communication  
+- **Incidents:** Severity levels, Founder/admin notification, postmortem template  
+- **Deploy:** Existing Cloudflare Worker path; CI must gate merges (`npm test`)  
+
+---
+
+## 14. API & Modular Evolution
+
+- Prefer versioned RPCs / explicit contracts over ad-hoc REST sprawl  
+- Breaking changes require version bump or additive fields  
+- Mobile clients later consume same contracts  
+- Frontend: extract modules from monolith incrementally — **no big-bang SPA rewrite** as a project  
+- Stay on Supabase + edge until measured pain demands change  
+
+---
+
+## 15. Performance & Scale Assumptions
+
+- Indexed queries, pagination, lazy media  
+- Hub top-4 when Hub exists  
+- Design animal/ownership tables for **millions of rows** (indexes, append-only events) from day one — without premature sharding  
+- Revisit read replicas / CDN when metrics show need  
+
+---
+
+## 16. Success Metrics (real KPIs)
+
+Vanity (raw page time) is not primary.
+
+| KPI | Why |
+|-----|-----|
+| Approved members who register ≥1 animal | Identity adoption |
+| Verified listings published | Commerce supply |
+| Median time to first operator response | Trust ops |
+| Purchase requests answered | Liquidity |
+| Completed sale/transfer events | End-to-end value |
+| Report resolution time | Safety |
+| Weekly active breeders/brokers with animals | Habit |
+| Verification page abuse rate | QR security |
+
+---
+
+## 17. Competition & Positioning
+
+Position MawashiDZ as **identity + trusted private commerce**, not as a seasonal import portal and not as generic classifieds.
+
+Do not copy competitor feature lists. Win on verifiable animals, moderated trade, and operator seriousness.
+
+---
+
+## 18. Seasonal Operations (Eid)
+
+Sheep trade spikes around Eid al-Adha. Before first Eid on platform: capacity checklist (registration backlog, listing moderation, support tickets, rate limits, status page). Treat as annual operational event, not a surprise.
+
+---
+
+## 19. AI Policy
+
+- No AI that affects medical, pricing, or trust decisions without Founder AI policy + explainability.  
+- Medical AI: forbidden until professional/legal governance exists.  
+- Architecture may reserve a future assistant card slot — **do not implement** in Years 1–2.
+
+---
+
+## 20. Documentation & Developer Experience
+
+Canonical tree:
+
+```text
+docs/constitution/     ← frozen strategy (this library)
+docs/product/          ← PRDs, PDRs, Hub detail
+docs/adr/              ← engineering ADRs
+docs/runbooks/         ← deploy, incident, restore (create as ops mature)
+```
+
+New engineers read: Constitution → Architectural Principles → Roadmap → database-schema → registration/auth handoff docs.
+
+Every major engineering choice that is not in the Constitution gets an ADR or Decision Log entry.
+
+---
+
+## 21. Constitutional Evolution
+
+| Change type | Process |
+|-------------|---------|
+| Typo / clarity | PR, no Founder block |
+| Strategy / roles / trust model | Founder approval + Decision Log |
+| Emergency security fix | Ship fix, document amendment within 72h |
+
+Archive historical reviews under `docs/constitution/archive/` — they do not override this file.
+
+---
+
+## 22. Field Research Dependencies
+
+Strategy may proceed; these items **must not be invented**:
+
+- Dealer (*maquignon*) digital willingness and workflows  
+- Buyer trust checklist in real markets  
+- On-farm identification practices  
+- Vet credential norms  
+- Payment habits beyond cash assumption  
+- Whether breeders register animals before selling  
+- Per-wilaya connectivity and device reality  
+
+Until researched, prefer reversible product choices and labeled assumptions in FOUNDER_DECISIONS / research notes.
 
 ---
 
@@ -606,19 +436,6 @@ Professional legal review required before finalizing:
 
 | Version | Date | Summary |
 |---------|------|---------|
-| **2.0** | 2026-07-24 | Reconstructed master constitution from fragmented drafts + merged with PRODUCT_CONSTITUTION v1.4 |
-| **1.0** | (chat draft) | Initial strategic draft — superseded by v2.0 structure |
-| **1.4** | 2026-07-23 | PRODUCT_CONSTITUTION (Smart Workspace) — remains active for Hub detail |
-
----
-
-## Founder approval
-
-This v2.0 reconstruction requires Founder review and approval before it supersedes prior strategic drafts as the single highest authority.
-
-**Recommended next actions:**
-1. Approve or amend this master constitution
-2. Resolve Founder decision table in Gap Analysis §3
-3. Commission field research plan (Gap Analysis §2)
-4. Complete Phase 1 Track A (admin operations + audit migration 008)
-5. Schedule legal review for marketplace and veterinary disclaimers
+| **3.0** | 2026-07-24 | Frozen strategic constitution — identity+commerce thesis, NON-GOALS, trust/QR/data class, animals-before-Hub, distinct brokers |
+| 2.0 | 2026-07-24 | Reconstructed draft from chat fragments |
+| 1.x | 2026-07-23 | Product Constitution (Hub) remains subordinate detail |
