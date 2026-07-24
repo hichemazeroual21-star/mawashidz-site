@@ -9,7 +9,11 @@
     "enabled": true
   },
   "assets": {
-    "directory": "./public"
+    "directory": "./public",
+    // Required when Worker script calls env.ASSETS.fetch — without this, non-API miss paths crash.
+    "binding": "ASSETS",
+    // Ensure /api/* always hits Worker (never shadowed by a future public/api file).
+    "run_worker_first": ["/api/*"]
   },
   "compatibility_flags": [
     "nodejs_compat"

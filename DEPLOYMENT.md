@@ -81,7 +81,7 @@ Requires `MAWASHIDZ_CF_SAFE_MODE=confirmed`. Document why break-glass was used.
 | **Version label** | `assets/i18n.js` → `MDZ_APP_VERSION` | Single version string |
 | **Worker bundle** | `public/` | **Generated** — never hand-edit |
 | **Build** | `npm run build` | `sync-worker-public.mjs` + `build-info.json` + `_headers` |
-| **Runtime** | Cloudflare Worker `mawashidz-live` | Serves `./public` per `wrangler.jsonc` |
+| **Runtime** | Cloudflare Worker `mawashidz-live` | Serves `./public` via assets + `worker.mjs` for `/api/*` |
 
 `public/` must match root after every build (`npm run verify:public`).
 
@@ -128,6 +128,11 @@ npm run deploy:prod                        # emergency only; runs test → build
 npm test
 npm run verify:public
 npm run verify:prod                        # fails until production serves latest build-info + v1.10+
+
+# After deploy: API routes (Worker script — not static assets)
+curl -sI https://mawashidz.com/api/livestock-prices   # expect 200
+curl -sL https://mawashidz.com/api/livestock-prices | head -c 200
+curl -sI https://mawashidz.com/api/livestock-news     # expect 200
 ```
 
 `build-info.json` (in `public/` after build):

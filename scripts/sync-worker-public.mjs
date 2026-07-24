@@ -11,7 +11,7 @@ mkdirSync(out, { recursive: true });
 
 const i18n = readFileSync(join(root, 'assets/i18n.js'), 'utf8');
 const versionMatch = i18n.match(/MDZ_APP_VERSION\s*=\s*'([^']+)'/);
-const version = versionMatch ? versionMatch[1] : '1.10.0';
+const version = versionMatch ? versionMatch[1] : 'unknown';
 
 let indexHtml = readFileSync(join(root, 'index.html'), 'utf8');
 indexHtml = indexHtml.replace(

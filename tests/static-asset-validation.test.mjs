@@ -17,6 +17,10 @@ assert.ok(existsSync(syncScript), 'scripts/sync-worker-public.mjs must exist');
 
 const wrangler = JSON.parse(readFileSync(wranglerPath, 'utf8').replace(/^\s*\/\/.*$/gm, '').replace(/,\s*}/g, '}'));
 assert.equal(wrangler.assets?.directory, './public', 'wrangler.jsonc must serve ./public');
+assert.equal(wrangler.assets?.binding, 'ASSETS', 'wrangler.jsonc must bind ASSETS for Worker script');
+assert.deepEqual(wrangler.assets?.run_worker_first, ['/api/*'], 'wrangler.jsonc must run worker first for /api/*');
+assert.equal(wrangler.main, 'worker.mjs', 'wrangler.jsonc must set main to worker.mjs');
+assert.equal(wrangler.name, 'mawashidz-live', 'wrangler.jsonc name must be production worker mawashidz-live');
 
 execSync('npm run build', { stdio: 'inherit' });
 

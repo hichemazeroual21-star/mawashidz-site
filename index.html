@@ -2338,9 +2338,18 @@ async function resolveLoginEmail(identifier){
  if(!r.ok) throw new Error('تعذر العثور على الحساب. استعمل البريد الإلكتروني أو تأكد من الرقم.');
  const email=await r.json(); if(!email) throw new Error('لم نعثر على حساب مطابق لهذه البيانات.'); return String(email);
 }
+function userIdFromAccessToken(token){
+ try{
+  const part=String(token||'').split('.')[1]; if(!part) return null;
+  const json=atob(part.replace(/-/g,'+').replace(/_/g,'/'));
+  const payload=JSON.parse(json);
+  return typeof payload.sub==='string'&&payload.sub?payload.sub:null;
+ }catch{return null}
+}
 async function fetchMyProfile(token, userId){
- const idFilter=userId?`&id=eq.${encodeURIComponent(userId)}`:'';
- const r=await fetch(`${SUPABASE_REST}/profiles?select=*&limit=1${idFilter}`,{headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:`Bearer ${token}`}});
+ const id=userId||userIdFromAccessToken(token);
+ if(!id) throw new Error(t('authErrSession'));
+ const r=await fetch(`${SUPABASE_REST}/profiles?select=*&id=eq.${encodeURIComponent(id)}&limit=1`,{headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:`Bearer ${token}`}});
  if(r.status===401||r.status===403) throw new Error(t('authErrSession'));
  if(!r.ok) throw new Error(t('authErrProfile'));
  const rows=await r.json();return rows[0]||null;
@@ -2728,8 +2737,10 @@ document.getElementById('loginForm')?.addEventListener('submit',async e=>{
 });
 
 document.getElementById('forgotPasswordBtn')?.addEventListener('click',async()=>{
+ /* Always show neutral success toast — anti-enumeration (MEMBER_OPERATIONS §3 / production posture). */
  const id=document.getElementById('loginIdentifier')?.value.trim();if(!id){showToast(t('toastEnterEmail'));return}
- try{const email=await resolveLoginEmail(id);await authRequest('/recover',{method:'POST',body:JSON.stringify({email,redirect_to:MDZ_SITE_URL()+'#auth-callback'})});showToast(t('toastRecoverSent'))}catch(e){showToast(t('toastRecoverFail'))}
+ try{const email=await resolveLoginEmail(id);await authRequest('/recover',{method:'POST',body:JSON.stringify({email,redirect_to:MDZ_SITE_URL()+'#auth-callback'})})}catch(e){console.warn('password recover request failed',e)}
+ showToast(t('toastRecoverSent'));
 });
 
 let mdzAccountProfile=null;
