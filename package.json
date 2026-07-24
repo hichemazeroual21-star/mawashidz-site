@@ -9,6 +9,7 @@
     "test:assets": "node tests/static-asset-validation.test.mjs",
     "test:ui-guard": "node tests/registration-ui-guard.test.mjs",
     "test:e2e": "node tests/registration-e2e.test.mjs",
+    "test:db": "node supabase/tests/run-phase0-tests.mjs",
     "test:security": "node tests/security-allocate-member-id.test.mjs",
     "test:ui-layout": "node tests/ui-layout.test.mjs",
     "test:i18n-layout": "node tests/i18n-layout.test.mjs",
@@ -20,7 +21,9 @@
     "deploy:prod": "node scripts/deploy-prod.mjs"
   },
   "devDependencies": {
+    "embedded-postgres": "^18.4.0-beta.17",
+    "pg": "^8.22.0",
     "puppeteer-core": "^24.0.0",
-    "wrangler": "^4.112.0"
+    "wrangler": "^4.114.0"
   }
 }
