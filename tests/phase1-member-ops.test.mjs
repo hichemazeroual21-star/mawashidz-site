@@ -121,6 +121,11 @@ assert.doesNotMatch(worker, /EMAIL_OUTBOX_SECRET\)\s*\|\|\s*.*SERVICE_ROLE/);
 const wrangler = readFileSync(join(process.cwd(), 'wrangler.jsonc'), 'utf8');
 assert.match(wrangler, /\*\/2 \* \* \* \*/);
 
+const runbook = readFileSync(join(process.cwd(), 'docs/runbooks/email-outbox.md'), 'utf8');
+assert.match(runbook, /\/api\/process-email-outbox/);
+assert.match(worker, /\/api\/process-email-outbox/);
+assert.doesNotMatch(runbook, /Cron calls `POST \/api\/email-outbox`/);
+
 // MDZ-P1-UX-001: no window.prompt on reject path
 const dash = readFileSync(join(process.cwd(), 'js/mdz-dashboards.mjs'), 'utf8');
 assert.match(dash, /openReasonDialog/);

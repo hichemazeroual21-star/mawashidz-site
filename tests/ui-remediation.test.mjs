@@ -144,7 +144,18 @@ assert.match(read('assets/i18n.js'), /notifBellAriaUnread/);
   assert.match(src, /getFocusable/);
   assert.match(src, /e\.key !== 'Tab'|e\.key === 'Tab'/);
   assert.match(src, /Escape/);
+  assert.match(src, /previouslyFocused\.focus/);
+  assert.match(src, /addEventListener\('keydown', onKey, true\)/);
   assert.equal(typeof openReasonDialog, 'function');
+}
+
+// Runbook API path must match Worker route (board condition)
+{
+  const runbook = read('docs/runbooks/email-outbox.md');
+  assert.match(runbook, /\/api\/process-email-outbox/);
+  assert.doesNotMatch(runbook, /POST \$ORIGIN\/api\/email-outbox[^-]/);
+  assert.doesNotMatch(runbook, /Cron calls `POST \/api\/email-outbox`/);
+  assert.match(read('worker.mjs'), /pathname === '\/api\/process-email-outbox'/);
 }
 
 // MDZ-UI-008
