@@ -1,3 +1,4 @@
 supabase/tests/.pgdata/
 node_modules/
 tests/.artifacts/
+public/build-info.json

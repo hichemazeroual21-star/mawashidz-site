@@ -17,6 +17,20 @@ assert.ok(existsSync(syncScript), 'scripts/sync-worker-public.mjs must exist');
 
 const wrangler = JSON.parse(readFileSync(wranglerPath, 'utf8').replace(/^\s*\/\/.*$/gm, '').replace(/,\s*}/g, '}'));
 assert.equal(wrangler.assets?.directory, './public', 'wrangler.jsonc must serve ./public');
+assert.equal(wrangler.assets?.binding, 'ASSETS', 'wrangler.jsonc must bind ASSETS for Worker script');
+assert.deepEqual(wrangler.assets?.run_worker_first, ['/api/*'], 'wrangler.jsonc must run worker first for /api/*');
+assert.equal(wrangler.main, 'worker.mjs', 'wrangler.jsonc must set main to worker.mjs');
+assert.equal(wrangler.name, 'mawashidz-live', 'wrangler.jsonc name must be production worker mawashidz-live');
+
+const i18nSrc = readFileSync(join(root, 'assets/i18n.js'), 'utf8');
+const appVersion = i18nSrc.match(/MDZ_APP_VERSION\s*=\s*'([^']+)'/)?.[1];
+assert.ok(appVersion, 'MDZ_APP_VERSION must exist');
+const rootHtmlBeforeBuild = readFileSync(join(root, 'index.html'), 'utf8');
+assert.match(
+  rootHtmlBeforeBuild,
+  new RegExp(`assets/i18n(?:-content)?\\.js\\?v=${appVersion.replace(/\./g, '\\.')}`, 'g'),
+  `root index.html must already use ?v=${appVersion} (do not rely on build rewrite to hide drift)`,
+);
 
 execSync('npm run build', { stdio: 'inherit' });
 
@@ -32,6 +46,8 @@ const headersPath = join(publicRoot, '_headers');
 assert.ok(existsSync(buildInfoPath), 'public/build-info.json must exist after npm run build');
 const buildInfo = JSON.parse(readFileSync(buildInfoPath, 'utf8'));
 assert.ok(buildInfo.version && buildInfo.commit && buildInfo.builtAt, 'build-info must include version, commit, builtAt');
+assert.equal(buildInfo.worker, wrangler.name, 'build-info.worker must match wrangler.jsonc name');
+assert.ok(existsSync(join(root, 'worker.mjs')), 'worker.mjs must exist for API routes');
 assert.ok(buildInfo.version !== '1.9.0', 'build-info version must not be legacy 1.9.0');
 assert.ok(existsSync(headersPath), 'public/_headers must exist after build (cache policy)');
 
@@ -49,6 +65,8 @@ assert.match(html, /import\('\.\/js\/registration-flow\.mjs'\)/, 'index.html mus
 assert.match(html, /updateAuthChrome/, 'index.html must use updateAuthChrome');
 assert.match(html, /member_id يُخصَّص على السيرفر/, 'registration must rely on server-side member_id allocation');
 assert.ok(!/await allocateMemberId\(raw\.role\)/.test(html), 'registration must not call allocateMemberId RPC from browser');
+assert.match(html, new RegExp(`assets/i18n\\.js\\?v=${buildInfo.version.replace(/\./g, '\\.')}`), 'public index cache-bust must match build-info version');
+assert.equal(readFileSync(join(root, 'index.html'), 'utf8'), html, 'root index.html must match public/index.html after build');
 const payloadBlock = html.match(/const payload=\{[\s\S]*?founding_terms_accepted:checked\(form,'founder_terms'\)\s*\}/);
 assert.ok(payloadBlock && !payloadBlock[0].includes('member_id:ids.memberId'),
   'registrations REST payload must not send member_id/registration_id as top-level columns (PGRST204 on legacy DB)');

@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 /**
  * Production verification — https://mawashidz.com vs local build artifact.
- * Fails on stale v1.9.x shell, missing build-info, or SHA mismatch.
+ * Fails on stale v1.9.x shell, missing build-info, SHA mismatch, or broken API routes
+ * when production already serves this commit.
  */
 import { createHash } from 'node:crypto';
 import { readFileSync, existsSync } from 'node:fs';
@@ -20,6 +21,13 @@ const FILES = [
 
 function sha256File(path) {
   return createHash('sha256').update(readFileSync(path)).digest('hex');
+}
+
+/** Prefer public/ (deploy artifact); fall back to root source. */
+function localDeployPath(rel) {
+  const fromPublic = join(process.cwd(), 'public', rel);
+  if (existsSync(fromPublic)) return fromPublic;
+  return join(process.cwd(), rel);
 }
 
 async function fetchText(url) {
@@ -50,6 +58,20 @@ if (!expectedCommit) {
   }
 }
 
+const localBuildInfoPath = join(root, 'public/build-info.json');
+if (existsSync(localBuildInfoPath) && expectedCommit) {
+  try {
+    const localInfo = JSON.parse(readFileSync(localBuildInfoPath, 'utf8'));
+    if (localInfo.commit && localInfo.commit !== expectedCommit) {
+      fail(`local public/build-info commit ${localInfo.commit.slice(0, 7)} !== HEAD ${expectedCommit.slice(0, 7)} — run npm run build`);
+    }
+  } catch {
+    fail('local public/build-info.json is not valid JSON');
+  }
+}
+
+let prodCommit = '';
+
 // --- build-info on production ---
 const prodInfo = await fetchText(`${PROD_BASE}/build-info.json`);
 if (!prodInfo.ok) {
@@ -63,9 +85,13 @@ if (!prodInfo.ok) {
     info = null;
   }
   if (info) {
-    console.log(`prod build-info: version=${info.version} commit=${info.commit?.slice(0, 7)} builtAt=${info.builtAt}`);
+    prodCommit = info.commit || '';
+    console.log(`prod build-info: version=${info.version} commit=${info.commit?.slice(0, 7)} builtAt=${info.builtAt} worker=${info.worker || '?'}`);
     if (info.version === LEGACY_BANNED_VERSION) {
       fail(`production version is banned legacy ${LEGACY_BANNED_VERSION}`);
+    }
+    if (info.worker && info.worker !== 'mawashidz-live') {
+      fail(`production worker field is ${info.worker}, expected mawashidz-live`);
     }
     if (expectedCommit && info.commit && info.commit !== expectedCommit) {
       fail(`production commit ${info.commit.slice(0, 7)} !== expected ${expectedCommit.slice(0, 7)}`);
@@ -76,7 +102,7 @@ if (!prodInfo.ok) {
 // --- legacy shell detection (evidence-based, not cache guessing) ---
 const prodIndex = await fetchText(`${PROD_BASE}/index.html`);
 if (prodIndex.ok) {
-  if (prodIndex.text.includes(`الإصدار v${LEGACY_BANNED_VERSION}`) || prodIndex.text.includes(`v${LEGACY_BANNED_VERSION}`) && prodIndex.text.includes('Phase 1 Auth UI')) {
+  if (prodIndex.text.includes(`الإصدار v${LEGACY_BANNED_VERSION}`) || (/\bv1\.9\.0\b/.test(prodIndex.text) && prodIndex.text.includes('Phase 1 Auth UI'))) {
     fail(`production index.html still declares or embeds legacy v${LEGACY_BANNED_VERSION} monolith`);
   }
   if (!prodIndex.text.includes('MDZ_APP_VERSION') && !prodIndex.text.includes('assets/i18n.js')) {
@@ -97,7 +123,7 @@ if (!i18n.ok) {
 }
 
 for (const rel of FILES) {
-  const localPath = join(root, rel);
+  const localPath = localDeployPath(rel);
   if (!existsSync(localPath)) {
     fail(`missing local ${rel}`);
     continue;
@@ -110,11 +136,49 @@ for (const rel of FILES) {
       console.error(`  local : ${local}`);
       console.error(`  prod  : ${remote}`);
     } else {
-      console.log(`OK ${rel}`);
+      console.log(`OK ${rel}${localPath.includes(`${join('public')}`) || localPath.includes('/public/') ? ' (public/)' : ''}`);
     }
   } catch (e) {
     fail(`fetch ${rel}: ${e.message}`);
   }
+}
+
+// --- API routes (Worker) — required when prod already serves this commit ---
+const forceApi = process.env.VERIFY_API === '1';
+const skipApi = process.env.VERIFY_API === '0';
+const commitMatched = Boolean(expectedCommit && prodCommit && expectedCommit === prodCommit);
+const shouldCheckApi = !skipApi && (forceApi || commitMatched);
+
+if (shouldCheckApi) {
+  const prices = await fetchText(`${PROD_BASE}/api/livestock-prices`);
+  if (!prices.ok) {
+    fail(`production /api/livestock-prices HTTP ${prices.status}`);
+  } else {
+    try {
+      const body = JSON.parse(prices.text);
+      if (!Array.isArray(body.rows) || !body.rows.length) fail('production prices JSON missing rows');
+      else console.log(`OK /api/livestock-prices (rows=${body.rows.length})`);
+    } catch {
+      fail('production /api/livestock-prices is not valid JSON');
+    }
+  }
+
+  const news = await fetchText(`${PROD_BASE}/api/livestock-news`);
+  if (![200, 503].includes(news.status)) {
+    fail(`production /api/livestock-news HTTP ${news.status} (expected 200 or 503)`);
+  } else {
+    try {
+      const body = JSON.parse(news.text || '{}');
+      if (news.status === 200 && !Array.isArray(body.items)) fail('production news 200 without items[]');
+      else console.log(`OK /api/livestock-news (status=${news.status})`);
+    } catch {
+      fail('production /api/livestock-news is not valid JSON');
+    }
+  }
+} else if (skipApi) {
+  console.log('skip API checks (VERIFY_API=0)');
+} else {
+  console.log('skip API checks (production commit differs — set VERIFY_API=1 to force)');
 }
 
 if (failed) {
