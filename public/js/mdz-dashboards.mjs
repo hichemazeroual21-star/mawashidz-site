@@ -225,23 +225,23 @@ export function renderQueueTable(t, rows, safeText, registrationRoleLabel) {
     return `<div class="dash-empty">${escapeHtml(t('dashEmptyQueue'))}</div>`;
   }
   const head = `<thead><tr>
-    <th>${escapeHtml(t('acctRegId'))}</th>
-    <th>${escapeHtml(t('acctFullName'))}</th>
-    <th>${escapeHtml(t('acctRole'))}</th>
-    <th>${escapeHtml(t('wilaya'))}</th>
-    <th>${escapeHtml(t('acctStatus'))}</th>
-    <th>${escapeHtml(t('dashActions'))}</th>
+    <th scope="col">${escapeHtml(t('acctRegId'))}</th>
+    <th scope="col">${escapeHtml(t('acctFullName'))}</th>
+    <th scope="col">${escapeHtml(t('acctRole'))}</th>
+    <th scope="col">${escapeHtml(t('wilaya'))}</th>
+    <th scope="col">${escapeHtml(t('acctStatus'))}</th>
+    <th scope="col">${escapeHtml(t('dashActions'))}</th>
   </tr></thead>`;
   const body = rows.slice(0, 50).map((row) => {
     const name = safeText(row.full_name || row.first_name, 80) || '—';
     const regId = safeText(row.registration_id || row.registrationId || '—', 40);
-    return `<tr data-registration-id="${escapeHtml(String(row.registration_id || '').trim())}">
-    <td dir="ltr" title="${escapeHtml(regId)}">${escapeHtml(truncateLabel(regId, 22))}</td>
-    <td title="${escapeHtml(name)}">${escapeHtml(truncateLabel(name, 28))}</td>
-    <td>${escapeHtml(registrationRoleLabel(row.role || row.user_type))}</td>
-    <td>${escapeHtml(safeText(row.wilaya, 60))}</td>
-    <td>${renderRegistrationStatusChip(t, row.status)}</td>
-    <td>${rowActionsHtml(t, row)}</td>
+    return `<tr data-registration-id="${escapeHtml(String(row.registration_id || '').trim())}" class="dash-row">
+    <td class="col-id" dir="ltr" title="${escapeHtml(regId)}">${escapeHtml(truncateLabel(regId, 22))}</td>
+    <td class="col-name" title="${escapeHtml(name)}">${escapeHtml(truncateLabel(name, 28))}</td>
+    <td class="col-meta">${escapeHtml(registrationRoleLabel(row.role || row.user_type))}</td>
+    <td class="col-meta">${escapeHtml(safeText(row.wilaya, 60))}</td>
+    <td class="col-status">${renderRegistrationStatusChip(t, row.status)}</td>
+    <td class="col-actions">${rowActionsHtml(t, row)}</td>
   </tr>`;
   }).join('');
   return `<div class="dash-table-wrap"><table class="dash-table">${head}<tbody>${body}</tbody></table></div>

@@ -28,7 +28,7 @@ Lightweight living list. Add items when shipping shortcuts. Clear when fixed.
 | TD-022 | No live RLS integration tests | Static SQL tests only | False confidence | Phase 1 follow-up | Open |
 | TD-027 | Support fetch error ≡ empty | Catch collapses to empty list | Ops trust loss | MDZ-UI-001 error+retry | **Closed** |
 | TD-028 | Raw enums in review/ops priority UI | MVP speed | Non-human status language | MDZ-UI-004/005 i18n chips | **Closed** |
-| TD-029 | Dual marketing vs product chrome | Brochure + DS coexist | Visual inconsistency | Auth header on `.mdz-btn` (MDZ-UI-009); marketing `.btn` remains on brochure | **Mitigated** |
+| TD-029 | Dual marketing vs product chrome | Brochure + DS coexist | Visual inconsistency | Auth header + drawer auth on DS (CE-001); brochure `.btn` remains intentional | **Mitigated** |
 | TD-030 | Incomplete a11y (bell EN label, dialog focus trap) | MVP | A11y gate fail | MDZ-UI-006/007 | **Closed** |
 | TD-031 | Support list missing skeleton | Incomplete triad | Loading inconsistency | MDZ-UI-010 | **Closed** |
 | TD-023 | Outbox attempt exhaustion while awaiting Resend | Elevation 012 claim bump | Stranded mail without key | 013 awaiting_* attempt undo | **Closed** |

@@ -182,3 +182,23 @@ assert.match(read('js/mdz-dashboards.mjs'), /five primary tabs/);
 assert.doesNotMatch(read('js/mdz-dashboards.mjs'), /four primary surfaces/);
 
 console.log('  ✓ MDZ-UI remediation 001–012 gates');
+
+// MDZ-CE-001 — drawer auth chrome on DS
+assert.match(indexSrc, /class="mdz-drawer-auth"/);
+assert.match(indexSrc, /id="drawerLoginLink"[\s\S]*?mdz-drawer-link/);
+assert.match(indexSrc, /mdz-drawer-link-primary/);
+assert.match(indexSrc, /mdz-drawer-link-danger/);
+assert.match(indexSrc, /mdz-btn mdz-btn-primary"[^>]*id="reloginBtn"/);
+const dsCss = read('assets/mdz-design-system.css');
+assert.match(dsCss, /\.mdz-drawer-link-primary/);
+assert.match(dsCss, /\.mdz-drawer-link-danger/);
+
+// MDZ-CE-002 — review queue hierarchy inside modal
+assert.match(indexSrc, /\.dash-table\s+\.col-name/);
+assert.match(indexSrc, /\.dash-table\s+thead\s+th[\s\S]*?position:\s*sticky/);
+const dashSrc = read('js/mdz-dashboards.mjs');
+assert.match(dashSrc, /scope="col"/);
+assert.match(dashSrc, /class="col-name"/);
+assert.match(dashSrc, /class="col-actions"/);
+
+console.log('  ✓ MDZ-CE-001 / CE-002 continuous excellence gates');

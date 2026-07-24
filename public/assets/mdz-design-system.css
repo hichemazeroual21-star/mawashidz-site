@@ -428,6 +428,60 @@ body.mdz-font-ready,
   font-family: var(--mdz-font);
 }
 
+/* CE-001 — drawer auth chrome on DS */
+.drawer .panel {
+  font-family: var(--mdz-font);
+}
+.mdz-drawer-auth {
+  display: grid;
+  gap: var(--mdz-space-2);
+  margin: var(--mdz-space-3) 0;
+  padding: var(--mdz-space-3) 0;
+  border-top: 1px solid var(--mdz-line);
+  border-bottom: 1px solid var(--mdz-line);
+}
+.mdz-drawer-link {
+  display: block;
+  padding: 0.75rem 1rem;
+  border-radius: var(--mdz-radius-sm);
+  border: 1px solid var(--mdz-line-strong);
+  background: var(--mdz-surface-elevated);
+  color: var(--mdz-ink);
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-align: inherit;
+  transition: background var(--mdz-motion), border-color var(--mdz-motion);
+}
+.mdz-drawer-link:hover {
+  background: var(--mdz-surface-sunken);
+}
+.mdz-drawer-link:focus-visible {
+  outline: none;
+  box-shadow: var(--mdz-focus);
+}
+.mdz-drawer-link-primary {
+  background: var(--mdz-brand);
+  border-color: transparent;
+  color: #fff;
+}
+.mdz-drawer-link-primary:hover {
+  background: var(--mdz-brand-strong);
+  color: #fff;
+}
+.mdz-drawer-link-danger {
+  color: var(--mdz-danger);
+  border-color: rgba(180, 35, 24, 0.28);
+}
+.mdz-drawer-link[hidden] { display: none !important; }
+
+/* CE-002 — review queue hierarchy helpers (shared with index dash CSS) */
+.mdz-product .dash-table thead th {
+  background: var(--mdz-surface-sunken);
+}
+.mdz-product .dash-table tbody tr:hover {
+  background: var(--mdz-brand-soft);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .mdz-btn, .mdz-tab, .mdz-item, .mdz-skeleton, .mdz-dialog, .mdz-dialog-backdrop {
     animation: none !important;

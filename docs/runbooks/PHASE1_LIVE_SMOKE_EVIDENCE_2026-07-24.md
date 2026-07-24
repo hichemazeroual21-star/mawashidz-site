@@ -153,3 +153,20 @@ These **do not** substitute for this report’s live Must table.
 |------|--------|
 | Build Agent (this run) | Public probes recorded; authenticated Must **BLOCKED** (no secrets); Phase 1 **not** Verified |
 | Founder / Ops | Must complete operator checklist and return Evidence to Review Board |
+
+---
+
+## Recheck addendum — 2026-07-24T19:21:33Z
+
+| Check | Result |
+|-------|--------|
+| Agent tip | `eb45b64` (+ CE working tree) |
+| Secrets in agent | Still **UNSET** |
+| Prod `/build-info.json` | Still `commit=d845298…` / `builtAt=2026-07-24T14:37:04.116Z` — branch **not** deployed |
+| `POST /api/process-email-outbox` no bearer | **401** `unauthorized` (unchanged) |
+| `POST /api/email-outbox` | **404** (unchanged) |
+| Authenticated Must S1–S10 | Still **BLOCKED** |
+| **Live Smoke** | **FAIL / BLOCKED** (explicit) |
+| Phase 1 Verified | Still **No** |
+
+Excellence polish (**MDZ-CE-001/002**) is Phase-1-safe chrome/table work that **does not depend** on live providers (Board scope B). It **does not** change this smoke verdict or authorize a Zero Known Defects production claim.
