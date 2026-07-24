@@ -66,16 +66,16 @@ export function renderStatusProgress(t, status) {
 }
 
 export function renderAccountTabs(t, active = 'profile') {
+  // Elevated IA: four primary surfaces (invites live under profile)
   const tabs = [
     ['profile', t('acctTabProfile')],
     ['request', t('acctTabRequest')],
-    ['notifications', t('acctTabNotifications')],
+    ['notifications', t('acctTabInbox')],
     ['support', t('acctTabSupport')],
-    ['invites', t('acctTabInvites')],
     ['security', t('acctTabSecurity')],
   ];
-  return `<div class="acct-tabs" role="tablist">${tabs.map(([id, label]) =>
-    `<button type="button" class="acct-tab${active === id ? ' on' : ''}" data-acct-tab="${id}" role="tab" aria-selected="${active === id}">${escapeHtml(label)}</button>`
+  return `<div class="acct-tabs mdz-tabs" role="tablist">${tabs.map(([id, label]) =>
+    `<button type="button" class="acct-tab mdz-tab${active === id ? ' on' : ''}" data-acct-tab="${id}" role="tab" aria-selected="${active === id}">${escapeHtml(label)}</button>`
   ).join('')}</div>`;
 }
 
@@ -119,11 +119,6 @@ export function renderAccountPanel(t, profile, tab, helpers) {
     return `<div id="acctSupportMount"><p class="acct-tab-note">${escapeHtml(t('ticketLoading'))}</p></div>`;
   }
 
-  if (tab === 'invites') {
-    return `${renderInvitePanel(t, p.invite_code, safeText)}
-    <p class="acct-tab-note">${escapeHtml(t('acctInvitesNote'))}</p>`;
-  }
-
   if (tab === 'security') {
     return `<div class="member-data-grid">
       <div class="member-data"><small>${escapeHtml(t('email'))}</small><b dir="ltr">${escapeHtml(safeText(p.email, 120) || '—')}</b></div>
@@ -140,7 +135,9 @@ export function renderAccountPanel(t, profile, tab, helpers) {
     <div class="member-data"><small>${escapeHtml(t('acctStatus'))}</small><b>${escapeHtml(status)}</b></div>
     <div class="member-data"><small>${escapeHtml(t('wilaya'))}</small><b>${escapeHtml(safeText(p.wilaya, 120) || '—')}</b></div>
     <div class="member-data"><small>${escapeHtml(t('phone'))}</small><b dir="ltr">${escapeHtml(safeText(p.phone, 30) || '—')}</b></div>
-  </div>`;
+  </div>
+  ${renderInvitePanel(t, p.invite_code, safeText)}
+  <p class="acct-tab-note">${escapeHtml(t('acctInvitesNote'))}</p>`;
 }
 
 export function renderAccountDashboard(t, profile, helpers) {
@@ -149,19 +146,21 @@ export function renderAccountDashboard(t, profile, helpers) {
   const memberId = p.member_id ? safeText(p.member_id, 40) : '—';
   const fullName = safeText(p.full_name || `${p.first_name || ''} ${p.last_name || ''}`.trim(), 180) || t('acctDefaultName');
 
-  return `${renderAccountTabs(t, 'profile')}
+  return `<div class="mdz-product">
+    ${renderAccountTabs(t, 'profile')}
     <div class="acct-panel" id="acctPanel">
-      <div class="member-hero">
-        <span class="member-id-chip" dir="ltr">${escapeHtml(memberId)}</span>
+      <div class="member-hero mdz-hero-quiet">
+        <span class="member-id-chip mdz-chip" dir="ltr">${escapeHtml(memberId)}</span>
         <h2 class="member-name">${escapeHtml(fullName)}</h2>
         <p class="member-role">${escapeHtml(t('accountOf'))} ${escapeHtml(registrationRoleLabel(p.role))}</p>
-        <span class="member-status-pill">${escapeHtml(statusLabel(p.status))}</span>
+        <span class="member-status-pill mdz-status is-${escapeHtml(statusKey(p.status))}">${escapeHtml(statusLabel(p.status))}</span>
       </div>
       ${renderAccountPanel(t, p, 'profile', helpers)}
     </div>
     <div class="acct-actions">
-      <button class="btn ghost" type="button" id="logoutBtn">${escapeHtml(t('logoutBtn'))}</button>
-    </div>`;
+      <button class="btn ghost mdz-btn mdz-btn-ghost" type="button" id="logoutBtn">${escapeHtml(t('logoutBtn'))}</button>
+    </div>
+  </div>`;
 }
 
 function truncateLabel(value, max = 42) {
@@ -233,7 +232,8 @@ function renderQueueTable(t, rows, safeText, registrationRoleLabel) {
 
 export function renderManagerDashboard(t, ctx) {
   const { wilaya, rows, safeText, registrationRoleLabel } = ctx;
-  return `<div class="dash-hero manager">
+  return `<div class="mdz-product">
+  <div class="dash-hero manager mdz-hero-quiet">
     <h3>${escapeHtml(t('mgrDashTitle'))}</h3>
     <p>${escapeHtml(t('mgrDashDesc', { wilaya: wilaya || t('laterValue') }))}</p>
     <span class="dash-source">${escapeHtml(t('dashSourceLive'))}</span>
@@ -245,12 +245,15 @@ export function renderManagerDashboard(t, ctx) {
   </div>
   <div id="dashQueueMount">${renderQueueTable(t, rows, safeText, registrationRoleLabel)}</div>
   <p class="dash-note" id="dashActionStatus" aria-live="polite"></p>
-  <p class="dash-note">${escapeHtml(t('mgrDashNote'))}</p>`;
+  <p class="dash-note">${escapeHtml(t('mgrDashNote'))}</p>
+  <div id="opsSupportMount" class="mdz-ops-mount" style="margin-top:20px"><div class="mdz-skeleton" style="height:120px"></div></div>
+  </div>`;
 }
 
 export function renderAdminDashboard(t, ctx) {
   const { stats, rows, safeText, registrationRoleLabel } = ctx;
-  return `<div class="dash-hero admin">
+  return `<div class="mdz-product">
+  <div class="dash-hero admin mdz-hero-quiet">
     <h3>${escapeHtml(t('adminDashTitle'))}</h3>
     <p>${escapeHtml(t('adminDashDesc'))}</p>
     <span class="dash-source">${escapeHtml(t('dashSourceLive'))}</span>
@@ -263,7 +266,9 @@ export function renderAdminDashboard(t, ctx) {
   </div>
   <div id="dashQueueMount">${renderQueueTable(t, rows, safeText, registrationRoleLabel)}</div>
   <p class="dash-note" id="dashActionStatus" aria-live="polite"></p>
-  <p class="dash-note">${escapeHtml(t('adminDashNote'))}</p>`;
+  <p class="dash-note">${escapeHtml(t('adminDashNote'))}</p>
+  <div id="opsSupportMount" class="mdz-ops-mount" style="margin-top:20px"><div class="mdz-skeleton" style="height:120px"></div></div>
+  </div>`;
 }
 
 export async function fetchUserRoles(token, restUrl, apiKey) {
@@ -370,14 +375,36 @@ export function wireDashboardReviewActions(root, {
 
     let reason = null;
     if (action === 'rejected') {
-      const entered = typeof window !== 'undefined'
-        ? window.prompt(t('dashRejectReasonPrompt') || 'سبب الرفض (يظهر للعضو):', '')
-        : '';
-      reason = entered == null ? null : String(entered).trim() || null;
+      let entered = null;
+      try {
+        const ops = await import('./mdz-member-ops.mjs');
+        entered = await ops.openReasonDialog({
+          title: t('dashRejectTitle') || t('dashReject'),
+          body: t('dashRejectReasonHelp') || '',
+          label: t('dashRejectReasonPrompt') || 'Rejection reason',
+          placeholder: t('dashRejectReasonPh') || '',
+          confirmLabel: t('dashReject'),
+          cancelLabel: t('cancel') || 'Cancel',
+          required: true,
+          minLength: 3,
+          tooShortMessage: t('dashRejectReasonShort') || '',
+        });
+      } catch {
+        entered = typeof window !== 'undefined'
+          ? window.prompt(t('dashRejectReasonPrompt') || 'Rejection reason:', '')
+          : '';
+      }
       if (entered === null) {
         busy = false;
         root.querySelectorAll('[data-review-action]').forEach((el) => { el.disabled = false; });
         if (statusEl) statusEl.textContent = t('dashReviewCancelled') || '';
+        return;
+      }
+      reason = String(entered).trim() || null;
+      if (!reason || reason.length < 3) {
+        busy = false;
+        root.querySelectorAll('[data-review-action]').forEach((el) => { el.disabled = false; });
+        if (statusEl) statusEl.textContent = t('dashRejectReasonShort') || t('dashReviewFailed');
         return;
       }
     }

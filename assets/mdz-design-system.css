@@ -1,0 +1,400 @@
+/**
+ * MawashiDZ Product Design System — Phase 1 quality elevation
+ * Principles: calm trust, RTL-first, one action per surface, timeless (not trendy).
+ * Authenticated chrome should feel closer to Stripe/Linear than a brochure template.
+ */
+
+:root {
+  /* Brand — livestock Algeria, serious green + warm ink (avoid purple AI cliché) */
+  --mdz-ink: #12201a;
+  --mdz-ink-soft: #3d4f46;
+  --mdz-muted: #6b7c73;
+  --mdz-line: rgba(18, 32, 26, 0.10);
+  --mdz-line-strong: rgba(18, 32, 26, 0.16);
+  --mdz-surface: #f7f8f6;
+  --mdz-surface-elevated: #ffffff;
+  --mdz-surface-sunken: #eef1ee;
+  --mdz-brand: #0f6b4c;
+  --mdz-brand-strong: #0a4f38;
+  --mdz-brand-soft: rgba(15, 107, 76, 0.10);
+  --mdz-accent: #c4a35a;
+  --mdz-danger: #b42318;
+  --mdz-danger-soft: rgba(180, 35, 24, 0.10);
+  --mdz-warn: #b54708;
+  --mdz-success: #027a48;
+  --mdz-info: #175cd3;
+
+  --mdz-radius-sm: 8px;
+  --mdz-radius: 12px;
+  --mdz-radius-lg: 18px;
+  --mdz-shadow-sm: 0 1px 2px rgba(18, 32, 26, 0.06);
+  --mdz-shadow: 0 8px 24px rgba(18, 32, 26, 0.08);
+  --mdz-shadow-lg: 0 18px 48px rgba(18, 32, 26, 0.12);
+
+  --mdz-font: "IBM Plex Sans Arabic", "Segoe UI", Tahoma, sans-serif;
+  --mdz-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --mdz-space-1: 4px;
+  --mdz-space-2: 8px;
+  --mdz-space-3: 12px;
+  --mdz-space-4: 16px;
+  --mdz-space-5: 24px;
+  --mdz-space-6: 32px;
+  --mdz-focus: 0 0 0 3px rgba(15, 107, 76, 0.28);
+  --mdz-motion: 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.mdz-product {
+  font-family: var(--mdz-font);
+  color: var(--mdz-ink);
+}
+
+.mdz-product .mdz-eyebrow {
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--mdz-muted);
+  font-weight: 700;
+  margin: 0 0 var(--mdz-space-2);
+}
+
+.mdz-product .mdz-title {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+}
+
+.mdz-product .mdz-subtitle {
+  margin: var(--mdz-space-2) 0 0;
+  color: var(--mdz-ink-soft);
+  font-size: 0.95rem;
+  line-height: 1.55;
+}
+
+/* Tabs — underline IA, not candy pills */
+.mdz-tabs {
+  display: flex;
+  gap: var(--mdz-space-1);
+  border-bottom: 1px solid var(--mdz-line);
+  margin-bottom: var(--mdz-space-4);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.mdz-tabs::-webkit-scrollbar { display: none; }
+.mdz-tab {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--mdz-muted);
+  font: inherit;
+  font-weight: 650;
+  font-size: 0.9rem;
+  padding: var(--mdz-space-3) var(--mdz-space-3);
+  cursor: pointer;
+  white-space: nowrap;
+  position: relative;
+  transition: color var(--mdz-motion);
+}
+.mdz-tab:hover { color: var(--mdz-ink); }
+.mdz-tab.on {
+  color: var(--mdz-brand-strong);
+}
+.mdz-tab.on::after {
+  content: "";
+  position: absolute;
+  inset-inline: var(--mdz-space-2);
+  bottom: -1px;
+  height: 2px;
+  background: var(--mdz-brand);
+  border-radius: 2px;
+}
+.mdz-tab:focus-visible { outline: none; box-shadow: var(--mdz-focus); border-radius: var(--mdz-radius-sm); }
+
+/* Buttons */
+.mdz-btn {
+  appearance: none;
+  border: 1px solid transparent;
+  border-radius: var(--mdz-radius-sm);
+  font: inherit;
+  font-weight: 700;
+  font-size: 0.9rem;
+  padding: 0.65rem 1rem;
+  cursor: pointer;
+  transition: background var(--mdz-motion), border-color var(--mdz-motion), transform 80ms ease;
+}
+.mdz-btn:active { transform: translateY(1px); }
+.mdz-btn:focus-visible { outline: none; box-shadow: var(--mdz-focus); }
+.mdz-btn-primary {
+  background: var(--mdz-brand);
+  color: #fff;
+}
+.mdz-btn-primary:hover { background: var(--mdz-brand-strong); }
+.mdz-btn-ghost {
+  background: transparent;
+  border-color: var(--mdz-line-strong);
+  color: var(--mdz-ink);
+}
+.mdz-btn-ghost:hover { background: var(--mdz-surface-sunken); }
+.mdz-btn-danger {
+  background: var(--mdz-danger);
+  color: #fff;
+}
+.mdz-btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+
+/* Fields */
+.mdz-field { display: grid; gap: var(--mdz-space-2); margin-bottom: var(--mdz-space-3); }
+.mdz-field > span { font-size: 0.8rem; font-weight: 700; color: var(--mdz-ink-soft); }
+.mdz-input, .mdz-select, .mdz-textarea {
+  width: 100%;
+  border: 1px solid var(--mdz-line-strong);
+  border-radius: var(--mdz-radius-sm);
+  background: var(--mdz-surface-elevated);
+  padding: 0.7rem 0.8rem;
+  font: inherit;
+  color: var(--mdz-ink);
+  transition: border-color var(--mdz-motion), box-shadow var(--mdz-motion);
+}
+.mdz-input:focus, .mdz-select:focus, .mdz-textarea:focus {
+  outline: none;
+  border-color: var(--mdz-brand);
+  box-shadow: var(--mdz-focus);
+}
+.mdz-textarea { min-height: 96px; resize: vertical; }
+
+/* Surfaces */
+.mdz-panel {
+  background: var(--mdz-surface-elevated);
+  border: 1px solid var(--mdz-line);
+  border-radius: var(--mdz-radius-lg);
+  box-shadow: var(--mdz-shadow-sm);
+  padding: var(--mdz-space-5);
+}
+.mdz-hero-quiet {
+  padding: var(--mdz-space-5);
+  border-radius: var(--mdz-radius-lg);
+  background: linear-gradient(160deg, #0f3f2e 0%, #145c42 55%, #1a6b4d 100%);
+  color: #fff;
+  margin-bottom: var(--mdz-space-4);
+}
+.mdz-hero-quiet .mdz-chip {
+  display: inline-flex;
+  direction: ltr;
+  background: rgba(255,255,255,0.14);
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 999px;
+  padding: 0.2rem 0.65rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.mdz-hero-quiet h2 {
+  margin: var(--mdz-space-3) 0 var(--mdz-space-2);
+  font-size: 1.4rem;
+  letter-spacing: -0.02em;
+}
+.mdz-hero-quiet p { margin: 0; opacity: 0.88; font-size: 0.92rem; }
+
+.mdz-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border-radius: 999px;
+  padding: 0.2rem 0.65rem;
+  font-size: 0.75rem;
+  font-weight: 750;
+  background: var(--mdz-surface-sunken);
+  color: var(--mdz-ink-soft);
+}
+.mdz-status.is-pending { background: #fff4e5; color: var(--mdz-warn); }
+.mdz-status.is-approved, .mdz-status.is-active, .mdz-status.is-open { background: #e8f7ef; color: var(--mdz-success); }
+.mdz-status.is-rejected, .mdz-status.is-suspended, .mdz-status.is-closed { background: var(--mdz-danger-soft); color: var(--mdz-danger); }
+.mdz-status.is-in_review, .mdz-status.is-waiting_for_member, .mdz-status.is-escalated { background: #eef4ff; color: var(--mdz-info); }
+
+/* Inbox / tickets */
+.mdz-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--mdz-space-2);
+  align-items: center;
+  margin-bottom: var(--mdz-space-3);
+}
+.mdz-list { display: grid; gap: var(--mdz-space-3); }
+.mdz-item {
+  border: 1px solid var(--mdz-line);
+  border-radius: var(--mdz-radius);
+  padding: var(--mdz-space-4);
+  background: var(--mdz-surface-elevated);
+  transition: border-color var(--mdz-motion), box-shadow var(--mdz-motion);
+}
+.mdz-item:hover { border-color: var(--mdz-line-strong); box-shadow: var(--mdz-shadow-sm); }
+.mdz-item.is-unread {
+  border-color: rgba(15, 107, 76, 0.35);
+  box-shadow: inset 3px 0 0 var(--mdz-brand);
+}
+.mdz-item header {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--mdz-space-3);
+  align-items: baseline;
+}
+.mdz-item header strong { font-size: 0.95rem; }
+.mdz-item time, .mdz-meta { color: var(--mdz-muted); font-size: 0.78rem; }
+.mdz-item p { margin: var(--mdz-space-2) 0 0; color: var(--mdz-ink-soft); line-height: 1.5; font-size: 0.9rem; }
+
+.mdz-empty {
+  text-align: center;
+  padding: var(--mdz-space-6) var(--mdz-space-4);
+  border: 1px dashed var(--mdz-line-strong);
+  border-radius: var(--mdz-radius-lg);
+  background: var(--mdz-surface);
+}
+.mdz-empty strong { display: block; margin-bottom: var(--mdz-space-2); font-size: 1rem; }
+.mdz-empty p { margin: 0 0 var(--mdz-space-4); color: var(--mdz-muted); font-size: 0.9rem; }
+
+.mdz-skeleton {
+  border-radius: var(--mdz-radius);
+  background: linear-gradient(90deg, #eef1ee 25%, #f7f8f6 37%, #eef1ee 63%);
+  background-size: 400% 100%;
+  animation: mdzShimmer 1.2s ease infinite;
+  height: 72px;
+}
+@keyframes mdzShimmer {
+  0% { background-position: 100% 0; }
+  100% { background-position: 0 0; }
+}
+
+/* Dialog */
+.mdz-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(12, 20, 16, 0.48);
+  backdrop-filter: blur(4px);
+  z-index: 12000;
+  display: grid;
+  place-items: center;
+  padding: var(--mdz-space-4);
+  animation: mdzFade 160ms ease;
+}
+@keyframes mdzFade { from { opacity: 0; } to { opacity: 1; } }
+.mdz-dialog {
+  width: min(440px, 100%);
+  background: var(--mdz-surface-elevated);
+  border-radius: var(--mdz-radius-lg);
+  box-shadow: var(--mdz-shadow-lg);
+  border: 1px solid var(--mdz-line);
+  padding: var(--mdz-space-5);
+  animation: mdzRise 180ms ease;
+}
+@keyframes mdzRise {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+.mdz-dialog h3 { margin: 0 0 var(--mdz-space-2); font-size: 1.1rem; }
+.mdz-dialog p { margin: 0 0 var(--mdz-space-4); color: var(--mdz-ink-soft); font-size: 0.92rem; line-height: 1.5; }
+.mdz-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--mdz-space-2);
+  margin-top: var(--mdz-space-4);
+}
+
+/* Header bell */
+.mdz-bell {
+  position: relative;
+  appearance: none;
+  border: 1px solid var(--mdz-line-strong);
+  background: var(--mdz-surface-elevated);
+  border-radius: 999px;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+  display: inline-grid;
+  place-items: center;
+  color: var(--mdz-ink);
+}
+.mdz-bell:focus-visible { outline: none; box-shadow: var(--mdz-focus); }
+.mdz-bell-badge {
+  position: absolute;
+  top: -2px;
+  inset-inline-end: -2px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--mdz-danger);
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 800;
+  display: grid;
+  place-items: center;
+  line-height: 1;
+}
+.mdz-bell-badge[hidden] { display: none !important; }
+
+/* Operator queue split */
+.mdz-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  gap: var(--mdz-space-4);
+}
+@media (max-width: 860px) {
+  .mdz-split { grid-template-columns: 1fr; }
+}
+
+.mdz-filter-chip {
+  appearance: none;
+  border: 1px solid var(--mdz-line-strong);
+  background: transparent;
+  border-radius: 999px;
+  padding: 0.35rem 0.75rem;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--mdz-ink-soft);
+  cursor: pointer;
+}
+.mdz-filter-chip.on {
+  background: var(--mdz-brand-soft);
+  border-color: transparent;
+  color: var(--mdz-brand-strong);
+}
+
+/* Account modal product shell */
+#accountModal .modal-card,
+#managerDashModal .modal-card,
+#adminDashModal .modal-card {
+  max-width: 760px;
+}
+#accountContent.mdz-product,
+#managerDashContent.mdz-product,
+#adminDashContent.mdz-product {
+  padding: 4px;
+}
+
+.mdz-msg {
+  border-radius: var(--mdz-radius);
+  background: var(--mdz-surface-sunken);
+  padding: var(--mdz-space-3);
+  margin-bottom: var(--mdz-space-2);
+}
+.mdz-msg time { display: block; margin-bottom: 4px; color: var(--mdz-muted); font-size: 0.72rem; }
+.mdz-msg.is-staff { background: var(--mdz-brand-soft); }
+
+.mdz-field-hint {
+  color: var(--mdz-danger);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+.mdz-btn-sm { padding: 0.4rem 0.7rem; font-size: 0.8rem; }
+.mdz-ops-mount { margin-top: var(--mdz-space-5); }
+body.mdz-font-ready,
+.mdz-product {
+  font-family: var(--mdz-font);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mdz-btn, .mdz-tab, .mdz-item, .mdz-skeleton, .mdz-dialog, .mdz-dialog-backdrop {
+    animation: none !important;
+    transition: none !important;
+  }
+}

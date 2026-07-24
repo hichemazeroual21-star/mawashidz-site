@@ -1,13 +1,10 @@
 /**
- * Process email_outbox via Resend (or skip when unset).
- * Auth: Authorization Bearer must match SUPABASE_SERVICE_ROLE_KEY or EMAIL_OUTBOX_SECRET.
+ * Process email_outbox via Resend.
+ * - Claims rows into `processing` (lease) via mdz_claim_email_outbox
+ * - Without RESEND_API_KEY: requeue to pending (never permanent skip)
+ * - Failed sends stay failed; attempts capped in SQL claim
  *
- * Env:
- * - SUPABASE_URL
- * - SUPABASE_SERVICE_ROLE_KEY
- * - RESEND_API_KEY (optional — without it, messages marked skipped)
- * - EMAIL_FROM (default: MawashiDZ <noreply@mawashidz.com>)
- * - EMAIL_OUTBOX_SECRET (optional alternate bearer)
+ * Env: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, RESEND_API_KEY?, EMAIL_FROM?, EMAIL_OUTBOX_SECRET?
  */
 
 const JSON_HEADERS = {
@@ -19,9 +16,10 @@ function json(status, body) {
   return new Response(JSON.stringify(body), { status, headers: JSON_HEADERS });
 }
 
-function envOf(request, name) {
-  // Netlify/Worker: prefer process.env; Worker also passes env via handler wrapper
-  return (typeof process !== 'undefined' && process.env && process.env[name]) || request?.__env?.[name] || '';
+function envOf(request, runtimeEnv, name) {
+  return runtimeEnv?.[name]
+    || (typeof process !== 'undefined' && process.env && process.env[name])
+    || '';
 }
 
 async function supabaseRpc(baseUrl, serviceKey, fn, args) {
@@ -65,12 +63,13 @@ async function sendResend({ apiKey, from, to, subject, text }) {
 }
 
 export async function processEmailOutbox(request, runtimeEnv = {}) {
-  const get = (name) => runtimeEnv[name] || envOf(request, name) || '';
+  const get = (name) => envOf(request, runtimeEnv, name);
   const supabaseUrl = get('SUPABASE_URL') || get('MDZ_SUPABASE_URL');
   const serviceKey = get('SUPABASE_SERVICE_ROLE_KEY') || get('MDZ_SERVICE_ROLE_KEY');
   const secret = get('EMAIL_OUTBOX_SECRET') || serviceKey;
   const resendKey = get('RESEND_API_KEY');
   const from = get('EMAIL_FROM') || 'MawashiDZ <noreply@mawashidz.com>';
+  const workerId = get('CF_WORKER_NAME') || 'mawashidz-live';
 
   if (request.method !== 'POST') {
     return json(405, { error: 'method-not-allowed' });
@@ -88,23 +87,33 @@ export async function processEmailOutbox(request, runtimeEnv = {}) {
 
   let claimed = [];
   try {
-    claimed = await supabaseRpc(supabaseUrl, serviceKey, 'mdz_claim_email_outbox', { p_limit: 20 });
+    claimed = await supabaseRpc(supabaseUrl, serviceKey, 'mdz_claim_email_outbox', {
+      p_limit: 20,
+      p_worker_id: workerId,
+    });
     if (!Array.isArray(claimed)) claimed = claimed ? [claimed] : [];
   } catch (error) {
-    console.error('claim outbox failed', error);
-    return json(503, { error: 'claim-failed' });
+    // Fallback to 1-arg overload if 012 not applied yet
+    try {
+      claimed = await supabaseRpc(supabaseUrl, serviceKey, 'mdz_claim_email_outbox', { p_limit: 20 });
+      if (!Array.isArray(claimed)) claimed = claimed ? [claimed] : [];
+    } catch (error2) {
+      console.error('claim outbox failed', error2);
+      return json(503, { error: 'claim-failed' });
+    }
   }
 
   const results = [];
   for (const row of claimed) {
     try {
       if (!resendKey) {
+        // Requeue — do not permanent-skip
         await supabaseRpc(supabaseUrl, serviceKey, 'mdz_mark_email_outbox', {
           p_id: row.id,
-          p_status: 'skipped',
-          p_error: 'RESEND_API_KEY unset',
+          p_status: 'pending',
+          p_error: 'awaiting_resend_api_key',
         });
-        results.push({ id: row.id, status: 'skipped' });
+        results.push({ id: row.id, status: 'requeued' });
         continue;
       }
       await sendResend({
@@ -121,21 +130,26 @@ export async function processEmailOutbox(request, runtimeEnv = {}) {
       results.push({ id: row.id, status: 'sent' });
     } catch (error) {
       console.error('send failed', row.id, error);
+      const attempts = Number(row.attempts || 0);
+      const next = attempts >= 8 ? 'failed' : 'pending';
       try {
         await supabaseRpc(supabaseUrl, serviceKey, 'mdz_mark_email_outbox', {
           p_id: row.id,
-          p_status: 'failed',
+          p_status: next,
           p_error: String(error.message || error).slice(0, 500),
         });
       } catch { /* ignore */ }
-      results.push({ id: row.id, status: 'failed' });
+      results.push({ id: row.id, status: next === 'failed' ? 'failed' : 'retry' });
     }
   }
 
-  return json(200, { processed: results.length, results, provider: resendKey ? 'resend' : 'none' });
+  return json(200, {
+    processed: results.length,
+    results,
+    provider: resendKey ? 'resend' : 'none',
+  });
 }
 
-export default async function handler(request, context) {
-  // Netlify: attach process.env
+export default async function handler(request) {
   return processEmailOutbox(request, typeof process !== 'undefined' ? process.env : {});
 }

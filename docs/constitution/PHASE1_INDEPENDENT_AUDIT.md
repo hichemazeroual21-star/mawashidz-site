@@ -1,5 +1,7 @@
 # Phase 1 Checkpoint — Independent Architecture & Product Audit
 
+> **Superseded for remediation status:** See [PHASE1_QUALITY_ELEVATION_REPORT.md](./PHASE1_QUALITY_ELEVATION_REPORT.md) for what was fixed after this STOP verdict. This document remains the critical baseline audit.
+
 **Date:** 2026-07-24  
 **Auditor posture:** External CTO / Principal Architect / Security Engineer / UX Director  
 **Subject:** Phase 1 foundation on branch `cursor/phase1-member-ops-foundation-4b6e` (relative to frozen Constitution v3.0)  

@@ -33,16 +33,18 @@ Detail for Phase 1 sections lives in PRDs; **order below is engineering delivery
 
 | Track | Deliverable | PRD | Engineering notes | Status |
 |-------|-------------|-----|-------------------|--------|
-| **A** | Registration review + **Admin operations** | [MEMBER_OPERATIONS.md](./MEMBER_OPERATIONS.md) §1–2 | RPC `admin_set_profile_status`, audit log, dashboards; migration **008** | In progress |
+| **A** | Registration review + **Admin operations** | [MEMBER_OPERATIONS.md](./MEMBER_OPERATIONS.md) §1–2 | RPC `review_registration_status` + audit (008/012); dashboards + reason dialog | **Elevated in PR** — verify prod apply |
 | **B** | Password recovery | §3 | Supabase Auth templates + UX | Verify prod |
-| **C** | Email architecture | §4 | Supabase Auth + Resend/Brevo operational | Not started |
-| **D** | Notification center | §5 | Server-backed inbox, event hooks from A | Not started |
-| **E.1** | Ticket model + RLS | [SUPPORT_AND_MESSAGES_CENTER.md](./SUPPORT_AND_MESSAGES_CENTER.md) | Schema, policies | Not started |
-| **E.2** | Admin / support messages |同上 | Typed requests, queues | Not started |
-| **E.3** | Wilaya manager messages |同上 | Wilaya fence | Not started |
-| **E.4** | Notification ↔ ticket deep links | §5 + Support | After D + E.1 | Not started |
-| **E.5** | Audit + internal notes | Support §4 | Staff-only notes API | Not started |
+| **C** | Email architecture | §4 | Outbox + Worker + Resend + **cron `*/2`** + processing lease (012) | **Elevated in PR** — needs secrets |
+| **D** | Notification center | §5 | Inbox + unread badge + type filter + deep links | **Elevated in PR** |
+| **E.1** | Ticket model + RLS | [SUPPORT_AND_MESSAGES_CENTER.md](./SUPPORT_AND_MESSAGES_CENTER.md) | Schema, policies, no-arg privilege helpers | **Elevated in PR** |
+| **E.2** | Admin / support messages |同上 | Operator queue UI + thread + status | **Elevated in PR** |
+| **E.3** | Wilaya manager messages |同上 | Wilaya fence RLS + manager dashboard queue | **Elevated in PR** |
+| **E.4** | Notification ↔ ticket deep links | §5 + Support | `#account-support` / `#account-inbox` / `#account-request` | **Elevated in PR** |
+| **E.5** | Audit + internal notes | Support §4 | Staff notes RPC + UI; manager reviews audited | **Elevated in PR** |
 | **E.6** | Member-to-member (linked) | Support §1C | After marketplace hooks | Later |
+
+**Honesty gate:** Phase 1 is **not** declared production-complete until migrations **010–012** are applied on Supabase, Worker cron+secrets are live, and acceptance smoke passes. Phase 2 remains **blocked**.
 
 **Gates:** **A** production before **E** at scale; **D** before **E.4**; Phase 1 Must tracks before constitution Phase 2 (Livestock Identity).
 

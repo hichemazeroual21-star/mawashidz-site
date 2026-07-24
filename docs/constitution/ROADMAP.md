@@ -56,12 +56,12 @@ Phase 7  Intelligence (only with data + AI policy)
 
 | ID | Work | Type |
 |----|------|------|
-| 1.A | Registration review + admin ops + audit UI | Must — **partial (review+audit exist; request-info later)** |
+| 1.A | Registration review + admin ops + audit UI | Must — **elevated (reason dialog + manager audit + review_reason column)** |
 | 1.B | Password recovery verified in production | Must — verify ops |
-| 1.C | Operational email provider | Must — **outbox + Resend Worker (env)** |
-| 1.D | Notification center (server inbox) | Must — **010 + account tab** |
-| 1.E | Tickets + wilaya/admin messaging | Must — **010 MVP (member create/reply; staff status/notes RPC)** |
-| 1.F | Rejection reasons visible to members | Must — **UI + member read policy** |
+| 1.C | Operational email provider | Must — **lease + cron + requeue (012); Resend secret required for sends** |
+| 1.D | Notification center (server inbox) | Must — **inbox + badge + filters + deep links** |
+| 1.E | Tickets + wilaya/admin messaging | Must — **member + operator queue UI + internal notes** |
+| 1.F | Rejection reasons visible to members | Must — **typed `review_reason` + account request tab** |
 | 1.G | Request-more-info workflow | Should — **not in this PR** |
 
 ### Exit criteria

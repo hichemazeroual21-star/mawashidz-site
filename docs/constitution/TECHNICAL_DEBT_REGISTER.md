@@ -17,5 +17,14 @@ Lightweight living list. Add items when shipping shortcuts. Clear when fixed.
 | TD-011 | `registrations.status` missing from old setup | Legacy schema | Dashboard/RPC break | Phase 0 — setup + 009 | **Closed** |
 | TD-012 | Edge/WAF rate limits not configured | Needs Cloudflare/Supabase ops | Residual spam | Ops follow-up | Open |
 | TD-013 | Contact/feedback admin read RLS absent | Phase 1 messaging | Blind inbox | Phase 1 | Open |
+| TD-014 | Email claim race / missing processing state | Phase 1 MVP speed | Duplicate sends | Phase 1 elevation — 012 lease | **Closed** |
+| TD-015 | No email cron | Phase 1 MVP | Outbox never drains | Worker cron `*/2` | **Closed** |
+| TD-016 | No operator Support Center UI | Phase 1 MVP | Ops half missing | Manager/admin queue UI | **Closed** |
+| TD-017 | Notification deep links unused | Phase 1 MVP | Dead links | Hash + Open handlers | **Closed** |
+| TD-018 | Probeable SECURITY DEFINER helpers | Phase 1 MVP | Info disclosure | No-arg helpers in 012 | **Closed** |
+| TD-019 | Manager review audit gap | Phase 1 MVP | Forensic hole | Audit all reviews in 012 | **Closed** |
+| TD-020 | Prototype UI (prompt, enums) | Phase 1 MVP | Trust/UX | Dialog + i18n + design system | **Mitigated** |
+| TD-021 | Modal-hosted product shell | Static-site architecture | Not workspace-class IA | Phase 1.5 / UX shell | Open |
+| TD-022 | No live RLS integration tests | Static SQL tests only | False confidence | Phase 1 follow-up | Open |
 
 **Rule:** Do not add product features that increase debt in Open Phase 0 Must items without fixing or explicitly accepting risk in the PR.
