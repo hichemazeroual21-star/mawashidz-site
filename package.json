@@ -13,13 +13,18 @@
     "test:ui-layout": "node tests/ui-layout.test.mjs",
     "test:i18n-layout": "node tests/i18n-layout.test.mjs",
     "test:layout": "node tests/ui-layout.test.mjs && node tests/i18n-layout.test.mjs",
-    "test:unit": "node tests/registration-flow.test.mjs && node tests/static-asset-validation.test.mjs && node tests/registration-ui-guard.test.mjs",
+    "test:i18n-parity": "node tests/i18n-parity.test.mjs",
+    "test:unit": "node tests/registration-flow.test.mjs && node tests/static-asset-validation.test.mjs && node tests/registration-ui-guard.test.mjs && node tests/i18n-parity.test.mjs",
     "test": "npm run test:unit && npm run test:e2e && npm run test:layout",
+    "test:db": "node supabase/tests/run-phase0-tests.mjs",
+    "package:review": "bash scripts/package-code-review.sh",
     "verify:prod": "node scripts/verify-prod.mjs",
     "verify:public": "node scripts/verify-public-sync.mjs",
     "deploy:prod": "node scripts/deploy-prod.mjs"
   },
   "devDependencies": {
+    "embedded-postgres": "^18.4.0-beta.17",
+    "pg": "^8.22.0",
     "puppeteer-core": "^24.0.0",
     "wrangler": "^4.112.0"
   }
