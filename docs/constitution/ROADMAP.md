@@ -30,14 +30,14 @@ Phase 7  Intelligence (only with data + AI policy)
 
 | ID | Work | Type |
 |----|------|------|
-| 0.1 | Canonical `setup.sql` + single migration path | Must |
-| 0.2 | `user_roles` created in repo schema | Must |
-| 0.3 | `registrations.status` in setup | Must |
-| 0.4 | Audit log (migration 008) on main | Must |
-| 0.5 | CI: `npm test` on PR | Must |
-| 0.6 | Rate-limit / harden public INSERTs | Must |
-| 0.7 | Expand `docs/database-schema.md` | Should |
-| 0.8 | Backup restore note + incident stub runbook | Should |
+| 0.1 | Canonical `setup.sql` + single migration path | Must — **in PR (setup v1.10 + 008/009)** |
+| 0.2 | `user_roles` created in repo schema | Must — **done in setup + 008** |
+| 0.3 | `registrations.status` in setup | Must — **done in setup + 009** |
+| 0.4 | Audit log (migration 008) on main | Must — **in PR** |
+| 0.5 | CI: `npm test` on PR | Must — **`test:ci` workflow** |
+| 0.6 | Rate-limit / harden public INSERTs | Must — **policy checks + phone guard; edge WAF still TD-012** |
+| 0.7 | Expand `docs/database-schema.md` | Should — **done** |
+| 0.8 | Backup restore note + incident stub runbook | Should — **done** |
 
 ### Exit criteria
 

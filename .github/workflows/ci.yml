@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  unit-and-security:
+    name: Unit + security
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install dependencies
+        run: npm install
+      - name: Unit tests (no browser)
+        run: npm run test:unit
+      - name: Security tests
+        run: |
+          npm run test:security
+          node tests/security-review-registration.test.mjs
+      - name: Migration static reviews
+        run: |
+          node tests/migration-review-registration.test.mjs
+          node tests/migration-admin-audit.test.mjs
+          node tests/migration-baseline-hardening.test.mjs

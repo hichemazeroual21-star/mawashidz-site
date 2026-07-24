@@ -34,6 +34,8 @@ Official website package with multilingual interface, automatic dark mode, and t
 5. `supabase/migrations/005_admin_approve_profile.sql`
 6. `supabase/migrations/006_registrations_unique.sql`
 7. `supabase/migrations/007_review_registration_status.sql` (موافقة/رفض الطلبات من اللوحات عبر RPC آمن)
+8. `supabase/migrations/008_admin_audit_and_roles.sql` (سجل التدقيق + منح/سحب الأدوار + إنشاء `user_roles` إن لزم)
+9. `supabase/migrations/009_schema_baseline_hardening.sql` (`registrations.status` + سياسات إدراج مُقيَّدة + حد معدّل التسجيل)
 
 **مسار Phase 0 (timestamped — من `main`):**
 
@@ -58,21 +60,17 @@ select public.allocate_member_id('breeder');
 
 ## Tests
 
-- `npm test` — اختبارات الوحدة + E2E + أصول Workers + تخطيط Puppeteer (يجب أن تبقى خضراء في CI).
+- `npm test` — اختبارات الوحدة + أمان + E2E + تخطيط Puppeteer
+- `npm run test:ci` — ما يشغّله GitHub Actions (بدون متصفح)
 - `npm run test:layout` — اختبارات Puppeteer لتخطيط الهيدر/الموبايل (`tests/ui-layout.test.mjs`, `tests/i18n-layout.test.mjs`). تصميم الهيدر على الموبايل: القائمة يسارًا + العلامة يمينًا (صف 1)، دخول + تسجيل مجمّعان يسارًا (صف 2)، مبدّل اللغة وسطًا (صف 3).
 - `npm run test:db` — اختبارات قاعدة البيانات المحلية (Phase 0)
 - `npm run test:security` — تحقق حي أن `allocate_member_id` محظور لـ anon
 
-## حزمة مراجعة الكود الخارجية
-
-```bash
-npm run package:review
-```
-
-الملف الجاهز: `artifacts/mawashidz-external-code-review-2026-07-19.zip` (+ ملف `.sha256` للتحقق).
-
 ## الوثائق
 
+- [الدستور الاستراتيجي](docs/constitution/MAWASHIDZ_CONSTITUTION.md) (v3.0 FROZEN)
+- [خارطة الطريق](docs/constitution/ROADMAP.md)
 - [مخطط قاعدة البيانات](docs/database-schema.md)
 - [ADR 001: تخصيص رقم العضوية](docs/adr/001-member-id-allocation.md)
+- [Runbooks](docs/runbooks/)
 - [سجل التغييرات](CHANGELOG.md)
