@@ -18,6 +18,7 @@
     "test": "npm run test:unit && npm run test:e2e && npm run test:layout",
     "verify:prod": "node scripts/verify-prod.mjs",
     "verify:public": "node scripts/verify-public-sync.mjs",
+    "package:review": "bash scripts/package-code-review.sh",
     "deploy:prod": "node scripts/deploy-prod.mjs"
   },
   "devDependencies": {
