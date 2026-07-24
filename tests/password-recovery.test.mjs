@@ -1,12 +1,23 @@
 #!/usr/bin/env node
 import assert from 'node:assert/strict';
 
-const store = new Map();
+const sessionStore = new Map();
+const localStore = new Map();
 globalThis.sessionStorage = {
-  getItem: (k) => (store.has(k) ? store.get(k) : null),
-  setItem: (k, v) => { store.set(String(k), String(v)); },
-  removeItem: (k) => { store.delete(k); },
+  getItem: (k) => (sessionStore.has(k) ? sessionStore.get(k) : null),
+  setItem: (k, v) => { sessionStore.set(String(k), String(v)); },
+  removeItem: (k) => { sessionStore.delete(k); },
 };
+globalThis.localStorage = {
+  getItem: (k) => (localStore.has(k) ? localStore.get(k) : null),
+  setItem: (k, v) => { localStore.set(String(k), String(v)); },
+  removeItem: (k) => { localStore.delete(k); },
+};
+
+function fakeJwt(payload) {
+  const body = Buffer.from(JSON.stringify(payload)).toString('base64url');
+  return `hdr.${body}.sig`;
+}
 
 const {
   shouldEnterPasswordRecovery,
@@ -19,13 +30,29 @@ const {
   clearRecoveryActive,
   isRecoveryActive,
   isRecoveryExpected,
+  accessTokenIndicatesRecovery,
+  decodeJwtPayload,
 } = await import('../js/password-recovery.mjs');
 
 assert.equal(isRecoveryAuthType('recovery'), true);
 assert.equal(isRecoveryAuthType('signup'), false);
 assert.equal(shouldEnterPasswordRecovery({ type: 'recovery', expectRecovery: false }), true);
-assert.equal(shouldEnterPasswordRecovery({ type: 'signup', expectRecovery: true }), true);
+assert.equal(shouldEnterPasswordRecovery({ type: 'signup', expectRecovery: true }), false, 'stale expect must not override signup');
+assert.equal(shouldEnterPasswordRecovery({ type: 'invite', expectRecovery: true }), false);
+assert.equal(shouldEnterPasswordRecovery({ type: '', expectRecovery: true }), true, 'no token + expect → recovery fallback');
 assert.equal(shouldEnterPasswordRecovery({ type: 'signup', expectRecovery: false }), false);
+
+const recoveryJwt = fakeJwt({ amr: ['recovery'], sub: 'u1' });
+const objectAmrJwt = fakeJwt({ amr: [{ method: 'recovery' }], sub: 'u1' });
+const signupJwt = fakeJwt({ amr: ['password'], sub: 'u1' });
+assert.equal(accessTokenIndicatesRecovery(recoveryJwt), true);
+assert.equal(accessTokenIndicatesRecovery(objectAmrJwt), true);
+assert.equal(accessTokenIndicatesRecovery(signupJwt), false);
+assert.equal(shouldEnterPasswordRecovery({ type: 'signup', expectRecovery: false, accessToken: recoveryJwt }), true);
+assert.equal(shouldEnterPasswordRecovery({ type: '', expectRecovery: false, accessToken: signupJwt }), false);
+assert.equal(shouldEnterPasswordRecovery({ type: '', expectRecovery: true, accessToken: signupJwt }), false, 'decodable non-recovery JWT beats stale expect');
+assert.equal(shouldEnterPasswordRecovery({ type: '', expectRecovery: true, accessToken: recoveryJwt }), true);
+assert.equal(decodeJwtPayload(recoveryJwt)?.sub, 'u1');
 
 const short = validateNewPassword('123', '123', (k) => k);
 assert.equal(short.ok, false);
@@ -49,9 +76,11 @@ clearRecoveryActive();
 clearRecoveryExpected();
 markRecoveryExpected();
 assert.equal(isRecoveryExpected(), true);
+assert.equal(localStore.get('mdz_expect_recovery'), '1');
 markRecoveryActive();
 assert.equal(isRecoveryActive(), true);
 assert.equal(isRecoveryExpected(), false);
+assert.equal(localStore.get('mdz_password_recovery'), '1');
 clearRecoveryActive();
 assert.equal(isRecoveryActive(), false);
 

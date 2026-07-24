@@ -30,9 +30,16 @@ assert.ok(
 assert.match(html, /markRecoveryExpected\(\)/, 'forgot-password must mark recovery expectation');
 assert.match(html, /id="resetPasswordModal"/, 'reset password modal required');
 assert.match(html, /shouldEnterPasswordRecovery/, 'recovery callback must branch to set-password UI');
+assert.match(html, /accessToken:sessionPayload\?\.access_token/, 'recovery branch must inspect JWT access token');
 assert.match(html, /buildUpdatePasswordRequest|\/user'/, 'password update must call auth /user');
 assert.match(html, /openResetPasswordModal/, 'set-password UI entrypoint required');
 assert.ok(!/type==='recovery'\?t\('authRecoveryOk'\):type==='signup'/.test(html), 'recovery must not fall through to openAccount toast path');
+assert.match(html, /profileRole:profile\?\.role/, 'manager review wiring must pass profiles.role');
+assert.match(
+  html,
+  /if\(recovery\.isRecoveryActive\(\)\)\{openResetPasswordModal\(\);return\}/,
+  'manager/admin dashboards must stay gated during recovery',
+);
 
 assert.match(
   html,

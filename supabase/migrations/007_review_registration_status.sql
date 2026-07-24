@@ -1,9 +1,9 @@
 -- ============================================================
 -- MawashiDZ — مراجعة طلبات التسجيل (موافقة / رفض) عبر RPC آمن
 -- - لا PATCH مباشر على status من المتصفح
--- - الإدارة: كل الولايات
--- - مدير الولاية: ولايته فقط
--- - يحدّث profiles.status و registrations.status عند التوفر
+-- - الإدارة: كل الولايات + كل الحالات المسموحة
+-- - مدير الولاية: ولايته فقط + approved|rejected فقط
+-- - يحدّث profiles/registrations عبر registration_id فقط (بدون مطابقة email)
 -- Idempotent.
 -- ============================================================
 
@@ -23,8 +23,11 @@ declare
   caller_wilaya text;
   is_admin boolean := false;
   is_manager boolean := false;
-  updated_profile public.profiles%rowtype;
+  updated_profile_id uuid;
+  profiles_updated int := 0;
+  regs_updated int := 0;
   reason_clean text := nullif(btrim(coalesce(p_reason, '')), '');
+  reg_id text;
 begin
   if caller_id is null then
     raise exception 'authentication required' using errcode = '28000';
@@ -34,13 +37,14 @@ begin
     raise exception 'invalid status: %', p_new_status using errcode = '22023';
   end if;
 
-  if p_registration_id is null or btrim(p_registration_id) = '' then
+  reg_id := nullif(btrim(coalesce(p_registration_id, '')), '');
+  if reg_id is null then
     raise exception 'registration_id required' using errcode = '22023';
   end if;
 
   select * into reg
   from public.registrations r
-  where r.registration_id = btrim(p_registration_id)
+  where r.registration_id = reg_id
   order by r.created_at desc nulls last
   limit 1;
 
@@ -60,8 +64,22 @@ begin
       and ur.role in ('wilaya_manager', 'manager', 'wilaya_mgr')
   ) into is_manager;
 
+  -- Also allow profiles.role = manager for wilaya operators without user_roles row
+  if not is_manager then
+    select exists (
+      select 1 from public.profiles p
+      where p.id = caller_id
+        and lower(coalesce(p.role, '')) in ('manager', 'wilaya_manager', 'wilaya_mgr')
+    ) into is_manager;
+  end if;
+
   if not is_admin and not is_manager then
     raise exception 'insufficient privileges' using errcode = '42501';
+  end if;
+
+  -- Managers may only approve/reject (not suspend/reactivate/pending)
+  if not is_admin and p_new_status not in ('approved', 'rejected') then
+    raise exception 'managers may only approve or reject' using errcode = '42501';
   end if;
 
   if not is_admin then
@@ -76,25 +94,28 @@ begin
     end if;
   end if;
 
-  -- profiles may be protected by trigger — use same bypass as admin_set_profile_status
+  -- Bypass protect_profile_sensitive_columns when present (migration 005)
   perform set_config('mdz.admin_profile_update', 'true', true);
 
+  -- Match profiles ONLY by registration_id (never by email — prevents cross-account updates)
   update public.profiles p
   set status = p_new_status
-  where p.registration_id = btrim(p_registration_id)
-     or (
-       nullif(to_jsonb(reg)->>'email', '') is not null
-       and p.email is not null
-       and lower(p.email) = lower(nullif(to_jsonb(reg)->>'email', ''))
-     )
-  returning * into updated_profile;
+  where p.registration_id = reg_id;
+
+  get diagnostics profiles_updated = row_count;
+
+  select p.id into updated_profile_id
+  from public.profiles p
+  where p.registration_id = reg_id
+  order by p.created_at desc nulls last
+  limit 1;
 
   update public.registrations r
   set status = p_new_status
-  where r.registration_id = btrim(p_registration_id)
-     or r.id = reg.id;
+  where r.registration_id = reg_id;
 
-  -- optional reason stored in message JSON when column is jsonb/text blob — best-effort
+  get diagnostics regs_updated = row_count;
+
   if reason_clean is not null then
     begin
       update public.registrations r
@@ -105,27 +126,34 @@ begin
           (r.message::jsonb || jsonb_build_object('review_reason', reason_clean, 'reviewed_at', now()))::text
         else r.message
       end
-      where r.id = reg.id;
+      where r.registration_id = reg_id;
     exception when others then
-      null; -- never fail review solely on reason persistence
+      null;
     end;
+  end if;
+
+  if regs_updated < 1 then
+    raise exception 'registration update failed' using errcode = 'P0002';
   end if;
 
   return jsonb_build_object(
     'ok', true,
-    'registration_id', btrim(p_registration_id),
+    'registration_id', reg_id,
     'status', p_new_status,
-    'profile_id', updated_profile.id,
+    'profile_id', updated_profile_id,
+    'profiles_updated', profiles_updated,
+    'registrations_updated', regs_updated,
     'wilaya', reg.wilaya
   );
 end;
 $$;
 
 revoke all on function public.review_registration_status(text, text, text) from public;
+revoke all on function public.review_registration_status(text, text, text) from anon;
 grant execute on function public.review_registration_status(text, text, text) to authenticated;
 grant execute on function public.review_registration_status(text, text, text) to service_role;
 
--- Harden existing profile RPC: managers may set status only for same wilaya
+-- Harden existing profile RPC: managers may set status only for same wilaya + approved|rejected
 create or replace function public.admin_set_profile_status(
   target_profile_id uuid,
   new_status text
@@ -165,8 +193,20 @@ begin
         and ur.role in ('wilaya_manager', 'manager', 'wilaya_mgr')
     ) into is_manager;
 
+    if not is_manager then
+      select exists (
+        select 1 from public.profiles p
+        where p.id = caller_id
+          and lower(coalesce(p.role, '')) in ('manager', 'wilaya_manager', 'wilaya_mgr')
+      ) into is_manager;
+    end if;
+
     if not is_admin and not is_manager then
       raise exception 'insufficient privileges: admin or wilaya manager role required';
+    end if;
+
+    if not is_admin and new_status not in ('approved', 'rejected') then
+      raise exception 'managers may only approve or reject';
     end if;
 
     select * into target from public.profiles where id = target_profile_id;
@@ -187,9 +227,7 @@ begin
   perform set_config('mdz.admin_profile_update', 'true', true);
 
   update public.profiles
-  set
-    status = new_status,
-    updated_at = coalesce(updated_at, now())
+  set status = new_status
   where id = target_profile_id
   returning * into result;
 
@@ -200,3 +238,8 @@ begin
   return result;
 end;
 $$;
+
+revoke all on function public.admin_set_profile_status(uuid, text) from public;
+revoke all on function public.admin_set_profile_status(uuid, text) from anon;
+grant execute on function public.admin_set_profile_status(uuid, text) to authenticated;
+grant execute on function public.admin_set_profile_status(uuid, text) to service_role;

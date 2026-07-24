@@ -2851,7 +2851,7 @@ async function refreshManagerDashboard(session, dash, profile){
  if(mdzDashReviewDisposer) mdzDashReviewDisposer();
  mdzDashReviewDisposer=dash.wireDashboardReviewActions(box,{
   t, token:session.access_token, restUrl:SUPABASE_REST, apiKey:SUPABASE_PUBLISHABLE_KEY,
-  roles:mdzUserRoles, actorWilaya:profile?.wilaya, asAdmin:false,
+  roles:mdzUserRoles, actorWilaya:profile?.wilaya, asAdmin:false, profileRole:profile?.role,
   onDone:async()=>{await refreshManagerDashboard(session,dash,profile)},
  });
 }
@@ -2863,12 +2863,14 @@ async function refreshAdminDashboard(session, dash){
  if(mdzDashReviewDisposer) mdzDashReviewDisposer();
  mdzDashReviewDisposer=dash.wireDashboardReviewActions(box,{
   t, token:session.access_token, restUrl:SUPABASE_REST, apiKey:SUPABASE_PUBLISHABLE_KEY,
-  roles:mdzUserRoles, actorWilaya:null, asAdmin:true,
+  roles:mdzUserRoles, actorWilaya:null, asAdmin:true, profileRole:mdzAccountProfile?.role,
   onDone:async()=>{await refreshAdminDashboard(session,dash)},
  });
 }
 
 async function openManagerDashboard(){
+ const recovery=await import('./js/password-recovery.mjs');
+ if(recovery.isRecoveryActive()){openResetPasswordModal();return}
  const session=await ensureFreshSession();
  if(!session?.access_token){openLogin();return}
  mdzUserRoles=await fetchMyRoles(session.access_token);
@@ -2888,6 +2890,8 @@ async function openManagerDashboard(){
 }
 
 async function openAdminDashboard(){
+ const recovery=await import('./js/password-recovery.mjs');
+ if(recovery.isRecoveryActive()){openResetPasswordModal();return}
  const session=await ensureFreshSession();
  if(!session?.access_token){openLogin();return}
  const dash=await import('./js/mdz-dashboards.mjs');
@@ -2908,14 +2912,16 @@ window.openManagerDashboard=openManagerDashboard;
 window.openAdminDashboard=openAdminDashboard;
 
 function updateAuthChrome(){
- const authed=isAuthenticated();
+ /* During password recovery, treat chrome as logged-out so dashboards/account stay gated. */
+ const recovering=(()=>{try{return sessionStorage.getItem('mdz_password_recovery')==='1'||localStorage.getItem('mdz_password_recovery')==='1'}catch{return false}})();
+ const authed=isAuthenticated() && !recovering;
  const map=[
   ['headerLoginBtn',!authed],['headerRegisterBtn',!authed],['headerAccountBtn',authed],['headerLogoutBtn',authed],
   ['drawerLoginLink',!authed],['drawerRegisterLink',!authed],['drawerAccountLink',authed],['drawerLogoutLink',authed]
  ];
  map.forEach(([id,show])=>{const el=document.getElementById(id);if(!el)return;if(show) el.removeAttribute('hidden');else el.setAttribute('hidden','')});
- const showMgr=dashRoleFlag('manager');
- const showAdmin=dashRoleFlag('admin');
+ const showMgr=!recovering && dashRoleFlag('manager');
+ const showAdmin=!recovering && dashRoleFlag('admin');
  ['headerMgrDashBtn','drawerMgrDashLink'].forEach(id=>{const el=document.getElementById(id);if(!el)return;if(showMgr) el.removeAttribute('hidden');else el.setAttribute('hidden','')});
  ['headerAdminDashBtn','drawerAdminDashLink'].forEach(id=>{const el=document.getElementById(id);if(!el)return;if(showAdmin) el.removeAttribute('hidden');else el.setAttribute('hidden','')});
  const heroJoin=document.getElementById('heroJoin');
@@ -2931,8 +2937,9 @@ function dashRoleFlag(kind){
 }
 function logoutAccount(){
  saveSession(null);mdzAccountProfile=null;mdzUserRoles=[];
+ try{sessionStorage.removeItem('mdz_password_recovery');localStorage.removeItem('mdz_password_recovery');sessionStorage.removeItem('mdz_expect_recovery');localStorage.removeItem('mdz_expect_recovery')}catch{}
  closeAll();showToast(t('toastLogout'));
- if(location.hash==='#account'||location.hash==='#auth-callback') history.replaceState(null,'',location.pathname+location.search);
+ if(location.hash==='#account'||location.hash==='#auth-callback'||location.hash==='#reset-password') history.replaceState(null,'',location.pathname+location.search);
 }
 window.logoutAccount=logoutAccount;
 
@@ -2976,15 +2983,20 @@ async function handleAuthRedirect(){
  const enterRecovery=recoveryMod.shouldEnterPasswordRecovery({
   type,
   expectRecovery:recoveryMod.isRecoveryExpected()||recoveryMod.isRecoveryActive(),
+  accessToken:sessionPayload?.access_token||access||'',
  });
  saveSession(sessionPayload);
  if(enterRecovery){
   recoveryMod.markRecoveryActive();
   history.replaceState(null,'',MDZ_SITE_URL()+'#reset-password');
   showToast(t('authRecoveryOk'));
+  updateAuthChrome();
   openResetPasswordModal();
   return;
  }
+ /* Drop stale forgot-password markers so they cannot poison later sessions. */
+ recoveryMod.clearRecoveryExpected();
+ recoveryMod.clearRecoveryActive();
  history.replaceState(null,'',MDZ_SITE_URL()+'#account');
  showToast(type==='signup'?t('authConfirmOk'):t('authSessionOk'));
  await openAccount();

@@ -36,7 +36,7 @@ async function main() {
   if (r.status === 404 || r.status === 400) {
     const body = await r.text();
     if (/Could not find the function|PGRST202|404/.test(body) || r.status === 404) {
-      console.log('  ⚠ review_registration_status not deployed yet — apply migration 006 on Supabase');
+      console.log('  ⚠ review_registration_status not deployed yet — apply migration 007 on Supabase');
       return;
     }
   }
