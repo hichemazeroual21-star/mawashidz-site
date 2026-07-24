@@ -28,4 +28,5 @@
 
 ## Break-glass
 
-Founder / `super_admin` recovery accounts and offline recovery notes are **ops secrets** — not stored in git. Verify access quarterly with backup drill.
+See **[break-glass.md](./break-glass.md)** for the Constitution §3.2 procedure template.  
+Founder / `super_admin` recovery accounts and offline recovery notes are **ops secrets** — not stored in git. Verify access quarterly with backup drill. Until a drill is recorded, break-glass remains **Not Verified**.

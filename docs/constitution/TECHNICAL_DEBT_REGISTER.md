@@ -4,7 +4,7 @@ Lightweight living list. Add items when shipping shortcuts. Clear when fixed.
 
 | ID | Debt | Why incurred | Risk if ignored | Target phase | Status |
 |----|------|--------------|-----------------|--------------|--------|
-| TD-001 | Dual migration paths (001–009 vs timestamped) | Legacy production compatibility | Fresh install / drift | Phase 0 docs warn; consolidate later | Open |
+| TD-001 | Dual migration paths (001–009 vs timestamped) | Legacy production compatibility | Fresh install / drift | ADR-002 accepted; blank-install drill pending | **Mitigated** |
 | TD-002 | `setup.sql` vs full RPC parity | setup is baseline; 003–009 add RPCs | Incomplete fresh ops without 003–009 | Documented in README | Mitigated |
 | TD-003 | `user_roles` missing from old setup | Assumed pre-existing DB | Fresh install fail | Phase 0 — fixed in setup + 008 | **Closed** |
 | TD-004 | Monolithic `index.html` | Speed of iteration | Maintainability | Ongoing extract | Open |

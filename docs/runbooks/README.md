@@ -6,6 +6,7 @@ Operational procedures for MawashiDZ.
 |---------|--------|
 | [backup-restore.md](./backup-restore.md) | Phase 0.8 stub |
 | [incident-response.md](./incident-response.md) | Phase 0.8 stub |
+| [break-glass.md](./break-glass.md) | §3.2 template — Founder drill required |
 | [email-outbox.md](./email-outbox.md) | Phase 1.C |
 | [../DEPLOYMENT.md](../DEPLOYMENT.md) | Production deploy (Cloudflare) |
 

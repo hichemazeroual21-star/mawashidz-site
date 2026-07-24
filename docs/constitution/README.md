@@ -12,12 +12,18 @@
 | **[ROADMAP.md](./ROADMAP.md)** | Canonical sequencing + phase exit criteria |
 | **[FOUNDER_DECISIONS.md](./FOUNDER_DECISIONS.md)** | Irreversible Founder choices (Proposed / Decided) |
 | **[DECISION_LOG.md](./DECISION_LOG.md)** | Settled why |
+| **[PUBLIC_CLAIMS_POLICY.md](./PUBLIC_CLAIMS_POLICY.md)** | Marketing / trust claims vs phase gates |
+| **[INDEPENDENT_REVIEW_BOARD.md](./INDEPENDENT_REVIEW_BOARD.md)** | Review-only board operating rules |
 | **[ARCHITECTURE_REVIEW_CHECKLIST.md](./ARCHITECTURE_REVIEW_CHECKLIST.md)** | PR review gate |
 | **[TECHNICAL_DEBT_REGISTER.md](./TECHNICAL_DEBT_REGISTER.md)** | Known debt |
 | **[STRATEGIC_PHASE_COMPLETE.md](./STRATEGIC_PHASE_COMPLETE.md)** | Freeze declaration + self-assessment |
+<<<<<<< HEAD
 | **[PHASE1_INDEPENDENT_AUDIT.md](./PHASE1_INDEPENDENT_AUDIT.md)** | STOP audit (baseline criticism) |
 | **[PHASE1_QUALITY_ELEVATION_REPORT.md](./PHASE1_QUALITY_ELEVATION_REPORT.md)** | Elevation work + honest scores |
 | **[STRICT_EVIDENCE_REVIEW_STANDARD.md](./STRICT_EVIDENCE_REVIEW_STANDARD.md)** | Strict review prompt + severity/confidence/cost/evidence rules |
+=======
+| **[AMENDMENT_ACCEPTANCE_2026-07-24.md](./AMENDMENT_ACCEPTANCE_2026-07-24.md)** | ACCEPT WITH AMENDMENTS dispositions |
+>>>>>>> origin/cursor/constitution-authority-amendments-4b6e
 
 ## Subordinate
 
@@ -31,8 +37,9 @@
 
 1. Constitution v3.0 wins on vision, trust, roles, NON-GOALS, sequencing principles.  
 2. Constitution ROADMAP wins on phase order (Animals before Hub).  
-3. Product Constitution wins only on Hub card mechanics when Hub is built.  
-4. Archive documents never override.
+3. Product Constitution wins **only** on Hub card / Smart Workspace mechanics when Hub is in Phase 4 — never on Years 1–2 scope or phase order.  
+4. Public claims follow [PUBLIC_CLAIMS_POLICY.md](./PUBLIC_CLAIMS_POLICY.md).  
+5. Archive documents never override.
 
 ## Freeze rule
 
