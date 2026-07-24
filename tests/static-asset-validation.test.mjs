@@ -22,6 +22,16 @@ assert.deepEqual(wrangler.assets?.run_worker_first, ['/api/*'], 'wrangler.jsonc 
 assert.equal(wrangler.main, 'worker.mjs', 'wrangler.jsonc must set main to worker.mjs');
 assert.equal(wrangler.name, 'mawashidz-live', 'wrangler.jsonc name must be production worker mawashidz-live');
 
+const i18nSrc = readFileSync(join(root, 'assets/i18n.js'), 'utf8');
+const appVersion = i18nSrc.match(/MDZ_APP_VERSION\s*=\s*'([^']+)'/)?.[1];
+assert.ok(appVersion, 'MDZ_APP_VERSION must exist');
+const rootHtmlBeforeBuild = readFileSync(join(root, 'index.html'), 'utf8');
+assert.match(
+  rootHtmlBeforeBuild,
+  new RegExp(`assets/i18n(?:-content)?\\.js\\?v=${appVersion.replace(/\./g, '\\.')}`, 'g'),
+  `root index.html must already use ?v=${appVersion} (do not rely on build rewrite to hide drift)`,
+);
+
 execSync('npm run build', { stdio: 'inherit' });
 
 const publicRoot = join(root, 'public');
@@ -55,6 +65,8 @@ assert.match(html, /import\('\.\/js\/registration-flow\.mjs'\)/, 'index.html mus
 assert.match(html, /updateAuthChrome/, 'index.html must use updateAuthChrome');
 assert.match(html, /member_id يُخصَّص على السيرفر/, 'registration must rely on server-side member_id allocation');
 assert.ok(!/await allocateMemberId\(raw\.role\)/.test(html), 'registration must not call allocateMemberId RPC from browser');
+assert.match(html, new RegExp(`assets/i18n\\.js\\?v=${buildInfo.version.replace(/\./g, '\\.')}`), 'public index cache-bust must match build-info version');
+assert.equal(readFileSync(join(root, 'index.html'), 'utf8'), html, 'root index.html must match public/index.html after build');
 const payloadBlock = html.match(/const payload=\{[\s\S]*?founding_terms_accepted:checked\(form,'founder_terms'\)\s*\}/);
 assert.ok(payloadBlock && !payloadBlock[0].includes('member_id:ids.memberId'),
   'registrations REST payload must not send member_id/registration_id as top-level columns (PGRST204 on legacy DB)');

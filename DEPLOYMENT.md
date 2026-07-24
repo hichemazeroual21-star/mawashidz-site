@@ -129,10 +129,11 @@ npm test
 npm run verify:public
 npm run verify:prod                        # fails until production serves latest build-info + v1.10+
 
-# After deploy: API routes (Worker script — not static assets)
-curl -sI https://mawashidz.com/api/livestock-prices   # expect 200
+# After deploy: API routes (Worker script — not static assets). Use GET, not HEAD alone.
+curl -s -o /dev/null -w '%{http_code}\n' https://mawashidz.com/api/livestock-prices   # expect 200
 curl -sL https://mawashidz.com/api/livestock-prices | head -c 200
-curl -sI https://mawashidz.com/api/livestock-news     # expect 200
+curl -s -o /dev/null -w '%{http_code}\n' https://mawashidz.com/api/livestock-news     # expect 200 (or 503 if RSS down)
+npm run verify:prod   # when prod commit matches HEAD, also asserts API JSON
 ```
 
 `build-info.json` (in `public/` after build):

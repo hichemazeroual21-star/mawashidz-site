@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /**
  * Worker API route tests — routing, methods, ASSETS fallback, trailing slash.
- * Prices handler is pure (no network). News is only asserted for wiring + method gate.
+ * News handler is mocked (no live Google RSS in unit suite).
  */
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import worker from '../worker.mjs';
+import { createWorker } from '../worker.mjs';
 
 const root = process.cwd();
 const wrangler = JSON.parse(
@@ -18,62 +18,88 @@ assert.equal(wrangler.main, 'worker.mjs', 'worker entry must be worker.mjs');
 assert.equal(wrangler.assets?.binding, 'ASSETS', 'assets.binding ASSETS is required for env.ASSETS.fetch');
 assert.deepEqual(wrangler.assets?.run_worker_first, ['/api/*'], 'API routes must run worker first');
 
+let newsCalls = 0;
+const worker = createWorker({
+  newsHandler: async () => {
+    newsCalls++;
+    return new Response(JSON.stringify({ updatedAt: new Date().toISOString(), items: [{ title: 't' }], streams: {} }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json; charset=utf-8' },
+    });
+  },
+  // prices uses real pure handler via default when not overridden — keep real for snapshot shape
+});
+
 const env = {
   ASSETS: {
     fetch: async (req) => new Response(`static:${new URL(req.url).pathname}`, { status: 200 }),
   },
 };
 
-async function get(path, init = {}) {
+async function call(path, init = {}) {
   return worker.fetch(new Request(`https://mawashidz.com${path}`, init), env);
 }
 
-// --- prices ---
+// --- prices (real handler) ---
 {
-  const res = await get('/api/livestock-prices');
+  const res = await call('/api/livestock-prices');
   assert.equal(res.status, 200, 'prices endpoint must return 200');
   const prices = await res.json();
   assert.ok(Array.isArray(prices.rows) && prices.rows.length > 0, 'prices must include rows');
   assert.ok(prices.products?.length, 'prices must include products');
 }
 
-// trailing slash normalization
+// trailing slash
 {
-  const res = await get('/api/livestock-prices/');
-  assert.equal(res.status, 200, 'trailing slash prices path must work');
+  assert.equal((await call('/api/livestock-prices/')).status, 200);
+  assert.equal((await call('/api/livestock-news/')).status, 200);
 }
 
 // method gate
 {
-  const post = await get('/api/livestock-prices', { method: 'POST' });
-  assert.equal(post.status, 405, 'POST must be rejected');
+  const post = await call('/api/livestock-prices', { method: 'POST' });
+  assert.equal(post.status, 405);
   assert.equal((await post.json()).error, 'method-not-allowed');
 
-  const head = await get('/api/livestock-prices', { method: 'HEAD' });
-  assert.equal(head.status, 200, 'HEAD must succeed without body work');
-  assert.equal(await head.text(), '', 'HEAD body must be empty');
+  const newsPost = await call('/api/livestock-news', { method: 'POST' });
+  assert.equal(newsPost.status, 405);
 }
 
-// news route is wired (may be 200 or 503 depending on RSS availability)
+// HEAD mirrors GET status (and invokes handler — no false 200)
 {
-  const res = await get('/api/livestock-news');
-  assert.ok([200, 503].includes(res.status), `news must return 200 or 503, got ${res.status}`);
-  assert.match(res.headers.get('content-type') || '', /application\/json/);
+  newsCalls = 0;
+  const headNews = await call('/api/livestock-news', { method: 'HEAD' });
+  assert.equal(headNews.status, 200);
+  assert.equal(await headNews.text(), '');
+  assert.equal(newsCalls, 1, 'HEAD news must invoke handler for truthful status');
+
+  const failing = createWorker({
+    newsHandler: async () => new Response(JSON.stringify({ error: 'news-sources-unavailable' }), { status: 503 }),
+  });
+  const headFail = await failing.fetch(new Request('https://mawashidz.com/api/livestock-news', { method: 'HEAD' }), env);
+  assert.equal(headFail.status, 503, 'HEAD must mirror handler failure status');
+}
+
+// news GET wiring (mocked)
+{
+  const res = await call('/api/livestock-news');
+  assert.equal(res.status, 200);
+  const body = await res.json();
+  assert.ok(Array.isArray(body.items));
 }
 
 // static fallback
 {
-  const res = await get('/index.html');
-  assert.equal(res.status, 200, 'static assets must fall through to ASSETS');
-  assert.match(await res.text(), /^static:/, 'unknown paths must delegate to ASSETS binding');
+  const res = await call('/index.html');
+  assert.equal(res.status, 200);
+  assert.match(await res.text(), /^static:/);
 }
 
-// missing ASSETS binding must not throw — returns controlled 500
+// missing ASSETS binding
 {
   const res = await worker.fetch(new Request('https://mawashidz.com/no-such-page'), {});
-  assert.equal(res.status, 500, 'missing ASSETS binding must return 500, not crash');
-  const body = await res.json();
-  assert.equal(body.error, 'assets-binding-missing');
+  assert.equal(res.status, 500);
+  assert.equal((await res.json()).error, 'assets-binding-missing');
 }
 
-console.log('  ✓ Worker API routes: prices, methods, trailing slash, ASSETS guard, news wiring');
+console.log('  ✓ Worker API routes: prices, news mock, methods, HEAD status, ASSETS guard');

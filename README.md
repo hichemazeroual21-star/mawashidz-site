@@ -4,15 +4,16 @@ Official website package with multilingual interface, automatic dark mode, and t
 
 ## Production structure
 
-- `index.html` — الموقع كاملًا (نسخة Production جاهزة للرفع على GitHub Pages أو Netlify)
-- `assets/algeria_cities.json` — التقسيم الإداري الكامل: 58 ولاية، 548 دائرة، 1541 بلدية (مصدر محلي، مع CDN كاحتياط)
-- `netlify.toml` — إعدادات Netlify + تحويل `/api/livestock-news` إلى الدالة
-- `netlify/functions/news.mjs` — دالة جلب أخبار قطاع المواشي (تعمل على Netlify فقط؛ على GitHub Pages يُستعمل الاحتياط داخل الصفحة)
-- `netlify/functions/prices.mjs` — بورصة المواشي الحية: أسعار اللحوم والحليب والأعلاف لكل الولايات (تحديث كل ثانية)
-- `assets/market-engine.js` — محرك الأسعار (fallback محلي على GitHub Pages)
+- `index.html` — مصدر الواجهة (يُنسخ إلى `public/` عبر `npm run build`)
+- `worker.mjs` + `wrangler.jsonc` — Cloudflare Worker الإنتاجي `mawashidz-live` (أصول ثابتة + `/api/*`)
+- `public/` — حزمة النشر المولَّدة (لا تعدّلها يدويًا)
+- `assets/algeria_cities.json` — التقسيم الإداري الكامل: 58 ولاية، 548 دائرة، 1541 بلدية
+- `netlify/functions/news.mjs` / `prices.mjs` — معالجات الأخبار والأسعار (مشتركة: Worker يستوردها؛ Netlify يوجّهها عبر `netlify.toml`)
+- `assets/market-engine.js` — محرك الأسعار (fallback محلي إن تعذّر `/api/livestock-prices`)
 - `supabase/` — قاعدة البيانات: أرقام العضوية التسلسلية، الملفات الشخصية، الدخول بالبريد/الهاتف/رقم MDZ
-- `docs/` — قرارات معمارية (ADR) ومخطط قاعدة البيانات
-- `supabase/introspect.mjs` / `supabase/probe-columns.mjs` — أدوات فحص البنية عبر REST
+- `docs/` — قرارات معمارية (ADR) ومخطط قاعدة البيانات + `DEPLOYMENT.md` لمسار Cloudflare
+
+**الإنتاج الرسمي:** https://mawashidz.com عبر Cloudflare Workers (انظر `DEPLOYMENT.md`). Netlify اختياري لنفس دوال API.
 
 ## Supabase setup (مطلوب مرة واحدة)
 

@@ -2395,16 +2395,6 @@ async function supabaseInsert(table, payload, timeoutMs=15000){
   } finally { clearTimeout(timer); }
 }
 
-function duplicateRegistrationMessage(error){
-  const text=`${error?.message||''} ${error?.details||''}`.toLowerCase();
-  if(error?.code==='23505' || error?.status===409){
-    if(text.includes('email')) return t('errDuplicateEmail');
-    if(text.includes('phone')) return t('errDuplicatePhone');
-    return t('errDuplicateBoth');
-  }
-  return '';
-}
-
 function cleanPhone(value){ return String(value||'').replace(/[^0-9+]/g,'').slice(0,20); }
 function buildAlgerianMobile(operator, local){
   const op=String(operator||'').replace(/\D/g,'');
@@ -2623,17 +2613,6 @@ function buildRegistrationRecords({raw,form,valid,ids}){
   return {extra,payload};
 }
 
-function describeRegistrationError(error){
-  const authText=String(error?.message||'').toLowerCase();
-  if(authText.includes('already registered')) return {duplicate:true,message:t('errEmailExists')};
-  const duplicateMessage=duplicateRegistrationMessage(error);
-  if(duplicateMessage) return {duplicate:true,message:duplicateMessage};
-  const isNetwork=error instanceof TypeError || error?.name==='AbortError';
-  return {duplicate:false,message:isNetwork
-    ? t('errNetwork')
-    : `${t('errSaveFailed')} (${error?.status||'?'})`};
-}
-
 function showRegistrationError(confirmBox,message){
   confirmBox.style.display='block';
   confirmBox.className='full confirm-card is-error';
@@ -2736,11 +2715,17 @@ document.getElementById('loginForm')?.addEventListener('submit',async e=>{
  catch(err){state.className='full login-state is-error';state.textContent=authErrorArabic(err)}finally{btn.disabled=false;btn.textContent=t('loginSubmit')}
 });
 
-document.getElementById('forgotPasswordBtn')?.addEventListener('click',async()=>{
- /* Always show neutral success toast — anti-enumeration (MEMBER_OPERATIONS §3 / production posture). */
+document.getElementById('forgotPasswordBtn')?.addEventListener('click',()=>{
+ /* Neutral confirmation immediately — anti-enumeration (MEMBER_OPERATIONS §3). */
  const id=document.getElementById('loginIdentifier')?.value.trim();if(!id){showToast(t('toastEnterEmail'));return}
- try{const email=await resolveLoginEmail(id);await authRequest('/recover',{method:'POST',body:JSON.stringify({email,redirect_to:MDZ_SITE_URL()+'#auth-callback'})})}catch(e){console.warn('password recover request failed',e)}
  showToast(t('toastRecoverSent'));
+ void (async()=>{
+  try{
+   /* Email path skips resolve RPC (reduces existence probing). Phone/member_id still needs resolve. */
+   const email=id.includes('@')?id.toLowerCase():await resolveLoginEmail(id);
+   await authRequest('/recover',{method:'POST',body:JSON.stringify({email,redirect_to:MDZ_SITE_URL()+'#auth-callback'})});
+  }catch(e){console.warn('password recover request failed',e)}
+ })();
 });
 
 let mdzAccountProfile=null;
@@ -2812,8 +2797,8 @@ async function openManagerDashboard(){
  document.getElementById('managerDashModal').classList.add('open');
  const box=document.getElementById('managerDashContent');
  box.innerHTML=`<div class="notice">${t('accountLoading')}</div>`;
- const profile=mdzAccountProfile||await fetchMyProfile(session.access_token,session.user?.id);
  try{
+  const profile=mdzAccountProfile||await fetchMyProfile(session.access_token,session.user?.id);
   const data=await dash.loadManagerData(session.access_token,SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY,profile?.wilaya);
   box.innerHTML=dash.renderManagerDashboard(t,{wilaya:profile?.wilaya,rows:data.rows,source:data.source,safeText,registrationRoleLabel});
  }catch(e){
@@ -2887,7 +2872,10 @@ async function handleAuthRedirect(){
  const {access,refresh,type,errorDesc,expires_in,code,fromConfirm}=parseAuthRedirect();
  if(errorDesc){showToast(authErrorArabic({message:decodeURIComponent(errorDesc)}));history.replaceState(null,'',MDZ_SITE_URL());return}
  let sessionPayload=null;
- if(access) sessionPayload={access_token:access,refresh_token:refresh,expires_in:expires_in?Number(expires_in):3600,user:null};
+ if(access){
+  const uid=userIdFromAccessToken(access);
+  sessionPayload={access_token:access,refresh_token:refresh,expires_in:expires_in?Number(expires_in):3600,user:uid?{id:uid}:null};
+ }
  else if(code){try{sessionPayload=await exchangeAuthCode(code)}catch(err){console.warn(err);promptLoginAfterConfirm(t('authConfirmLogin'));history.replaceState(null,'',MDZ_SITE_URL());return}}
  else if(fromConfirm){promptLoginAfterConfirm(t('authConfirmOk'));history.replaceState(null,'',MDZ_SITE_URL());return}
  else return;

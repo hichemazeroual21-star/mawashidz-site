@@ -4,8 +4,8 @@
  *
  * Requires wrangler assets.binding = "ASSETS" and run_worker_first = ["/api/*"].
  */
-import newsHandler from './netlify/functions/news.mjs';
-import pricesHandler from './netlify/functions/prices.mjs';
+import defaultNewsHandler from './netlify/functions/news.mjs';
+import defaultPricesHandler from './netlify/functions/prices.mjs';
 
 const JSON_HEADERS = {
   'Content-Type': 'application/json; charset=utf-8',
@@ -29,34 +29,43 @@ async function serveAssets(request, env) {
   return env.ASSETS.fetch(request);
 }
 
-export default {
-  async fetch(request, env) {
-    const pathname = normalizeApiPath(new URL(request.url).pathname);
+/** Strip body for HEAD while preserving status/headers from the real handler. */
+async function asHead(response) {
+  return new Response(null, { status: response.status, headers: response.headers });
+}
 
-    if (pathname === '/api/livestock-news' || pathname === '/api/livestock-prices') {
-      if (request.method === 'HEAD') {
-        return new Response(null, {
-          status: 200,
-          headers: {
-            'Content-Type': 'application/json; charset=utf-8',
-            'Cache-Control': pathname === '/api/livestock-prices'
-              ? 'public, max-age=0, must-revalidate'
-              : 'public, max-age=60, stale-while-revalidate=120',
-          },
-        });
-      }
-      if (request.method !== 'GET') {
-        return jsonError(405, 'method-not-allowed');
-      }
-      try {
-        const handler = pathname === '/api/livestock-news' ? newsHandler : pricesHandler;
-        return await handler(request);
-      } catch (error) {
-        console.error(`${pathname} error`, error);
-        return jsonError(503, pathname === '/api/livestock-news' ? 'news-handler-failed' : 'prices-handler-failed');
-      }
-    }
+/**
+ * @param {{ newsHandler?: Function, pricesHandler?: Function }} [deps]
+ */
+export function createWorker(deps = {}) {
+  const newsHandler = deps.newsHandler || defaultNewsHandler;
+  const pricesHandler = deps.pricesHandler || defaultPricesHandler;
 
-    return serveAssets(request, env);
-  },
-};
+  return {
+    async fetch(request, env) {
+      const pathname = normalizeApiPath(new URL(request.url).pathname);
+
+      if (pathname === '/api/livestock-news' || pathname === '/api/livestock-prices') {
+        if (request.method !== 'GET' && request.method !== 'HEAD') {
+          return jsonError(405, 'method-not-allowed');
+        }
+        try {
+          const handler = pathname === '/api/livestock-news' ? newsHandler : pricesHandler;
+          const response = await handler(request);
+          return request.method === 'HEAD' ? asHead(response) : response;
+        } catch (error) {
+          console.error(`${pathname} error`, error);
+          const failed = jsonError(
+            503,
+            pathname === '/api/livestock-news' ? 'news-handler-failed' : 'prices-handler-failed',
+          );
+          return request.method === 'HEAD' ? asHead(failed) : failed;
+        }
+      }
+
+      return serveAssets(request, env);
+    },
+  };
+}
+
+export default createWorker();
