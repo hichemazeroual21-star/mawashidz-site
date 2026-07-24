@@ -10,8 +10,9 @@ This folder holds the **master strategic constitution** and supporting governanc
 |----------|------|-----------|
 | **[MAWASHIDZ_CONSTITUTION.md](./MAWASHIDZ_CONSTITUTION.md)** | Master strategic constitution (vision, governance, roles, platform systems, engineering principles) | **Highest authority** for platform direction |
 | **[CONSTITUTION_GAP_ANALYSIS.md](./CONSTITUTION_GAP_ANALYSIS.md)** | Gap analysis, risk register, field research needs, implementation reality check | Advisory — reviewed before major releases |
+| **[IMPLEMENTATION_ROADMAP.md](./IMPLEMENTATION_ROADMAP.md)** | Recommended phased delivery plan (Phases 0–7) after full analysis | Advisory — Founder approval required before execution |
 | **[../product/PRODUCT_CONSTITUTION.md](../product/PRODUCT_CONSTITUTION.md)** | Smart Workspace & Hub implementation detail (v1.4) | Subordinate to master constitution; wins on Hub/workspace mechanics until superseded by PDR |
-| **[../product/ROADMAP.md](../product/ROADMAP.md)** | Delivery plan and phase gates | Execution order only — not requirements |
+| **[../product/ROADMAP.md](../product/ROADMAP.md)** | Current engineering delivery tracks and gates | Execution order for in-flight Phase 1–2 work |
 
 **Rule:** Implementation follows the Constitution. Never the opposite.
 
