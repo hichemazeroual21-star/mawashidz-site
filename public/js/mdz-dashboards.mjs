@@ -13,6 +13,18 @@ export function statusKey(status) {
   return 'pending';
 }
 
+/** Human registration status label — never expose raw enums to operators (MDZ-UI-004). */
+export function registrationStatusLabel(t, status) {
+  const key = statusKey(status);
+  const map = {
+    pending: 'statusPending',
+    approved: 'statusApproved',
+    rejected: 'statusRejected',
+    suspended: 'statusSuspended',
+  };
+  return t(map[key] || 'statusPending');
+}
+
 export function statusProgressStep(status) {
   const map = { pending: 1, approved: 3, active: 3, rejected: 2, suspended: 2 };
   return map[String(status || 'pending').toLowerCase()] || 1;
@@ -50,6 +62,11 @@ export function escapeHtml(text) {
     .replace(/"/g, '&quot;');
 }
 
+export function renderRegistrationStatusChip(t, status) {
+  const key = statusKey(status);
+  return `<span class="dash-status-chip mdz-status is-${key}">${escapeHtml(registrationStatusLabel(t, status))}</span>`;
+}
+
 export function renderStatusProgress(t, status) {
   const step = statusProgressStep(status);
   const labels = [
@@ -66,7 +83,7 @@ export function renderStatusProgress(t, status) {
 }
 
 export function renderAccountTabs(t, active = 'profile') {
-  // Elevated IA: four primary surfaces (invites live under profile)
+  // Elevated IA: five primary tabs (invites live under profile)
   const tabs = [
     ['profile', t('acctTabProfile')],
     ['request', t('acctTabRequest')],
@@ -125,7 +142,7 @@ export function renderAccountPanel(t, profile, tab, helpers) {
       <div class="member-data"><small>${escapeHtml(t('phone'))}</small><b dir="ltr">${escapeHtml(safeText(p.phone, 30) || '—')}</b></div>
     </div>
     <p class="acct-tab-note">${escapeHtml(t('acctSecurityNote'))}</p>
-    <button class="btn ghost" type="button" id="acctForgotBtn">${escapeHtml(t('forgotPassword'))}</button>`;
+    <button class="mdz-btn mdz-btn-ghost" type="button" id="acctForgotBtn">${escapeHtml(t('forgotPassword'))}</button>`;
   }
 
   return `<div class="member-data-grid">
@@ -158,7 +175,7 @@ export function renderAccountDashboard(t, profile, helpers) {
       ${renderAccountPanel(t, p, 'profile', helpers)}
     </div>
     <div class="acct-actions">
-      <button class="btn ghost mdz-btn mdz-btn-ghost" type="button" id="logoutBtn">${escapeHtml(t('logoutBtn'))}</button>
+      <button class="mdz-btn mdz-btn-ghost" type="button" id="logoutBtn">${escapeHtml(t('logoutBtn'))}</button>
     </div>
   </div>`;
 }
@@ -175,11 +192,11 @@ function rowActionsHtml(t, row) {
   const wilaya = escapeHtml(String(row.wilaya || '').trim());
   if (!regId) return `<span class="dash-muted">—</span>`;
   if (status !== 'pending') {
-    return `<span class="dash-status-chip ${status}">${escapeHtml(String(row.status || status))}</span>`;
+    return renderRegistrationStatusChip(t, row.status);
   }
   return `<div class="dash-row-actions">
-    <button type="button" class="btn primary dash-action" data-review-action="approved" data-registration-id="${regId}" data-wilaya="${wilaya}">${escapeHtml(t('dashApprove'))}</button>
-    <button type="button" class="btn ghost dash-action" data-review-action="rejected" data-registration-id="${regId}" data-wilaya="${wilaya}">${escapeHtml(t('dashReject'))}</button>
+    <button type="button" class="mdz-btn mdz-btn-primary mdz-btn-sm dash-action" data-review-action="approved" data-registration-id="${regId}" data-wilaya="${wilaya}">${escapeHtml(t('dashApprove'))}</button>
+    <button type="button" class="mdz-btn mdz-btn-ghost mdz-btn-sm dash-action" data-review-action="rejected" data-registration-id="${regId}" data-wilaya="${wilaya}">${escapeHtml(t('dashReject'))}</button>
   </div>`;
 }
 
@@ -190,7 +207,7 @@ function renderQueueCards(t, rows, safeText, registrationRoleLabel) {
     return `<article class="dash-card">
       <header>
         <strong title="${escapeHtml(name)}">${escapeHtml(truncateLabel(name, 48))}</strong>
-        <span class="dash-status-chip ${statusKey(row.status)}">${escapeHtml(safeText(row.status || t('accountPending'), 40))}</span>
+        ${renderRegistrationStatusChip(t, row.status)}
       </header>
       <dl>
         <div><dt>${escapeHtml(t('acctRegId'))}</dt><dd dir="ltr" title="${escapeHtml(regId)}">${escapeHtml(truncateLabel(regId, 28))}</dd></div>
@@ -202,7 +219,8 @@ function renderQueueCards(t, rows, safeText, registrationRoleLabel) {
   }).join('')}</div>`;
 }
 
-function renderQueueTable(t, rows, safeText, registrationRoleLabel) {
+/** Exported for unit coverage (MDZ-UI-004). */
+export function renderQueueTable(t, rows, safeText, registrationRoleLabel) {
   if (!rows.length) {
     return `<div class="dash-empty">${escapeHtml(t('dashEmptyQueue'))}</div>`;
   }
@@ -222,7 +240,7 @@ function renderQueueTable(t, rows, safeText, registrationRoleLabel) {
     <td title="${escapeHtml(name)}">${escapeHtml(truncateLabel(name, 28))}</td>
     <td>${escapeHtml(registrationRoleLabel(row.role || row.user_type))}</td>
     <td>${escapeHtml(safeText(row.wilaya, 60))}</td>
-    <td><span class="dash-status-chip ${statusKey(row.status)}">${escapeHtml(safeText(row.status || t('accountPending'), 40))}</span></td>
+    <td>${renderRegistrationStatusChip(t, row.status)}</td>
     <td>${rowActionsHtml(t, row)}</td>
   </tr>`;
   }).join('');
@@ -243,10 +261,12 @@ export function renderManagerDashboard(t, ctx) {
     <article><strong>${rows.filter((r) => String(r.role) === 'vet').length}</strong><span>${escapeHtml(t('roleVet'))}</span></article>
     <article><strong>${rows.filter((r) => String(r.role) === 'breeder').length}</strong><span>${escapeHtml(t('roleBreeder'))}</span></article>
   </div>
+  <div id="opsSupportMount" class="mdz-ops-mount mdz-ops-command" aria-label="${escapeHtml(t('opsSupportTitle'))}"><div class="mdz-skeleton" style="height:120px"></div></div>
+  <div class="mdz-ops-divider" role="separator"></div>
+  <p class="mdz-eyebrow">${escapeHtml(t('opsReviewsEyebrow') || t('mgrDashPending'))}</p>
   <div id="dashQueueMount">${renderQueueTable(t, rows, safeText, registrationRoleLabel)}</div>
   <p class="dash-note" id="dashActionStatus" aria-live="polite"></p>
   <p class="dash-note">${escapeHtml(t('mgrDashNote'))}</p>
-  <div id="opsSupportMount" class="mdz-ops-mount" style="margin-top:20px"><div class="mdz-skeleton" style="height:120px"></div></div>
   </div>`;
 }
 
@@ -264,10 +284,12 @@ export function renderAdminDashboard(t, ctx) {
     <article><strong>${stats.breeders}</strong><span>${escapeHtml(t('roleBreeder'))}</span></article>
     <article><strong>${stats.managers}</strong><span>${escapeHtml(t('roleManager'))}</span></article>
   </div>
+  <div id="opsSupportMount" class="mdz-ops-mount mdz-ops-command" aria-label="${escapeHtml(t('opsSupportTitle'))}"><div class="mdz-skeleton" style="height:120px"></div></div>
+  <div class="mdz-ops-divider" role="separator"></div>
+  <p class="mdz-eyebrow">${escapeHtml(t('opsReviewsEyebrow') || t('adminStatTotal'))}</p>
   <div id="dashQueueMount">${renderQueueTable(t, rows, safeText, registrationRoleLabel)}</div>
   <p class="dash-note" id="dashActionStatus" aria-live="polite"></p>
   <p class="dash-note">${escapeHtml(t('adminDashNote'))}</p>
-  <div id="opsSupportMount" class="mdz-ops-mount" style="margin-top:20px"><div class="mdz-skeleton" style="height:120px"></div></div>
   </div>`;
 }
 

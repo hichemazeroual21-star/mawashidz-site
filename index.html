@@ -1039,7 +1039,17 @@ footer{background:#0b100d}
 .member-status-pill{display:inline-flex;margin-top:8px;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.14);font-weight:850;font-size:.86rem}
 .member-name{margin:14px 0 6px;font-size:1.25rem}.member-role{margin:0;opacity:.9;font-weight:750}
 #loginModal .modal-box,#accountModal .modal-box,#managerDashModal .modal-box,#adminDashModal .modal-box{width:min(560px,96vw)}
-#accountModal .modal-box,#managerDashModal .modal-box,#adminDashModal .modal-box{width:min(860px,96vw)}
+#accountModal .modal-box,#managerDashModal .modal-box,#adminDashModal .modal-box{width:min(960px,98vw);max-height:min(92vh,920px)}
+#accountModal .modal-box,#managerDashModal .modal-box,#adminDashModal .modal-box{overflow:auto}
+#headerActions{font-family:var(--mdz-font,"IBM Plex Sans Arabic","Segoe UI",Tahoma,sans-serif);align-items:center}
+#headerActions .mdz-btn{padding:0.55rem 0.9rem;font-size:0.86rem;border-radius:12px}
+.dash-row-actions{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+@media(max-width:860px){
+  .dash-table-wrap.desktop-only{display:none}
+  .mdz-ops-mount.is-thread-open .mdz-ops-list{display:none}
+  .mdz-ops-mount.is-thread-open .mdz-ops-thread{display:block}
+  .dash-row-actions .mdz-btn{flex:1 1 auto;min-width:7rem}
+}
 .mdz-field-hint{color:var(--mdz-danger,#b42318);font-size:.8rem;font-weight:700}
 #loginModal .login-state{min-height:1.4em;font-weight:800;color:#5c4a18}
 #loginModal .login-state.is-error{color:#9b1c1c}#loginModal .login-state.is-ok{color:#0f6a49}
@@ -1650,16 +1660,16 @@ body[data-lang]:not([data-lang="ar"]) .hero-title-sub{white-space:normal!importa
     <button type="button" data-lang="de">DE</button>
   </div>
   <div class="actions" id="headerActions">
-   <button class="btn ghost" type="button" id="headerLoginBtn" onclick="openLogin()" data-i18n="btnLogin">دخول</button>
-   <button class="btn primary" type="button" id="headerRegisterBtn" onclick="openRegister()" data-i18n="btnRegister">سجّل الآن</button>
-   <button type="button" class="mdz-bell" id="mdzNotifBell" onclick="openAccountInbox()" hidden aria-label="Notifications">
+   <button class="mdz-btn mdz-btn-ghost" type="button" id="headerLoginBtn" onclick="openLogin()" data-i18n="btnLogin">دخول</button>
+   <button class="mdz-btn mdz-btn-primary" type="button" id="headerRegisterBtn" onclick="openRegister()" data-i18n="btnRegister">سجّل الآن</button>
+   <button type="button" class="mdz-bell" id="mdzNotifBell" onclick="openAccountInbox()" hidden data-i18n-aria="notifBellAria" aria-label="الإشعارات">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3a6 6 0 0 0-6 6v2.2c0 .7-.2 1.4-.6 2L4 16h16l-1.4-2.8c-.4-.6-.6-1.3-.6-2V9a6 6 0 0 0-6-6Z" stroke="currentColor" stroke-width="1.8"/><path d="M10 19a2 2 0 0 0 4 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
     <span class="mdz-bell-badge" id="mdzNotifBadge" hidden>0</span>
    </button>
-   <button class="btn ghost" type="button" id="headerAccountBtn" onclick="openAccount()" hidden data-i18n="btnProfile">حسابي</button>
-   <button class="btn ghost" type="button" id="headerMgrDashBtn" onclick="openManagerDashboard()" hidden data-i18n="headerMgrDash">لوحة الولاية</button>
-   <button class="btn ghost" type="button" id="headerAdminDashBtn" onclick="openAdminDashboard()" hidden data-i18n="headerAdminDash">لوحة الإدارة</button>
-   <button class="btn primary" type="button" id="headerLogoutBtn" onclick="logoutAccount()" hidden data-i18n="btnLogout">تسجيل الخروج</button>
+   <button class="mdz-btn mdz-btn-ghost" type="button" id="headerAccountBtn" onclick="openAccount()" hidden data-i18n="btnProfile">حسابي</button>
+   <button class="mdz-btn mdz-btn-ghost" type="button" id="headerMgrDashBtn" onclick="openManagerDashboard()" hidden data-i18n="headerMgrDash">لوحة الولاية</button>
+   <button class="mdz-btn mdz-btn-ghost" type="button" id="headerAdminDashBtn" onclick="openAdminDashboard()" hidden data-i18n="headerAdminDash">لوحة الإدارة</button>
+   <button class="mdz-btn mdz-btn-primary" type="button" id="headerLogoutBtn" onclick="logoutAccount()" hidden data-i18n="btnLogout">تسجيل الخروج</button>
    <button class="menu-btn" onclick="toggleMenu(true)" data-i18n-aria="menuLabel" aria-label="القائمة">☰</button>
   </div>
  </div>
@@ -1816,7 +1826,7 @@ body[data-lang]:not([data-lang="ar"]) .hero-title-sub{white-space:normal!importa
     <small data-i18n="passDemoSmall">رقم دائم لا يتكرر حتى بعد انتقال الملكية</small>
    </div>
    <div class="passport-status">
-    <span class="verified-chip" data-i18n="passDemoChip">✓ موثق بيطريًا</span>
+    <span class="verified-chip" data-i18n="passDemoChip">عرض توضيحي — موثق بيطريًا (Demo)</span>
     <h3 data-i18n="passDemoLastCheck">آخر فحص: 14 يوليو 2026</h3>
     <p data-i18n="passDemoP">لقاح موثق — الطبيب: حساب مهني معتمد — موعد المتابعة القادم ظاهر للمالك.</p>
    </div>
@@ -2836,12 +2846,12 @@ async function refreshNotifBadge(session){
   const badge=document.getElementById('mdzNotifBadge');
   const bell=document.getElementById('mdzNotifBell');
   if(badge) badge.hidden=true;
-  if(bell) bell.hidden=true;
+  if(bell){ bell.hidden=true; bell.setAttribute('aria-label',t('notifBellAria')); }
   return;
  }
  try{
   const ops=await import('./js/mdz-member-ops.mjs');
-  await ops.updateNotificationBadge(session.access_token,SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY);
+  await ops.updateNotificationBadge(session.access_token,SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY,t);
   const bell=document.getElementById('mdzNotifBell');
   if(bell) bell.hidden=false;
  }catch{ /* non-blocking */ }
@@ -2927,9 +2937,18 @@ async function mountAccountSupport(session){
  const mount=document.getElementById('acctSupportMount');
  if(!mount) return;
  const ops=await import('./js/mdz-member-ops.mjs');
+ mount.innerHTML=ops.renderSupportSkeleton();
  let tickets=[];
- try{tickets=await ops.fetchMyTickets(session.access_token,SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY);}catch{tickets=[];}
- mount.innerHTML=ops.renderSupportPanel(t,tickets,{safeText});
+ let fetchError=false;
+ try{
+  tickets=await ops.fetchMyTickets(session.access_token,SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY);
+ }catch{
+  fetchError=true;
+  tickets=[];
+ }
+ // MDZ-UI-001: never render empty copy after a failed fetch
+ mount.innerHTML=ops.renderSupportPanel(t,tickets,{safeText,error:fetchError});
+ document.getElementById('supportRetryBtn')?.addEventListener('click',()=>mountAccountSupport(session));
  document.getElementById('ticketCreateBtn')?.addEventListener('click',async()=>{
   const status=document.getElementById('ticketCreateStatus');
   try{
@@ -2942,6 +2961,7 @@ async function mountAccountSupport(session){
    await mountAccountSupport(session);
   }catch{ if(status) status.textContent=t('ticketError'); }
  });
+ if(fetchError) return;
  const memberUserId=session.user?.id||null;
  mount.querySelectorAll('.ticket-open-btn').forEach(btn=>{
   btn.addEventListener('click',async()=>{
@@ -2963,22 +2983,33 @@ async function mountOperatorSupport(session,{isAdmin=false}={}){
  if(!mount) return;
  const ops=await import('./js/mdz-member-ops.mjs');
  const load=async(filters={})=>{
+  mount.innerHTML=ops.renderSupportSkeleton();
   let tickets=[];
-  try{tickets=await ops.fetchOperatorTickets(session.access_token,SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY,filters);}catch{tickets=[];}
-  mount.innerHTML=ops.renderOperatorSupportQueue(t,tickets,{safeText});
-  document.getElementById('opsSupportRefresh')?.addEventListener('click',()=>load({
+  let fetchError=false;
+  try{
+   tickets=await ops.fetchOperatorTickets(session.access_token,SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY,filters);
+  }catch{
+   fetchError=true;
+   tickets=[];
+  }
+  mount.innerHTML=ops.renderOperatorSupportQueue(t,tickets,{safeText,error:fetchError});
+  const reloadFilters=()=>({
    status:document.getElementById('opsSupportStatus')?.value||'',
    q:document.getElementById('opsSupportQ')?.value||'',
-  }));
+  });
+  document.getElementById('opsSupportRefresh')?.addEventListener('click',()=>load(reloadFilters()));
+  document.getElementById('opsSupportRetryBtn')?.addEventListener('click',()=>load(filters));
   document.getElementById('opsSupportStatus')?.addEventListener('change',(e)=>load({status:e.target.value||'',q:document.getElementById('opsSupportQ')?.value||''}));
   document.getElementById('opsSupportQ')?.addEventListener('keydown',(e)=>{
    if(e.key==='Enter') load({status:document.getElementById('opsSupportStatus')?.value||'',q:e.target.value||''});
   });
+  if(fetchError) return;
   mount.querySelectorAll('.ops-ticket-open').forEach(btn=>{
    btn.addEventListener('click',async()=>{
     const id=Number(btn.dataset.ticketId);
     const thread=document.getElementById('opsTicketThreadMount');
     if(!thread) return;
+    mount.classList.add('is-thread-open');
     try{
      const ticket=tickets.find(x=>Number(x.id)===id)||{id,ticket_code:String(id),subject:'',status:'open'};
      const messages=await ops.fetchTicketMessages(session.access_token,SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY,id);
@@ -2991,7 +3022,10 @@ async function mountOperatorSupport(session,{isAdmin=false}={}){
       wire();
      };
      const wire=()=>{
-      document.getElementById('ticketThreadBack')?.addEventListener('click',()=>load(filters));
+      document.getElementById('ticketThreadBack')?.addEventListener('click',()=>{
+       mount.classList.remove('is-thread-open');
+       load(filters);
+      });
       document.getElementById('ticketReplyBtn')?.addEventListener('click',async()=>{
        try{
         await ops.replySupportTicket(session.access_token,SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY,id,document.getElementById('ticketReplyBody')?.value||'');

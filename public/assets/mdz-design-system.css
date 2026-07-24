@@ -250,6 +250,12 @@
 }
 .mdz-empty strong { display: block; margin-bottom: var(--mdz-space-2); font-size: 1rem; }
 .mdz-empty p { margin: 0 0 var(--mdz-space-4); color: var(--mdz-muted); font-size: 0.9rem; }
+.mdz-error {
+  border-style: solid;
+  border-color: rgba(180, 35, 24, 0.25);
+  background: var(--mdz-danger-soft);
+}
+.mdz-error strong { color: var(--mdz-danger); }
 
 .mdz-skeleton {
   border-radius: var(--mdz-radius);
@@ -337,8 +343,38 @@
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
   gap: var(--mdz-space-4);
 }
+.mdz-ops-command {
+  margin-top: var(--mdz-space-4);
+  margin-bottom: var(--mdz-space-4);
+}
+.mdz-ops-divider {
+  height: 1px;
+  background: var(--mdz-line);
+  margin: var(--mdz-space-4) 0 var(--mdz-space-3);
+}
+.mdz-ops-table th,
+.mdz-ops-table td {
+  padding: 8px 10px;
+  font-size: 0.82rem;
+}
+.mdz-ops-toolbar,
+.mdz-ops-filters {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--mdz-surface-elevated);
+}
+.mdz-status.is-priority-high,
+.mdz-status.is-priority-urgent {
+  color: var(--mdz-warn);
+}
 @media (max-width: 860px) {
   .mdz-split { grid-template-columns: 1fr; }
+  .mdz-ops-mount.is-thread-open .mdz-ops-list { display: none; }
+  .mdz-ops-thread .mdz-btn,
+  .mdz-ops-list .ops-ticket-open {
+    min-height: 40px;
+  }
 }
 
 .mdz-filter-chip {
@@ -359,11 +395,11 @@
   color: var(--mdz-brand-strong);
 }
 
-/* Account modal product shell */
+/* Account / ops product shell — denser within modal constraint (MDZ-UI-008) */
 #accountModal .modal-card,
 #managerDashModal .modal-card,
 #adminDashModal .modal-card {
-  max-width: 760px;
+  max-width: 960px;
 }
 #accountContent.mdz-product,
 #managerDashContent.mdz-product,

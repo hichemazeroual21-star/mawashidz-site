@@ -56,14 +56,41 @@ const TICKET_STATUS_KEYS = {
   closed: 'ticketStatusClosed',
 };
 
+const TICKET_PRIORITY_KEYS = {
+  low: 'ticketPriorityLow',
+  normal: 'ticketPriorityNormal',
+  high: 'ticketPriorityHigh',
+  urgent: 'ticketPriorityUrgent',
+};
+
 export function ticketStatusLabel(t, status) {
   const key = TICKET_STATUS_KEYS[status];
   return key ? t(key) : String(status || '—');
 }
 
+export function ticketPriorityLabel(t, priority) {
+  const p = String(priority || 'normal').toLowerCase();
+  const key = TICKET_PRIORITY_KEYS[p];
+  return key ? t(key) : t('ticketPriorityNormal');
+}
+
 export function statusChip(t, status) {
   const s = String(status || '').toLowerCase();
   return `<span class="mdz-status is-${escapeHtml(s)}">${escapeHtml(ticketStatusLabel(t, s))}</span>`;
+}
+
+export function priorityChip(t, priority) {
+  const p = String(priority || 'normal').toLowerCase();
+  return `<span class="mdz-status is-priority-${escapeHtml(p)}">${escapeHtml(ticketPriorityLabel(t, p))}</span>`;
+}
+
+/** Trust-grade fetch failure — never collapse to empty (MDZ-UI-001). */
+export function renderFetchError(t, { titleKey = 'ticketErrorTitle', bodyKey = 'ticketError', retryId = 'supportRetryBtn' } = {}) {
+  return `<div class="mdz-empty mdz-error" role="alert" data-mdz-fetch-error="1">
+    <strong>${escapeHtml(t(titleKey))}</strong>
+    <p>${escapeHtml(t(bodyKey))}</p>
+    <button type="button" class="mdz-btn mdz-btn-ghost" id="${escapeHtml(retryId)}">${escapeHtml(t('notifRefresh'))}</button>
+  </div>`;
 }
 
 export async function rpcPost(token, restUrl, apiKey, fn, body) {
@@ -208,6 +235,7 @@ export async function fetchInternalNotes(token, restUrl, apiKey, ticketId) {
 
 /**
  * Accessible reason dialog — replaces window.prompt for rejections / confirmations.
+ * Focus: initial field focus, Tab trap, Escape + restore previous focus (MDZ-UI-007).
  * @returns {Promise<string|null>}
  */
 export function openReasonDialog({
@@ -223,6 +251,7 @@ export function openReasonDialog({
 } = {}) {
   return new Promise((resolve) => {
     document.getElementById('mdz-reason-dialog')?.remove();
+    const previouslyFocused = document.activeElement;
 
     const backdrop = document.createElement('div');
     backdrop.id = 'mdz-reason-dialog';
@@ -246,13 +275,36 @@ export function openReasonDialog({
         </div>
       </div>`;
 
+    const focusableSelector = 'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+    const getFocusable = () => [...backdrop.querySelectorAll(focusableSelector)];
+
     const finish = (value) => {
-      document.removeEventListener('keydown', onKey);
+      document.removeEventListener('keydown', onKey, true);
       backdrop.remove();
+      if (previouslyFocused && typeof previouslyFocused.focus === 'function') {
+        try { previouslyFocused.focus(); } catch { /* ignore */ }
+      }
       resolve(value);
     };
+
     const onKey = (e) => {
-      if (e.key === 'Escape') finish(null);
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        finish(null);
+        return;
+      }
+      if (e.key !== 'Tab') return;
+      const nodes = getFocusable();
+      if (!nodes.length) return;
+      const first = nodes[0];
+      const last = nodes[nodes.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
     };
 
     backdrop.addEventListener('click', (e) => {
@@ -265,34 +317,40 @@ export function openReasonDialog({
       if (required && val.length < minLength) {
         hint.hidden = false;
         hint.textContent = tooShortMessage || 'Please provide a clearer reason.';
+        backdrop.querySelector('#mdz-reason-input')?.focus();
         return;
       }
       finish(val);
     });
 
-    document.addEventListener('keydown', onKey);
+    document.addEventListener('keydown', onKey, true);
     document.body.appendChild(backdrop);
     queueMicrotask(() => backdrop.querySelector('#mdz-reason-input')?.focus());
   });
 }
 
-export async function updateNotificationBadge(token, restUrl, apiKey) {
+export async function updateNotificationBadge(token, restUrl, apiKey, translate = null) {
   const el = document.getElementById('mdzNotifBadge');
   const btn = document.getElementById('mdzNotifBell');
   if (!el || !token) return 0;
+  const tt = typeof translate === 'function'
+    ? translate
+    : (typeof globalThis.t === 'function' ? globalThis.t.bind(globalThis) : (k) => k);
   try {
     const n = Number(await countUnreadNotifications(token, restUrl, apiKey)) || 0;
     if (n > 0) {
       el.hidden = false;
       el.textContent = n > 99 ? '99+' : String(n);
-      if (btn) btn.setAttribute('aria-label', `${n} unread`);
+      if (btn) btn.setAttribute('aria-label', tt('notifBellAriaUnread', { n }));
     } else {
       el.hidden = true;
       el.textContent = '';
+      if (btn) btn.setAttribute('aria-label', tt('notifBellAria'));
     }
     return n;
   } catch {
     el.hidden = true;
+    if (btn) btn.setAttribute('aria-label', tt('notifBellAria'));
     return 0;
   }
 }
@@ -368,7 +426,7 @@ export function renderNotificationsPanel(t, rows, { safeText, unreadOnly = false
   return `${toolbar}<div class="mdz-list notif-list">${items}</div>`;
 }
 
-export function renderSupportPanel(t, tickets, { safeText } = {}) {
+export function renderSupportPanel(t, tickets, { safeText, error = false } = {}) {
   const list = Array.isArray(tickets) ? tickets : [];
   const options = [
     ['inquiry', t('ticketTypeInquiry')],
@@ -383,10 +441,17 @@ export function renderSupportPanel(t, tickets, { safeText } = {}) {
     .map(([v, label]) => `<option value="${v}">${escapeHtml(label)}</option>`)
     .join('');
 
-  const rows = list.length
-    ? list
-        .map(
-          (tk) => `<article class="mdz-item ticket-item" data-ticket-id="${escapeHtml(String(tk.id))}">
+  let listBlock;
+  if (error) {
+    listBlock = renderFetchError(t, {
+      titleKey: 'ticketErrorTitle',
+      bodyKey: 'ticketLoadError',
+      retryId: 'supportRetryBtn',
+    });
+  } else if (list.length) {
+    listBlock = list
+      .map(
+        (tk) => `<article class="mdz-item ticket-item" data-ticket-id="${escapeHtml(String(tk.id))}">
         <header>
           <strong dir="ltr">${escapeHtml(safeText ? safeText(tk.ticket_code, 40) : tk.ticket_code)}</strong>
           ${statusChip(t, tk.status)}
@@ -395,9 +460,11 @@ export function renderSupportPanel(t, tickets, { safeText } = {}) {
         <div class="mdz-meta">${escapeHtml(formatWhen(tk.updated_at || tk.created_at))}</div>
         <button type="button" class="mdz-btn mdz-btn-ghost ticket-open-btn" data-ticket-id="${escapeHtml(String(tk.id))}" style="margin-top:10px">${escapeHtml(t('ticketOpen'))}</button>
       </article>`,
-        )
-        .join('')
-    : `<div class="mdz-empty"><strong>${escapeHtml(t('ticketEmptyTitle'))}</strong><p>${escapeHtml(t('ticketEmpty'))}</p></div>`;
+      )
+      .join('');
+  } else {
+    listBlock = `<div class="mdz-empty"><strong>${escapeHtml(t('ticketEmptyTitle'))}</strong><p>${escapeHtml(t('ticketEmpty'))}</p></div>`;
+  }
 
   return `<div class="mdz-panel ticket-create" style="margin-bottom:16px">
       <h3 class="mdz-title" style="font-size:1.05rem;margin-bottom:12px">${escapeHtml(t('ticketCreateTitle'))}</h3>
@@ -407,7 +474,7 @@ export function renderSupportPanel(t, tickets, { safeText } = {}) {
       <button type="button" class="mdz-btn mdz-btn-primary" id="ticketCreateBtn">${escapeHtml(t('ticketSubmit'))}</button>
       <p class="acct-tab-note" id="ticketCreateStatus" aria-live="polite"></p>
     </div>
-    <div class="ticket-list mdz-list">${rows}</div>
+    <div class="ticket-list mdz-list">${listBlock}</div>
     <div id="ticketThreadMount"></div>`;
 }
 
@@ -472,7 +539,7 @@ export function renderTicketThread(t, ticket, messages, { safeText, memberUserId
   </div>`;
 }
 
-export function renderOperatorSupportQueue(t, tickets, { safeText } = {}) {
+export function renderOperatorSupportQueue(t, tickets, { safeText, error = false } = {}) {
   const list = Array.isArray(tickets) ? tickets : [];
   const statusOpts = ['', 'open', 'in_review', 'waiting_for_member', 'escalated', 'closed']
     .map((s) => {
@@ -481,25 +548,34 @@ export function renderOperatorSupportQueue(t, tickets, { safeText } = {}) {
     })
     .join('');
 
-  const rows = list.length
-    ? list
-        .map(
-          (tk) => `<tr>
+  let rows;
+  if (error) {
+    rows = `<tr><td colspan="5">${renderFetchError(t, {
+      titleKey: 'opsQueueErrorTitle',
+      bodyKey: 'ticketLoadError',
+      retryId: 'opsSupportRetryBtn',
+    })}</td></tr>`;
+  } else if (list.length) {
+    rows = list
+      .map(
+        (tk) => `<tr>
       <td>
         <div><strong>${escapeHtml(safeText ? safeText(tk.subject, 80) : tk.subject)}</strong></div>
         <div class="mdz-meta" dir="ltr">${escapeHtml(tk.ticket_code || '')} · ${escapeHtml(tk.wilaya || '—')}</div>
       </td>
       <td>${statusChip(t, tk.status)}</td>
-      <td><span class="mdz-meta">${escapeHtml(tk.priority || 'normal')}</span></td>
+      <td>${priorityChip(t, tk.priority)}</td>
       <td><time class="mdz-meta">${escapeHtml(formatWhen(tk.updated_at))}</time></td>
-      <td><button type="button" class="mdz-btn mdz-btn-ghost ops-ticket-open" data-ticket-id="${escapeHtml(String(tk.id))}">${escapeHtml(t('ticketOpen'))}</button></td>
+      <td><button type="button" class="mdz-btn mdz-btn-ghost mdz-btn-sm ops-ticket-open" data-ticket-id="${escapeHtml(String(tk.id))}">${escapeHtml(t('ticketOpen'))}</button></td>
     </tr>`,
-        )
-        .join('')
-    : `<tr><td colspan="5"><div class="mdz-empty"><p>${escapeHtml(t('opsQueueEmpty'))}</p></div></td></tr>`;
+      )
+      .join('');
+  } else {
+    rows = `<tr><td colspan="5"><div class="mdz-empty"><p>${escapeHtml(t('opsQueueEmpty'))}</p></div></td></tr>`;
+  }
 
   return `<section class="mdz-panel mdz-ops-support" id="mdzOpsSupport">
-    <div class="mdz-toolbar" style="justify-content:space-between;align-items:flex-start">
+    <div class="mdz-toolbar mdz-ops-toolbar" style="justify-content:space-between;align-items:flex-start">
       <div>
         <p class="mdz-eyebrow">${escapeHtml(t('opsSupportEyebrow'))}</p>
         <h3 class="mdz-title" style="font-size:1.15rem">${escapeHtml(t('opsSupportTitle'))}</h3>
@@ -507,17 +583,17 @@ export function renderOperatorSupportQueue(t, tickets, { safeText } = {}) {
       </div>
       <button type="button" class="mdz-btn mdz-btn-ghost" id="opsSupportRefresh">${escapeHtml(t('notifRefresh'))}</button>
     </div>
-    <div class="mdz-toolbar">
-      <label class="mdz-field" style="margin:0;min-width:160px">${escapeHtml(t('ticketStatus'))}
+    <div class="mdz-toolbar mdz-ops-filters">
+      <label class="mdz-field" style="margin:0;min-width:140px">${escapeHtml(t('ticketStatus'))}
         <select id="opsSupportStatus" class="mdz-select">${statusOpts}</select>
       </label>
       <label class="mdz-field" style="margin:0;flex:1">${escapeHtml(t('opsSupportSearch'))}
         <input type="search" id="opsSupportQ" class="mdz-input" placeholder="${escapeHtml(t('opsSupportSearchPh'))}" />
       </label>
     </div>
-    <div class="mdz-split">
-      <div class="dash-table-wrap">
-        <table class="dash-table" id="opsSupportTable">
+    <div class="mdz-split mdz-ops-split">
+      <div class="dash-table-wrap mdz-ops-list">
+        <table class="dash-table mdz-ops-table" id="opsSupportTable">
           <thead><tr>
             <th>${escapeHtml(t('ticketSubject'))}</th>
             <th>${escapeHtml(t('ticketStatus'))}</th>
@@ -528,11 +604,15 @@ export function renderOperatorSupportQueue(t, tickets, { safeText } = {}) {
           <tbody>${rows}</tbody>
         </table>
       </div>
-      <div id="opsTicketThreadMount"><div class="mdz-empty"><p>${escapeHtml(t('opsSelectTicket'))}</p></div></div>
+      <div id="opsTicketThreadMount" class="mdz-ops-thread"><div class="mdz-empty"><p>${escapeHtml(t('opsSelectTicket'))}</p></div></div>
     </div>
   </section>`;
 }
 
 export function renderNotificationsSkeleton() {
   return `<div class="mdz-list">${[1, 2, 3].map(() => '<div class="mdz-skeleton"></div>').join('')}</div>`;
+}
+
+export function renderSupportSkeleton() {
+  return renderNotificationsSkeleton();
 }
