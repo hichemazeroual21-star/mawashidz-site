@@ -17,6 +17,7 @@
 | **[STRATEGIC_PHASE_COMPLETE.md](./STRATEGIC_PHASE_COMPLETE.md)** | Freeze declaration + self-assessment |
 | **[PHASE1_INDEPENDENT_AUDIT.md](./PHASE1_INDEPENDENT_AUDIT.md)** | STOP audit (baseline criticism) |
 | **[PHASE1_QUALITY_ELEVATION_REPORT.md](./PHASE1_QUALITY_ELEVATION_REPORT.md)** | Elevation work + honest scores |
+| **[STRICT_EVIDENCE_REVIEW_STANDARD.md](./STRICT_EVIDENCE_REVIEW_STANDARD.md)** | Strict review prompt + severity/confidence/cost/evidence rules |
 
 ## Subordinate
 

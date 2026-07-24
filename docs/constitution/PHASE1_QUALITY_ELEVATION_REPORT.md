@@ -114,14 +114,34 @@ The board does **not** inflate to 9.7+. A 9.7 requires production evidence, tigh
 
 ---
 
+## Evidence classification (post-standard)
+
+Per [STRICT_EVIDENCE_REVIEW_STANDARD.md](./STRICT_EVIDENCE_REVIEW_STANDARD.md):
+
+- Scores above describe **implementation quality in-repo**, not **Verified production**.
+- Static + local tests (`npm run test:ci` at commit `0107e62`) do **not** prove live RLS, Resend delivery, or Cloudflare cron.
+- No elevation claim in this report is **Verified** until a documented smoke on production or equivalent staging.
+
+### Local test log (this elevation)
+
+| Field | Value |
+|-------|-------|
+| Command | `npm run test:ci` |
+| Scenario | Unit + migration static gates + email requeue mock (no Resend) |
+| Result | Pass |
+| Does not prove | Migrations applied; Worker cron live; provider sends; RLS against real project |
+
+---
+
 ## Exit condition
 
-The board can say: **major Phase 1 engineering weaknesses from the STOP audit are addressed in code.**
+The board can say: **major Phase 1 engineering weaknesses from the STOP audit are addressed in code** (Implemented / Tested locally — not Verified).
 
 The board **cannot** unanimously declare “production-ready 9.7” until:
 
 1. Migrations 010–012 applied on Supabase  
 2. Worker deployed with cron + `RESEND_API_KEY` / `EMAIL_OUTBOX_SECRET`  
-3. Smoke: approve/reject → notify + email; ticket create/reply → staff queue; badge + deep link  
+3. Documented live smoke: approve/reject → notify + email; ticket create/reply → staff queue; badge + deep link  
 
-**Phase 2 stays blocked** pending that verification.
+**Phase 2 stays blocked** pending that verification.  
+If the only remaining gap is live smoke itself, **do not invent score-chasing work** — stop and run smoke.
