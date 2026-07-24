@@ -117,7 +117,7 @@ If the user has no data yet, show **one clear next step**—not an empty grid.
 | Breeder, no listings | «ابدأ أول عرض لك» / *Start your first listing* + ➕ CTA |
 | Vet, no visibility | «أكمل ملفك ليظهر للأعضاء» / *Complete your profile to appear to members* |
 | Buyer, no requests | «تصفّح المواشي القريبة» / *Browse animals near you* |
-| Feed seller, no products | «أضف أول منتج» / *Add your first product* |
+| Feed seller (Years 1–2) | «أكمل ملف تاجر الأعلاف — الكتالوج غير متاح بعد» / *Complete your feed-seller profile — catalog not available yet* |
 | Manager, no pending tasks | «لا مهام عاجلة — راجع نشاط الولاية» / *No urgent tasks — review wilaya activity* |
 
 Hub offline/cached content still follows **Offline** rules; empty state is for **no business objects**, not for network failure.
@@ -371,16 +371,20 @@ The Founder manages the **entire platform**.
 ```text
 Platform live with registrations
     ↓
-Admin operations stable (approve, audit, roles)
+Phase 0–1: Admin / member operations stable (approve, audit, tickets, email)
     ↓
-Smart Workspace + Hub framework (P0–P1, breeder-first)
+Phase 2: Livestock Identity (animals, ownership, QR, media)
     ↓
-Marketplace modules plug in as cards + workspace sections
+Phase 3: Marketplace MVP (after Founder Decisions)
+    ↓
+Phase 4: Smart Workspace + Hub polish on real objects (breeder-first)
     ↓
 Wilaya managers operational at scale
     ↓
 Data-driven iteration (analytics + operational success metrics)
 ```
+
+> **Deprecated:** Any diagram that placed Hub immediately after Admin ops (before animals/marketplace) is void — see Approved execution sequence and constitution ROADMAP.
 
 | Area | Scope |
 |------|--------|

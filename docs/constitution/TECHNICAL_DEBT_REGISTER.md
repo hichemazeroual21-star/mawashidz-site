@@ -20,11 +20,15 @@ Lightweight living list. Add items when shipping shortcuts. Clear when fixed.
 | TD-014 | Email claim race / missing processing state | Phase 1 MVP speed | Duplicate sends | Phase 1 elevation — 012 lease | **Closed** |
 | TD-015 | No email cron | Phase 1 MVP | Outbox never drains | Worker cron `*/2` | **Closed** |
 | TD-016 | No operator Support Center UI | Phase 1 MVP | Ops half missing | Manager/admin queue UI | **Closed** |
-| TD-017 | Notification deep links unused | Phase 1 MVP | Dead links | Hash + Open handlers | **Closed** |
+| TD-017 | Notification deep links unused | Phase 1 MVP | Dead links | Hash + Open handlers + `#admin-dash` | **Closed** |
 | TD-018 | Probeable SECURITY DEFINER helpers | Phase 1 MVP | Info disclosure | No-arg helpers in 012 | **Closed** |
 | TD-019 | Manager review audit gap | Phase 1 MVP | Forensic hole | Audit all reviews in 012 | **Closed** |
-| TD-020 | Prototype UI (prompt, enums) | Phase 1 MVP | Trust/UX | Dialog + i18n + design system | **Mitigated** |
+| TD-020 | Prototype UI (prompt, enums) | Phase 1 MVP | Trust/UX | Dialog only; `window.prompt` removed from reject | **Closed** |
 | TD-021 | Modal-hosted product shell | Static-site architecture | Not workspace-class IA | Phase 1.5 / UX shell | Open |
 | TD-022 | No live RLS integration tests | Static SQL tests only | False confidence | Phase 1 follow-up | Open |
+| TD-023 | Outbox attempt exhaustion while awaiting Resend | Elevation 012 claim bump | Stranded mail without key | 013 awaiting_* attempt undo | **Closed** |
+| TD-024 | Duplicate send after Resend OK / mark fail | Crash window | Double email | Idempotency-Key + `provider_message_id` reconcile | **Closed** |
+| TD-025 | Service-role accepted as outbox HTTP bearer | Convenience fallback | Authz bypass risk | Require distinct `EMAIL_OUTBOX_SECRET` | **Closed** |
+| TD-026 | Non-atomic 1-arg claim fallback | Pre-012 compat | Race / double send | Fail-closed; drop 1-arg claim | **Closed** |
 
 **Rule:** Do not add product features that increase debt in Open Phase 0 Must items without fixing or explicitly accepting risk in the PR.

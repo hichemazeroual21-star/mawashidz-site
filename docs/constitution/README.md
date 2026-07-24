@@ -17,13 +17,10 @@
 | **[ARCHITECTURE_REVIEW_CHECKLIST.md](./ARCHITECTURE_REVIEW_CHECKLIST.md)** | PR review gate |
 | **[TECHNICAL_DEBT_REGISTER.md](./TECHNICAL_DEBT_REGISTER.md)** | Known debt |
 | **[STRATEGIC_PHASE_COMPLETE.md](./STRATEGIC_PHASE_COMPLETE.md)** | Freeze declaration + self-assessment |
-<<<<<<< HEAD
 | **[PHASE1_INDEPENDENT_AUDIT.md](./PHASE1_INDEPENDENT_AUDIT.md)** | STOP audit (baseline criticism) |
 | **[PHASE1_QUALITY_ELEVATION_REPORT.md](./PHASE1_QUALITY_ELEVATION_REPORT.md)** | Elevation work + honest scores |
 | **[STRICT_EVIDENCE_REVIEW_STANDARD.md](./STRICT_EVIDENCE_REVIEW_STANDARD.md)** | Strict review prompt + severity/confidence/cost/evidence rules |
-=======
 | **[AMENDMENT_ACCEPTANCE_2026-07-24.md](./AMENDMENT_ACCEPTANCE_2026-07-24.md)** | ACCEPT WITH AMENDMENTS dispositions |
->>>>>>> origin/cursor/constitution-authority-amendments-4b6e
 
 ## Subordinate
 

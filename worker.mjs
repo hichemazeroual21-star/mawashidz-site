@@ -32,7 +32,11 @@ async function asHead(response) {
 }
 
 async function runEmailOutbox(env) {
-  const secret = env.EMAIL_OUTBOX_SECRET || env.SUPABASE_SERVICE_ROLE_KEY || '';
+  const secret = env.EMAIL_OUTBOX_SECRET || '';
+  if (!secret) {
+    console.error('email outbox cron skipped: EMAIL_OUTBOX_SECRET unset');
+    return new Response(JSON.stringify({ error: 'email-outbox-secret-required' }), { status: 503 });
+  }
   const req = new Request('https://mawashidz.com/api/process-email-outbox', {
     method: 'POST',
     headers: { Authorization: `Bearer ${secret}` },

@@ -1,10 +1,11 @@
 /**
  * Process email_outbox via Resend.
- * - Claims rows into `processing` (lease) via mdz_claim_email_outbox
- * - Without RESEND_API_KEY: requeue to pending (never permanent skip)
- * - Failed sends stay failed; attempts capped in SQL claim
+ * - Requires EMAIL_OUTBOX_SECRET (distinct from service role) as HTTP bearer
+ * - Claims via 2-arg mdz_claim_email_outbox only (012+); fail-closed otherwise
+ * - Without RESEND_API_KEY: requeue pending without exhausting attempt budget (013)
+ * - Idempotency-Key + provider_message_id prevent duplicate sends after mark failure
  *
- * Env: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, RESEND_API_KEY?, EMAIL_FROM?, EMAIL_OUTBOX_SECRET?
+ * Env: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, EMAIL_OUTBOX_SECRET, RESEND_API_KEY?, EMAIL_FROM?
  */
 
 const JSON_HEADERS = {
@@ -44,13 +45,16 @@ async function supabaseRpc(baseUrl, serviceKey, fn, args) {
   return data;
 }
 
-async function sendResend({ apiKey, from, to, subject, text }) {
+async function sendResend({ apiKey, from, to, subject, text, idempotencyKey }) {
+  const headers = {
+    Authorization: `Bearer ${apiKey}`,
+    'Content-Type': 'application/json',
+  };
+  if (idempotencyKey) headers['Idempotency-Key'] = String(idempotencyKey).slice(0, 256);
+
   const r = await fetch('https://api.resend.com/emails', {
     method: 'POST',
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
+    headers,
     body: JSON.stringify({ from, to: [to], subject, text }),
   });
   const payload = await r.json().catch(() => ({}));
@@ -66,7 +70,7 @@ export async function processEmailOutbox(request, runtimeEnv = {}) {
   const get = (name) => envOf(request, runtimeEnv, name);
   const supabaseUrl = get('SUPABASE_URL') || get('MDZ_SUPABASE_URL');
   const serviceKey = get('SUPABASE_SERVICE_ROLE_KEY') || get('MDZ_SERVICE_ROLE_KEY');
-  const secret = get('EMAIL_OUTBOX_SECRET') || serviceKey;
+  const outboxSecret = get('EMAIL_OUTBOX_SECRET');
   const resendKey = get('RESEND_API_KEY');
   const from = get('EMAIL_FROM') || 'MawashiDZ <noreply@mawashidz.com>';
   const workerId = get('CF_WORKER_NAME') || 'mawashidz-live';
@@ -75,9 +79,20 @@ export async function processEmailOutbox(request, runtimeEnv = {}) {
     return json(405, { error: 'method-not-allowed' });
   }
 
+  if (!outboxSecret) {
+    return json(503, { error: 'email-outbox-secret-required' });
+  }
+  if (serviceKey && outboxSecret === serviceKey) {
+    return json(503, { error: 'email-outbox-secret-must-differ' });
+  }
+
   const auth = request.headers.get('authorization') || '';
   const bearer = auth.startsWith('Bearer ') ? auth.slice(7).trim() : '';
-  if (!secret || bearer !== secret) {
+  if (!bearer || bearer !== outboxSecret) {
+    return json(401, { error: 'unauthorized' });
+  }
+  // Belt-and-suspenders: never treat service-role as a valid outbox bearer
+  if (serviceKey && bearer === serviceKey) {
     return json(401, { error: 'unauthorized' });
   }
 
@@ -93,21 +108,24 @@ export async function processEmailOutbox(request, runtimeEnv = {}) {
     });
     if (!Array.isArray(claimed)) claimed = claimed ? [claimed] : [];
   } catch (error) {
-    // Fallback to 1-arg overload if 012 not applied yet
-    try {
-      claimed = await supabaseRpc(supabaseUrl, serviceKey, 'mdz_claim_email_outbox', { p_limit: 20 });
-      if (!Array.isArray(claimed)) claimed = claimed ? [claimed] : [];
-    } catch (error2) {
-      console.error('claim outbox failed', error2);
-      return json(503, { error: 'claim-failed' });
-    }
+    console.error('claim outbox failed (require migration 012+ two-arg claim)', error);
+    return json(503, { error: 'claim-failed-require-012' });
   }
 
   const results = [];
   for (const row of claimed) {
     try {
+      if (row.provider_message_id) {
+        await supabaseRpc(supabaseUrl, serviceKey, 'mdz_mark_email_outbox', {
+          p_id: row.id,
+          p_status: 'sent',
+          p_provider_message_id: row.provider_message_id,
+        });
+        results.push({ id: row.id, status: 'reconciled' });
+        continue;
+      }
+
       if (!resendKey) {
-        // Requeue — do not permanent-skip
         await supabaseRpc(supabaseUrl, serviceKey, 'mdz_mark_email_outbox', {
           p_id: row.id,
           p_status: 'pending',
@@ -116,18 +134,37 @@ export async function processEmailOutbox(request, runtimeEnv = {}) {
         results.push({ id: row.id, status: 'requeued' });
         continue;
       }
-      await sendResend({
+
+      const payload = await sendResend({
         apiKey: resendKey,
         from,
         to: row.recipient_email,
         subject: row.subject,
         text: row.body_text,
+        idempotencyKey: `mdz-outbox-${row.id}`,
       });
-      await supabaseRpc(supabaseUrl, serviceKey, 'mdz_mark_email_outbox', {
-        p_id: row.id,
-        p_status: 'sent',
-      });
-      results.push({ id: row.id, status: 'sent' });
+      const providerId = payload?.id || `resend-ok-${row.id}`;
+
+      try {
+        await supabaseRpc(supabaseUrl, serviceKey, 'mdz_mark_email_outbox', {
+          p_id: row.id,
+          p_status: 'sent',
+          p_provider_message_id: providerId,
+        });
+        results.push({ id: row.id, status: 'sent', provider_message_id: providerId });
+      } catch (markErr) {
+        // Provider succeeded; persist provider id even if full mark fails on retry path
+        console.error('mark sent failed after provider success', row.id, markErr);
+        try {
+          await supabaseRpc(supabaseUrl, serviceKey, 'mdz_mark_email_outbox', {
+            p_id: row.id,
+            p_status: 'processing',
+            p_error: 'provider_ok_mark_pending',
+            p_provider_message_id: providerId,
+          });
+        } catch { /* next claim reconciles via provider_message_id */ }
+        results.push({ id: row.id, status: 'provider_ok_mark_pending', provider_message_id: providerId });
+      }
     } catch (error) {
       console.error('send failed', row.id, error);
       const attempts = Number(row.attempts || 0);

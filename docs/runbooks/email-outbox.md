@@ -1,38 +1,54 @@
-# Email outbox
+# Email outbox runbook
 
-**Phase:** 1.C (elevated)  
-**Endpoint:** `POST /api/process-email-outbox`  
-**Scheduler:** Cloudflare Cron `*/2 * * * *` via Worker `scheduled` handler (`wrangler.jsonc`)
+**Authority:** Constitution §8 (Phase 1 communications).  
+**Migrations:** `010` (base) → `012` (processing lease) → `013` (P0 hardening: provider idempotency + awaiting-provider attempt policy).
 
-## Behavior (post-012)
+## Required secrets
 
-1. Worker claims rows with `mdz_claim_email_outbox(limit, worker_id)` → status `processing` + lease (`locked_at` / `locked_by`).
-2. Stale `processing` locks older than 10 minutes are recovered to `pending`.
-3. Without `RESEND_API_KEY`, rows are **requeued to `pending`** (never permanent `skipped`).
-4. Send failures requeue to `pending` until attempts ≥ 8, then `failed`.
-5. Successful sends → `sent` + `sent_at`.
-
-## Env (Cloudflare Worker secrets)
-
-| Name | Required | Purpose |
-|------|----------|---------|
+| Secret | Required | Notes |
+|--------|----------|--------|
 | `SUPABASE_URL` | Yes | Project URL |
-| `SUPABASE_SERVICE_ROLE_KEY` | Yes | Claim/mark outbox RPCs |
-| `RESEND_API_KEY` | For sends | Without it, outbox stays pending for later |
-| `EMAIL_FROM` | No | Default `MawashiDZ <noreply@mawashidz.com>` |
-| `EMAIL_OUTBOX_SECRET` | Strongly recommended | Bearer for the HTTP endpoint; defaults to service role key if unset |
+| `SUPABASE_SERVICE_ROLE_KEY` | Yes | Server-only; never accept as HTTP bearer for this endpoint |
+| `EMAIL_OUTBOX_SECRET` | **Yes** | Distinct shared secret for Worker/cron → `/api/email-outbox`. **Must not** equal the service-role key. Without it the Worker skips drain and the HTTP endpoint returns **503**. |
+| `RESEND_API_KEY` | For delivery | Without it, rows stay `pending` with `awaiting_resend_api_key` and **attempts are not exhausted** (013). |
 
-## Manual drain
+## Worker cron
+
+`wrangler.jsonc` schedules `*/2 * * * *`. Cron calls `POST /api/email-outbox` with:
+
+`Authorization: Bearer ${EMAIL_OUTBOX_SECRET}`
+
+If `EMAIL_OUTBOX_SECRET` is unset, cron **skips** (logs a clear error) — it does **not** fall back to the service-role key.
+
+## Operator drain (manual)
 
 ```bash
-curl -X POST https://mawashidz.com/api/process-email-outbox \
-  -H "Authorization: Bearer $EMAIL_OUTBOX_SECRET"
+curl -sS -X POST "$ORIGIN/api/email-outbox" \
+  -H "Authorization: Bearer $EMAIL_OUTBOX_SECRET" \
+  -H "Content-Type: application/json" \
+  -d '{"limit":25}'
 ```
 
-## Apply order
+- Wrong/missing bearer → **401** (or **503** if secret not configured).  
+- Service-role bearer alone → **401** (rejected by design).
 
-`010` → `011` → `012_phase1_quality_elevation.sql`
+## Behaviour after 013
 
-## Rollback
+1. **Awaiting provider:** missing Resend → mark `pending` + `awaiting_resend_api_key` and **decrement** the claim attempt so ≥8 cron cycles without a key still leave the row claimable.
+2. **Idempotency:** Resend `Idempotency-Key: mdz-outbox-<uuid>`; after provider success, mark with `provider_message_id`. If mark fails after provider OK, row may show `provider_ok_mark_pending`; next claim reconciles to `sent` when `provider_message_id` is already set (no second send).
+3. **Fail-closed claim:** only the 2-arg claim (`p_limit`, `p_locked_by`) exists. Missing 012/013 → drain errors; **no** 1-arg non-atomic claim fallback.
 
-Unset `RESEND_API_KEY` → no external sends; pending rows remain visible for ops. Cron can stay enabled.
+## Safe deploy order
+
+1. Apply migrations `012` then `013` on Supabase.  
+2. Set `EMAIL_OUTBOX_SECRET` (new random value ≠ service role) on Worker.  
+3. Deploy Worker (`worker.mjs` + `netlify/functions/email-outbox.mjs`).  
+4. Set `RESEND_API_KEY` when ready to deliver.  
+5. Run **live smoke** (not covered by `npm run test:ci`): claim → send → mark sent; awaiting-key behaviour; cron tick.
+
+## What static tests do **not** prove
+
+- Live Resend delivery  
+- Live cron on Cloudflare  
+- Production migration apply  
+- End-to-end inbox → email for a real member  

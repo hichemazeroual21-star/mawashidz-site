@@ -389,10 +389,12 @@ export function wireDashboardReviewActions(root, {
           minLength: 3,
           tooShortMessage: t('dashRejectReasonShort') || '',
         });
-      } catch {
-        entered = typeof window !== 'undefined'
-          ? window.prompt(t('dashRejectReasonPrompt') || 'Rejection reason:', '')
-          : '';
+      } catch (dialogErr) {
+        console.error('openReasonDialog failed', dialogErr);
+        busy = false;
+        root.querySelectorAll('[data-review-action]').forEach((el) => { el.disabled = false; });
+        if (statusEl) statusEl.textContent = t('dashReviewCancelled') || '';
+        return;
       }
       if (entered === null) {
         busy = false;

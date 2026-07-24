@@ -27,6 +27,18 @@ export function escapeHtml(text) {
     .replace(/"/g, '&quot;');
 }
 
+/** Map notification link_path to an in-app surface id (for deep links). */
+export function resolveNotificationDeepLink(link) {
+  const l = String(link || '').toLowerCase();
+  if (!l) return 'inbox';
+  if (l.includes('admin-dash') || (l.includes('#admin') && !l.includes('account'))) return 'admin';
+  if (l.includes('manager-dash') || l.includes('#manager')) return 'manager';
+  if (l.includes('support')) return 'support';
+  if (l.includes('request')) return 'request';
+  if (l.includes('inbox') || l.includes('notification')) return 'inbox';
+  return 'inbox';
+}
+
 export function formatWhen(iso, lang = 'ar') {
   if (!iso) return '—';
   try {

@@ -2867,11 +2867,13 @@ async function mountAccountNotifications(session){
  const openLink=async(id,link)=>{
   try{if(id) await ops.markNotificationRead(session.access_token,SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY,Number(id))}catch{}
   await refreshNotifBadge(session);
-  if(link){
-   if(link.includes('support')) await openAccountTab('support');
-   else if(link.includes('request')) await openAccountTab('request');
-   else await mountAccountNotifications(session);
-  }else await mountAccountNotifications(session);
+  const surface=ops.resolveNotificationDeepLink(link);
+  if(surface==='admin'){ closeModal('accountModal'); await openAdminDashboard(); }
+  else if(surface==='manager'){ closeModal('accountModal'); await openManagerDashboard(); }
+  else if(surface==='support') await openAccountTab('support');
+  else if(surface==='request') await openAccountTab('request');
+  else if(surface==='inbox') await openAccountTab('notifications');
+  else await mountAccountNotifications(session);
  };
  mount.querySelectorAll('.notif-mark-read').forEach(btn=>{
   btn.addEventListener('click',async()=>{

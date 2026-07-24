@@ -10,7 +10,7 @@
 ## Verdict
 
 **Codebase elevation: substantial and necessary.**  
-**Production-complete claim: still gated** on applying migrations **010–012**, enabling Worker cron/secrets, and live smoke.
+**Production-complete claim: still gated** on applying migrations **010–013**, enabling Worker cron/`EMAIL_OUTBOX_SECRET`/`RESEND_API_KEY`, and live smoke.
 
 **Phase 2 remains blocked** until ops verification passes.
 
@@ -23,7 +23,7 @@ Honest overall score after this elevation (implementation quality, not “alread
 | Architecture | **8.6 / 10** | Outbox+lease+cron, RPC-gated writes, clear table split; still monolithic `index.html` shell |
 | Backend | **8.8 / 10** | Claim race fixed, manager audit, rejection required, admin fan-out on unassigned replies |
 | Database / RLS | **8.7 / 10** | No-arg privilege helpers, policy rewrite-before-drop, typed `review_reason`; role alias sprawl remains |
-| Security | **8.5 / 10** | Probeable uuid helpers removed; service-role bearer still sharp if `EMAIL_OUTBOX_SECRET` unset |
+| Security | **8.7 / 10** | Probeable uuid helpers removed; outbox requires distinct `EMAIL_OUTBOX_SECRET` (no service-role bearer) |
 | Frontend | **8.2 / 10** | Elevated modules + operator queue + deep links; still string-HTML, not a component framework |
 | UI | **8.0 / 10** | Design system tokens, underline IA, dialogs, skeletons; product still lives in modals |
 | UX | **8.1 / 10** | Inbox filters, badge, i18n statuses, reason dialog; not yet Linear-class workspace navigation |
@@ -41,13 +41,13 @@ The board does **not** inflate to 9.7+. A 9.7 requires production evidence, tigh
 
 ### 1. Production Readiness (email pipeline)
 - **Why:** Duplicate sends and stranded mail would destroy trust.
-- **Done:** `processing` lease, stale lock recovery, cron every 2 minutes, requeue when Resend unset.
+- **Done:** `processing` lease, stale lock recovery, cron every 2 minutes, requeue when Resend unset; **013** awaiting-provider attempt undo + `provider_message_id` idempotency.
 - **Maturity:** High in code; medium until secrets live.
 
 ### 2. Security Hardening
 - **Why:** Least privilege and audit are Constitution gates.
-- **Done:** Dropped uuid-arg `mdz_is_*` helpers after policy rewrite; manager reviews audited; rejection reason required.
-- **Remaining:** Prefer dedicated `EMAIL_OUTBOX_SECRET`; edge WAF (TD-012).
+- **Done:** Dropped uuid-arg `mdz_is_*` helpers after policy rewrite; manager reviews audited; rejection reason required; **required distinct `EMAIL_OUTBOX_SECRET`**; fail-closed without 2-arg claim.
+- **Remaining:** edge WAF (TD-012).
 
 ### 3. Operator Platform
 - **Why:** Support Center without staff queue is not a Support Center.
