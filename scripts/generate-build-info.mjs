@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/** Write public/build-info.json from i18n version + git HEAD. */
+/** Write public/build-info.json from i18n version + git HEAD + wrangler worker name. */
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { execSync } from 'node:child_process';
 import { join } from 'node:path';
@@ -22,13 +22,24 @@ if (!commit) {
   }
 }
 
+let worker = 'mawashidz-live';
+try {
+  const wranglerRaw = readFileSync(join(root, 'wrangler.jsonc'), 'utf8')
+    .replace(/^\s*\/\/.*$/gm, '')
+    .replace(/,\s*([}\]])/g, '$1');
+  const wrangler = JSON.parse(wranglerRaw);
+  if (wrangler.name) worker = wrangler.name;
+} catch {
+  /* keep default */
+}
+
 const info = {
   version,
   commit,
   builtAt: new Date().toISOString(),
-  worker: 'mawashidz-live',
+  worker,
 };
 
 const outPath = join(publicDir, 'build-info.json');
 writeFileSync(outPath, `${JSON.stringify(info, null, 2)}\n`, 'utf8');
-console.log(`build-info.json → version=${version} commit=${commit.slice(0, 7)}`);
+console.log(`build-info.json → version=${version} commit=${commit.slice(0, 7)} worker=${worker}`);

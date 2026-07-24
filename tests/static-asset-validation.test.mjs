@@ -15,8 +15,20 @@ const syncScript = join(root, 'scripts/sync-worker-public.mjs');
 assert.ok(existsSync(wranglerPath), 'wrangler.jsonc must exist for Cloudflare Workers deploy');
 assert.ok(existsSync(syncScript), 'scripts/sync-worker-public.mjs must exist');
 
-const wrangler = JSON.parse(readFileSync(wranglerPath, 'utf8').replace(/^\s*\/\/.*$/gm, '').replace(/,\s*}/g, '}'));
+const wrangler = JSON.parse(
+  readFileSync(wranglerPath, 'utf8')
+    .replace(/^\s*\/\/.*$/gm, '')
+    .replace(/,\s*([}\]])/g, '$1'),
+);
+assert.equal(wrangler.name, 'mawashidz-live', 'wrangler name must be production worker mawashidz-live');
+assert.equal(wrangler.main, 'worker/index.mjs', 'wrangler must bind Worker entry for /api routes');
 assert.equal(wrangler.assets?.directory, './public', 'wrangler.jsonc must serve ./public');
+assert.equal(wrangler.assets?.binding, 'ASSETS', 'assets binding ASSETS required for Worker passthrough');
+assert.ok(
+  Array.isArray(wrangler.assets?.run_worker_first) && wrangler.assets.run_worker_first.includes('/api/*'),
+  'run_worker_first must include /api/* so news/prices are not 404 static misses',
+);
+assert.ok(existsSync(join(root, 'worker/index.mjs')), 'worker/index.mjs must exist');
 
 execSync('npm run build', { stdio: 'inherit' });
 
@@ -33,6 +45,7 @@ assert.ok(existsSync(buildInfoPath), 'public/build-info.json must exist after np
 const buildInfo = JSON.parse(readFileSync(buildInfoPath, 'utf8'));
 assert.ok(buildInfo.version && buildInfo.commit && buildInfo.builtAt, 'build-info must include version, commit, builtAt');
 assert.ok(buildInfo.version !== '1.9.0', 'build-info version must not be legacy 1.9.0');
+assert.equal(buildInfo.worker, 'mawashidz-live', 'build-info.worker must match production Worker name');
 assert.ok(existsSync(headersPath), 'public/_headers must exist after build (cache policy)');
 
 assert.ok(existsSync(indexPath), 'public/index.html must exist after sync');
@@ -47,6 +60,7 @@ assert.match(html, /runRegistrationPipeline/, 'index.html must reference runRegi
 assert.match(html, /registerFormSubmitting/, 'index.html must include double-submit guard');
 assert.match(html, /import\('\.\/js\/registration-flow\.mjs'\)/, 'index.html must dynamic-import registration-flow.mjs');
 assert.match(html, /updateAuthChrome/, 'index.html must use updateAuthChrome');
+assert.match(html, /wilaya_name:wilaya/, 'contact form must send wilaya_name (production trigger sync)');
 assert.match(html, /member_id يُخصَّص على السيرفر/, 'registration must rely on server-side member_id allocation');
 assert.ok(!/await allocateMemberId\(raw\.role\)/.test(html), 'registration must not call allocateMemberId RPC from browser');
 const payloadBlock = html.match(/const payload=\{[\s\S]*?founding_terms_accepted:checked\(form,'founder_terms'\)\s*\}/);

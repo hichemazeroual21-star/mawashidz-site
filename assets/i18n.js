@@ -1,5 +1,5 @@
 /* MawashiDZ — multilingual UI (ar, en, fr, de) */
-const MDZ_APP_VERSION = '1.10.0';
+const MDZ_APP_VERSION = '1.10.1';
 const MDZ_LANGS = ['ar', 'en', 'fr', 'de'];
 
 const MDZ_I18N = {

@@ -2,7 +2,7 @@
 
 **Last updated:** 2026-07-22  
 **Production URL:** https://mawashidz.com  
-**Production Worker:** `mawashidz-live` only (`wrangler.jsonc` → `"name": "mawashidz-live"`)
+**Production Worker:** `mawashidz-live` only (`wrangler.jsonc` → `"name": "mawashidz-live"` — never `mawashidz-site`)
 
 ---
 
@@ -81,7 +81,8 @@ Requires `MAWASHIDZ_CF_SAFE_MODE=confirmed`. Document why break-glass was used.
 | **Version label** | `assets/i18n.js` → `MDZ_APP_VERSION` | Single version string |
 | **Worker bundle** | `public/` | **Generated** — never hand-edit |
 | **Build** | `npm run build` | `sync-worker-public.mjs` + `build-info.json` + `_headers` |
-| **Runtime** | Cloudflare Worker `mawashidz-live` | Serves `./public` per `wrangler.jsonc` |
+| **Runtime** | Cloudflare Worker `mawashidz-live` | Serves `./public` + `/api/*` via `worker/index.mjs` |
+| **API** | `worker/index.mjs` | `/api/livestock-news`, `/api/livestock-prices` (Netlify functions reused) |
 
 `public/` must match root after every build (`npm run verify:public`).
 

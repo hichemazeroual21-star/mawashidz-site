@@ -2,6 +2,29 @@
 
 All notable changes to MawashiDZ are documented here.
 
+## [1.10.1] — 2026-07-24 — Production error fixes
+
+### Fixed
+
+- **Worker name drift:** `wrangler.jsonc` restored to `mawashidz-live` (matches custom domain + DEPLOYMENT.md; undoes accidental `mawashidz-site` rename)
+- **`/api/livestock-news` + `/api/livestock-prices` 404 on Cloudflare:** added `worker/index.mjs` with `run_worker_first: ["/api/*"]` reusing Netlify function handlers
+- **Contact form broken on production:** migration `007_fix_contact_wilaya_name.sql` adds missing `wilaya_name` column and safe sync trigger (live error was `42703: record "new" has no field "wilaya_name"`)
+- Contact payload now sends `wilaya_name` alongside `wilaya`
+
+### Changed
+
+- `MDZ_APP_VERSION` → `1.10.1`
+- `generate-build-info.mjs` reads worker name from `wrangler.jsonc`
+- Asset validation asserts production worker name + API Worker entry
+
+### Owner action required
+
+Run in Supabase SQL Editor before contact form works on production:
+
+```sql
+-- file: supabase/migrations/007_fix_contact_wilaya_name.sql
+```
+
 ## [1.8.1] — 2026-07-19 — Security: server-side member_id only
 
 ### Changed

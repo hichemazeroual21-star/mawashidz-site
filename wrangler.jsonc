@@ -1,6 +1,9 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "mawashidz-site",
+  // Production Worker name — must match Cloudflare Dashboard (mawashidz.com).
+  // Do NOT rename to mawashidz-site; that worker is not the custom-domain target.
+  "name": "mawashidz-live",
+  "main": "worker/index.mjs",
   // Production: Git → main → Cloudflare Build (npm ci && npm run build) → npx wrangler deploy
   // See DEPLOYMENT.md — Version command must be `npx wrangler versions upload` on non-prod branches.
   "compatibility_date": "2026-07-18",
@@ -8,7 +11,11 @@
     "enabled": true
   },
   "assets": {
-    "directory": "./public"
+    "directory": "./public",
+    "binding": "ASSETS",
+    "run_worker_first": [
+      "/api/*"
+    ]
   },
   "compatibility_flags": [
     "nodejs_compat"

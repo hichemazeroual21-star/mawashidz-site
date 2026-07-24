@@ -2040,7 +2040,7 @@ body[data-lang]:not([data-lang="ar"]) .hero-title-sub{white-space:normal!importa
   <div><h3 data-i18n="footerLinks">روابط</h3><a href="#market" data-i18n="footerRegister">التسجيل</a><a href="#news" data-i18n="navNews">الأخبار</a><a href="#managers" data-i18n="navManagers">مدراء الولايات</a></div>
   <div><h3 data-i18n="footerPolicies">السياسات والمساعدة</h3><a href="#terms" onclick="openPolicyModal('termsModal');return false" data-i18n="footerTerms">شروط الاستخدام</a><a href="#privacy" onclick="openPolicyModal('privacyModal');return false" data-i18n="footerPrivacy">الخصوصية</a><a href="#" onclick="openFeedback();return false;" data-i18n="footerFeedback">شاركنا رأيك لنرتقي معًا</a></div>
  </div>
-  <div class="site-version"><span class="version-number" id="siteVersionLabel">MawashiDZ — الإصدار v1.10.0</span><span class="copyright" data-i18n="footerCopyright">© 2026 جميع الحقوق محفوظة لمنصة MawashiDZ</span></div>
+  <div class="site-version"><span class="version-number" id="siteVersionLabel">MawashiDZ — الإصدار v1.10.1</span><span class="copyright" data-i18n="footerCopyright">© 2026 جميع الحقوق محفوظة لمنصة MawashiDZ</span></div>
 </footer>
 
 <div class="modal" id="registerModal">
@@ -2911,9 +2911,10 @@ $('#contactForm').addEventListener('submit',async e=>{
   raw.phone=internationalPhone;
   const ticketId=`MDZ-CON-${Date.now().toString().slice(-8)}`;
   const contactTypeKeys={general:'contactTypeGeneral',register:'contactTypeRegister',manager:'contactTypeManager',partner:'contactTypePartner',complaint:'contactTypeComplaint'};
+  const wilaya=safeText(raw.wilaya,120);
   const payload={
     ticket_id:ticketId, full_name:safeText(raw.name,180), phone:cleanPhone(raw.phone),
-    wilaya:safeText(raw.wilaya,120), daira:safeText(raw.daira,120), commune:safeText(raw.commune,120),
+    wilaya, wilaya_name:wilaya, daira:safeText(raw.daira,120), commune:safeText(raw.commune,120),
     request_type:t(contactTypeKeys[raw.type]||'contactTypeGeneral'), message:safeText(raw.message,4000), status:'new'
   };
   button.disabled=true; const old=button.textContent; button.textContent=t('contactSending');
