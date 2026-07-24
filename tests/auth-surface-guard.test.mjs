@@ -27,6 +27,12 @@ assert.ok(
     < html.indexOf('void (async()=>{'),
   'neutral toast must fire before async recover work (anti-enumeration timing)',
 );
+assert.match(html, /markRecoveryExpected\(\)/, 'forgot-password must mark recovery expectation');
+assert.match(html, /id="resetPasswordModal"/, 'reset password modal required');
+assert.match(html, /shouldEnterPasswordRecovery/, 'recovery callback must branch to set-password UI');
+assert.match(html, /buildUpdatePasswordRequest|\/user'/, 'password update must call auth /user');
+assert.match(html, /openResetPasswordModal/, 'set-password UI entrypoint required');
+assert.ok(!/type==='recovery'\?t\('authRecoveryOk'\):type==='signup'/.test(html), 'recovery must not fall through to openAccount toast path');
 
 assert.match(
   html,
@@ -41,5 +47,9 @@ assert.match(html, /function showRegistrationError/, 'showRegistrationError rema
 const mgr = html.match(/async function openManagerDashboard\(\)\{[\s\S]*?\n\}/);
 assert.ok(mgr, 'openManagerDashboard must exist');
 assert.match(mgr[0], /try\{\s*const profile=/, 'manager profile fetch must be inside try');
+
+assert.match(html, /wireDashboardReviewActions/, 'dashboards must wire approve/reject actions');
+assert.match(html, /exchangeShowMoreBtn/, 'exchange show-more control required');
+assert.match(html, /mdzExchangeLimit/, 'exchange pagination state required');
 
 console.log('  ✓ Auth/profile/recover surface guards passed');

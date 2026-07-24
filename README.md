@@ -32,6 +32,7 @@ Official website package with multilingual interface, automatic dark mode, and t
 3. `supabase/migrations/003_dashboard_rls.sql` (اختياري — لوحات المدير/الإدارة)
 4. `supabase/migrations/004_fix_registration_production.sql`
 5. `supabase/migrations/005_admin_approve_profile.sql`
+6. `supabase/migrations/006_review_registration_status.sql` (موافقة/رفض الطلبات من اللوحات عبر RPC آمن)
 
 **مسار Phase 0 (timestamped — من `main`):**
 

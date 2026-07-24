@@ -15,8 +15,10 @@
     "test:layout": "node tests/ui-layout.test.mjs && node tests/i18n-layout.test.mjs",
     "test:api": "node tests/api-routes.test.mjs",
     "test:auth-surface": "node tests/auth-surface-guard.test.mjs",
-    "test:unit": "node tests/registration-flow.test.mjs && node tests/static-asset-validation.test.mjs && node tests/registration-ui-guard.test.mjs && node tests/api-routes.test.mjs && node tests/auth-surface-guard.test.mjs",
-    "test": "npm run test:unit && npm run test:security && npm run test:e2e && npm run test:layout",
+    "test:recovery": "node tests/password-recovery.test.mjs",
+    "test:dashboard": "node tests/dashboard-review-pagination.test.mjs",
+    "test:unit": "node tests/registration-flow.test.mjs && node tests/static-asset-validation.test.mjs && node tests/registration-ui-guard.test.mjs && node tests/api-routes.test.mjs && node tests/auth-surface-guard.test.mjs && node tests/password-recovery.test.mjs && node tests/dashboard-review-pagination.test.mjs",
+    "test": "npm run test:unit && npm run test:security && node tests/security-review-registration.test.mjs && npm run test:e2e && npm run test:layout",
     "verify:prod": "node scripts/verify-prod.mjs",
     "verify:public": "node scripts/verify-public-sync.mjs",
     "deploy:prod": "node scripts/deploy-prod.mjs"

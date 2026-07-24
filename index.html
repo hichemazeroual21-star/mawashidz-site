@@ -1068,7 +1068,41 @@ footer{background:#0b100d}
 .hero-card{box-shadow:0 24px 60px rgba(8,35,24,.18)}
 .hero .eyebrow{letter-spacing:.02em}
 footer .foot a:hover{color:#e2c77e}
-@media(max-width:620px){.dash-stats,.dash-stats.admin{grid-template-columns:repeat(2,minmax(0,1fr))}}
+#managerDashModal .modal-box,#adminDashModal .modal-box{width:min(720px,96vw);max-height:min(92vh,900px);overflow:auto}
+#managerDashModal .modal-top,#adminDashModal .modal-top,#resetPasswordModal .modal-top{position:sticky;top:0;background:var(--card,#fff);z-index:2;align-items:center;gap:10px}
+#managerDashModal .modal-top h2,#adminDashModal .modal-top h2{flex:1;min-width:0;font-size:clamp(1rem,3.6vw,1.2rem);line-height:1.35}
+.dash-row-actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}
+.dash-action{min-height:44px;padding:8px 12px;font-size:.82rem;font-weight:800}
+.dash-status-chip{display:inline-flex;padding:4px 8px;border-radius:999px;background:#eef4f0;font-size:.75rem;font-weight:800;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dash-status-chip.approved{background:#e5f7ec;color:#0f5a36}
+.dash-status-chip.rejected,.dash-status-chip.suspended{background:#fdecec;color:#8a1f1f}
+.dash-status-chip.pending{background:#fff6e5;color:#8a5a00}
+.dash-card-list{display:none;gap:10px}
+.dash-card{border:1px solid #d7e4dc;border-radius:14px;background:#fff;padding:12px}
+.dash-card header{display:flex;justify-content:space-between;gap:8px;align-items:flex-start;margin-bottom:8px}
+.dash-card header strong{font-size:.95rem;line-height:1.35;word-break:break-word}
+.dash-card dl{display:grid;gap:6px;margin:0 0 10px;font-size:.82rem}
+.dash-card dt{color:#667c70;font-weight:700}.dash-card dd{margin:0;font-weight:800;word-break:break-word}
+.dash-table{min-width:640px}
+.dash-table td,.dash-table th{vertical-align:middle}
+.exchange-more-wrap{display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:14px}
+.exchange-more-wrap .btn{min-height:44px;min-width:min(100%,220px)}
+.exchange-showing{color:var(--muted,#667c70);font-size:.84rem;font-weight:700}
+#resetPasswordModal .modal-box{width:min(480px,96vw)}
+.reset-state{margin-top:10px;font-weight:800;min-height:1.2em}
+.reset-state.is-error{color:#8a1f1f}.reset-state.is-ok{color:#0f5a36}
+@media(max-width:620px){
+  .dash-stats,.dash-stats.admin{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .dash-table-wrap{display:none}
+  .dash-card-list{display:grid}
+  .dash-hero{padding:14px}
+  .dash-row-actions{justify-content:stretch}
+  .dash-row-actions .btn{flex:1 1 calc(50% - 8px)}
+}
+@media(max-width:360px){
+  .dash-stats,.dash-stats.admin{grid-template-columns:1fr 1fr}
+  .dash-row-actions .btn{flex:1 1 100%}
+}
 
 @media(max-width:620px){.algeria-phone{grid-template-columns:auto 1fr}.algeria-phone input{grid-column:1/-1}.algeria-phone .country-code{min-height:50px}}
 
@@ -1819,6 +1853,10 @@ body[data-lang]:not([data-lang="ar"]) .hero-title-sub{white-space:normal!importa
     <tbody id="exchangeTableBody"><tr><td colspan="4" data-i18n="exchangeLoading">جاري تحديث الأسعار...</td></tr></tbody>
    </table>
   </div>
+  <div class="exchange-more-wrap">
+   <span class="exchange-showing" id="exchangeShowingLabel" hidden></span>
+   <button class="btn ghost" type="button" id="exchangeShowMoreBtn" hidden data-i18n="exchangeShowMore">عرض المزيد</button>
+  </div>
   <p class="exchange-disclaimer" data-i18n="exchangeDisclaimer">مؤشر مرجعي وطني مبني على متوسطات السوق والمصادر الرسمية. يُحدَّث كل دقيقة. للقرارات المالية راجع المصدر الرسمي.</p>
  </div>
 </section>
@@ -2148,6 +2186,19 @@ body[data-lang]:not([data-lang="ar"]) .hero-title-sub{white-space:normal!importa
    <div class="field full"><label data-i18n="loginPassword">كلمة المرور</label><input name="password" type="password" autocomplete="current-password" required></div>
    <div class="full login-links"><button class="text-action" type="button" id="forgotPasswordBtn" data-i18n="forgotPassword">نسيت كلمة المرور؟</button><span id="loginState" style="color:var(--muted);font-weight:700"></span></div>
    <div class="full"><button class="btn primary" id="loginSubmit" type="submit" data-i18n="loginSubmit">دخول آمن</button></div>
+  </form>
+ </div>
+</div>
+
+<div class="modal" id="resetPasswordModal">
+ <div class="modal-box">
+  <div class="modal-top"><h2 data-i18n="resetPasswordTitle">تعيين كلمة مرور جديدة</h2><button class="close" type="button" id="resetPasswordCloseBtn">✕</button></div>
+  <div class="account-note" data-i18n="resetPasswordNote">أدخل كلمة مرور جديدة لحسابك ثم أكّدها.</div>
+  <form id="resetPasswordForm" class="form-grid" style="margin-top:14px">
+   <div class="field full"><label data-i18n="resetPasswordNew">كلمة المرور الجديدة</label><input id="resetPasswordNew" name="password" type="password" autocomplete="new-password" minlength="8" required></div>
+   <div class="field full"><label data-i18n="resetPasswordConfirm">تأكيد كلمة المرور</label><input id="resetPasswordConfirm" name="password_confirm" type="password" autocomplete="new-password" minlength="8" required></div>
+   <div class="full reset-state" id="resetPasswordState" aria-live="polite"></div>
+   <div class="full"><button class="btn primary" id="resetPasswordSubmit" type="submit" data-i18n="resetPasswordSubmit">حفظ كلمة المرور</button></div>
   </form>
  </div>
 </div>
@@ -2721,6 +2772,8 @@ document.getElementById('forgotPasswordBtn')?.addEventListener('click',()=>{
  showToast(t('toastRecoverSent'));
  void (async()=>{
   try{
+   const recovery=await import('./js/password-recovery.mjs');
+   recovery.markRecoveryExpected();
    /* Email path skips resolve RPC (reduces existence probing). Phone/member_id still needs resolve. */
    const email=id.includes('@')?id.toLowerCase():await resolveLoginEmail(id);
    await authRequest('/recover',{method:'POST',body:JSON.stringify({email,redirect_to:MDZ_SITE_URL()+'#auth-callback'})});
@@ -2763,6 +2816,8 @@ async function openLoginOrAccount(){
 window.openLoginOrAccount=openLoginOrAccount;
 
 async function openAccount(){
+ const recovery=await import('./js/password-recovery.mjs');
+ if(recovery.isRecoveryActive()){openResetPasswordModal();return}
  const session=await ensureFreshSession();
  if(!session?.access_token){openLogin();return}
  closeAll();
@@ -2787,6 +2842,32 @@ async function openAccount(){
 }
 window.openAccount=openAccount;
 
+let mdzDashReviewDisposer=null;
+async function refreshManagerDashboard(session, dash, profile){
+ const box=document.getElementById('managerDashContent');
+ if(!box) return;
+ const data=await dash.loadManagerData(session.access_token,SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY,profile?.wilaya);
+ box.innerHTML=dash.renderManagerDashboard(t,{wilaya:profile?.wilaya,rows:data.rows,source:data.source,safeText,registrationRoleLabel});
+ if(mdzDashReviewDisposer) mdzDashReviewDisposer();
+ mdzDashReviewDisposer=dash.wireDashboardReviewActions(box,{
+  t, token:session.access_token, restUrl:SUPABASE_REST, apiKey:SUPABASE_PUBLISHABLE_KEY,
+  roles:mdzUserRoles, actorWilaya:profile?.wilaya, asAdmin:false,
+  onDone:async()=>{await refreshManagerDashboard(session,dash,profile)},
+ });
+}
+async function refreshAdminDashboard(session, dash){
+ const box=document.getElementById('adminDashContent');
+ if(!box) return;
+ const data=await dash.loadAdminData(session.access_token,SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY);
+ box.innerHTML=dash.renderAdminDashboard(t,{stats:data.stats,rows:data.rows,source:data.source,safeText,registrationRoleLabel});
+ if(mdzDashReviewDisposer) mdzDashReviewDisposer();
+ mdzDashReviewDisposer=dash.wireDashboardReviewActions(box,{
+  t, token:session.access_token, restUrl:SUPABASE_REST, apiKey:SUPABASE_PUBLISHABLE_KEY,
+  roles:mdzUserRoles, actorWilaya:null, asAdmin:true,
+  onDone:async()=>{await refreshAdminDashboard(session,dash)},
+ });
+}
+
 async function openManagerDashboard(){
  const session=await ensureFreshSession();
  if(!session?.access_token){openLogin();return}
@@ -2799,8 +2880,7 @@ async function openManagerDashboard(){
  box.innerHTML=`<div class="notice">${t('accountLoading')}</div>`;
  try{
   const profile=mdzAccountProfile||await fetchMyProfile(session.access_token,session.user?.id);
-  const data=await dash.loadManagerData(session.access_token,SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY,profile?.wilaya);
-  box.innerHTML=dash.renderManagerDashboard(t,{wilaya:profile?.wilaya,rows:data.rows,source:data.source,safeText,registrationRoleLabel});
+  await refreshManagerDashboard(session,dash,profile);
  }catch(e){
   console.error('Manager dashboard load failed',e);
   box.innerHTML=`<div class="dash-hero manager"><h3>${t('mgrDashTitle')}</h3><div class="notice is-error" style="margin-top:12px">${t('dashLoadFailed')}</div></div>`;
@@ -2818,8 +2898,7 @@ async function openAdminDashboard(){
  const box=document.getElementById('adminDashContent');
  box.innerHTML=`<div class="notice">${t('accountLoading')}</div>`;
  try{
-  const data=await dash.loadAdminData(session.access_token,SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY);
-  box.innerHTML=dash.renderAdminDashboard(t,{stats:data.stats,rows:data.rows,source:data.source,safeText,registrationRoleLabel});
+  await refreshAdminDashboard(session,dash);
  }catch(e){
   console.error('Admin dashboard load failed',e);
   box.innerHTML=`<div class="dash-hero admin"><h3>${t('adminDashTitle')}</h3><div class="notice is-error" style="margin-top:12px">${t('dashLoadFailed')}</div></div>`;
@@ -2868,9 +2947,23 @@ function parseAuthRedirect(){
 }
 async function exchangeAuthCode(code){return authRequest('/token?grant_type=pkce',{method:'POST',body:JSON.stringify({auth_code:code})})}
 function promptLoginAfterConfirm(message){const state=document.getElementById('loginState');openLogin();if(state){state.className='full login-state is-ok';state.textContent=message}else showToast(message)}
+async function openResetPasswordModal(){
+ closeAll();
+ document.getElementById('resetPasswordModal')?.classList.add('open');
+ const state=document.getElementById('resetPasswordState');
+ if(state){state.className='full reset-state';state.textContent=''}
+ document.getElementById('resetPasswordNew')?.focus();
+}
+
 async function handleAuthRedirect(){
+ const recoveryMod=await import('./js/password-recovery.mjs');
  const {access,refresh,type,errorDesc,expires_in,code,fromConfirm}=parseAuthRedirect();
- if(errorDesc){showToast(authErrorArabic({message:decodeURIComponent(errorDesc)}));history.replaceState(null,'',MDZ_SITE_URL());return}
+ if(errorDesc){
+  recoveryMod.clearRecoveryExpected();
+  showToast(authErrorArabic({message:decodeURIComponent(errorDesc)}));
+  history.replaceState(null,'',MDZ_SITE_URL());
+  return;
+ }
  let sessionPayload=null;
  if(access){
   const uid=userIdFromAccessToken(access);
@@ -2879,11 +2972,64 @@ async function handleAuthRedirect(){
  else if(code){try{sessionPayload=await exchangeAuthCode(code)}catch(err){console.warn(err);promptLoginAfterConfirm(t('authConfirmLogin'));history.replaceState(null,'',MDZ_SITE_URL());return}}
  else if(fromConfirm){promptLoginAfterConfirm(t('authConfirmOk'));history.replaceState(null,'',MDZ_SITE_URL());return}
  else return;
+
+ const enterRecovery=recoveryMod.shouldEnterPasswordRecovery({
+  type,
+  expectRecovery:recoveryMod.isRecoveryExpected()||recoveryMod.isRecoveryActive(),
+ });
  saveSession(sessionPayload);
+ if(enterRecovery){
+  recoveryMod.markRecoveryActive();
+  history.replaceState(null,'',MDZ_SITE_URL()+'#reset-password');
+  showToast(t('authRecoveryOk'));
+  openResetPasswordModal();
+  return;
+ }
  history.replaceState(null,'',MDZ_SITE_URL()+'#account');
- showToast(type==='recovery'?t('authRecoveryOk'):type==='signup'?t('authConfirmOk'):t('authSessionOk'));
+ showToast(type==='signup'?t('authConfirmOk'):t('authSessionOk'));
  await openAccount();
 }
+
+document.getElementById('resetPasswordCloseBtn')?.addEventListener('click',()=>{
+ /* Keep recovery active until password is set — closing must not silently “log in”. */
+ closeModal('resetPasswordModal');
+ openLogin();
+});
+
+document.getElementById('resetPasswordForm')?.addEventListener('submit',async e=>{
+ e.preventDefault();
+ const recoveryMod=await import('./js/password-recovery.mjs');
+ const session=getSession();
+ const state=document.getElementById('resetPasswordState');
+ const btn=document.getElementById('resetPasswordSubmit');
+ const password=document.getElementById('resetPasswordNew')?.value||'';
+ const confirm=document.getElementById('resetPasswordConfirm')?.value||'';
+ const check=recoveryMod.validateNewPassword(password,confirm,t);
+ if(!check.ok){if(state){state.className='full reset-state is-error';state.textContent=check.message}return}
+ if(!session?.access_token){if(state){state.className='full reset-state is-error';state.textContent=t('authErrSession');}openLogin();return}
+ if(btn){btn.disabled=true;btn.textContent=t('resetPasswordWorking')}
+ if(state){state.className='full reset-state';state.textContent=''}
+ try{
+  const req=recoveryMod.buildUpdatePasswordRequest(session.access_token,password,SUPABASE_AUTH,SUPABASE_PUBLISHABLE_KEY);
+  const response=await fetch(req.url,req.init);
+  let data={};try{data=await response.json()}catch{}
+  if(!response.ok){
+   const err=new Error(data.msg||data.error_description||data.message||`HTTP ${response.status}`);
+   err.status=response.status;throw err;
+  }
+  recoveryMod.clearRecoveryActive();
+  saveSession(null);
+  closeModal('resetPasswordModal');
+  promptLoginAfterConfirm(t('resetPasswordSuccess'));
+  showToast(t('resetPasswordSuccess'));
+  e.target.reset();
+ }catch(err){
+  console.warn('password update failed',err);
+  if(state){state.className='full reset-state is-error';state.textContent=authErrorArabic(err)||t('resetPasswordFailed')}
+ }finally{
+  if(btn){btn.disabled=false;btn.textContent=t('resetPasswordSubmit')}
+ }
+});
 window.syncAuthHeader=updateAuthChrome;
 
 const contactPhoneLocal=document.getElementById('contactPhoneLocal');
@@ -3161,6 +3307,8 @@ const PRICES_ENDPOINT='/api/livestock-prices';
 let mdzMarketSnapshot=null;
 let mdzExchangeTab='meat';
 let mdzExchangeProduct='sheep_meat';
+let mdzExchangeLimit=10;
+let mdzExchangePageSize=10;
 
 function mdzExchangeProductsForTab(tab){
   return (mdzMarketSnapshot?.products||[]).filter(p=>p.category===tab).map(p=>p.id);
@@ -3178,7 +3326,10 @@ function renderExchangeProductButtons(){
   if(!ids.includes(mdzExchangeProduct)) mdzExchangeProduct=ids[0]||'sheep_meat';
   wrap.innerHTML=ids.map(id=>`<button type="button" class="exchange-product${id===mdzExchangeProduct?' active':''}" data-exchange-product="${id}">${escapeNewsHTML(names[id]||id)}</button>`).join('');
   wrap.querySelectorAll('[data-exchange-product]').forEach(btn=>btn.addEventListener('click',()=>{
-    mdzExchangeProduct=btn.dataset.exchangeProduct; renderExchangeProductButtons(); renderExchangeBoard();
+    mdzExchangeProduct=btn.dataset.exchangeProduct;
+    mdzExchangeLimit=mdzExchangePageSize;
+    renderExchangeProductButtons();
+    renderExchangeBoard();
   }));
 }
 
@@ -3197,6 +3348,8 @@ function renderExchangeBoard(){
   const cheapestSource=document.getElementById('exchangeCheapestSource');
   const pulseSummary=document.getElementById('pulsePriceSummary');
   const priceHeader=document.getElementById('exchangePriceHeader');
+  const moreBtn=document.getElementById('exchangeShowMoreBtn');
+  const showingLabel=document.getElementById('exchangeShowingLabel');
   if(!body||!mdzMarketSnapshot) return;
   const unitLabel=getExchangeUnitLabel(mdzExchangeTab);
   if(priceHeader) priceHeader.textContent=getExchangePriceHeaderLabel(mdzExchangeTab);
@@ -3209,14 +3362,31 @@ function renderExchangeBoard(){
     if(cheapestSource&&srcRow) cheapestSource.innerHTML=`<a href="${escapeNewsHTML(srcRow.source)}" target="_blank" rel="noopener noreferrer">${escapeNewsHTML(srcRow.sourceName||t('exchangeSource'))}</a>`;
   }
   if(pulseSummary&&cheapest) pulseSummary.textContent=t('exchangeCheapest',{wilaya:cheapest.wilaya,price:cheapest.price.toLocaleString(mdzDateLocale()),unit:unitLabel});
-  body.innerHTML=rows.map(r=>{
-    const isCheap=cheapest&&r.wilayaCode===cheapest.wilayaCode;
-    return `<tr class="${isCheap?'cheapest':''}"><td>${escapeNewsHTML(r.wilaya)}</td><td><strong>${r.price.toLocaleString(mdzDateLocale())}</strong></td><td>${formatExchangeChange(r.changePct)}</td><td><a href="${escapeNewsHTML(r.source)}" target="_blank" rel="noopener noreferrer">${escapeNewsHTML(r.sourceName||t('exchangeSource'))}</a></td></tr>`;
-  }).join('');
+  const page=typeof paginateExchangeRows==='function'
+    ? paginateExchangeRows(rows, mdzExchangeLimit)
+    : {visible:rows.slice(0,mdzExchangeLimit),total:rows.length,shown:Math.min(mdzExchangeLimit,rows.length),hasMore:rows.length>mdzExchangeLimit};
+  if(!rows.length){
+    body.innerHTML=`<tr><td colspan="4">${escapeNewsHTML(t('dashEmptyQueue'))}</td></tr>`;
+  }else{
+    body.innerHTML=page.visible.map(r=>{
+      const isCheap=cheapest&&r.wilayaCode===cheapest.wilayaCode;
+      return `<tr class="${isCheap?'cheapest':''}"><td>${escapeNewsHTML(r.wilaya)}</td><td><strong>${r.price.toLocaleString(mdzDateLocale())}</strong></td><td>${formatExchangeChange(r.changePct)}</td><td><a href="${escapeNewsHTML(r.source)}" target="_blank" rel="noopener noreferrer">${escapeNewsHTML(r.sourceName||t('exchangeSource'))}</a></td></tr>`;
+    }).join('');
+  }
+  if(showingLabel){
+    showingLabel.hidden=!rows.length;
+    showingLabel.textContent=rows.length?t('exchangeShowingCount',{shown:String(page.shown),total:String(page.total)}):'';
+  }
+  if(moreBtn){
+    moreBtn.hidden=!page.hasMore;
+    moreBtn.disabled=!page.hasMore;
+    moreBtn.textContent=t('exchangeShowMore');
+  }
 }
 
 function applyMarketSnapshot(data){
   mdzMarketSnapshot=data;
+  mdzExchangeLimit=mdzExchangePageSize;
   renderExchangeProductButtons();
   renderExchangeBoard();
   const status=document.getElementById('exchangeStatus');
@@ -3268,14 +3438,35 @@ async function loadLivestockPrices(force=false){
   }finally{if(btn) btn.disabled=false;}
 }
 
+let paginateExchangeRows=null;
+let nextExchangeLimitFn=null;
+void import('./js/exchange-pagination.mjs').then(mod=>{
+  paginateExchangeRows=mod.paginateExchangeRows;
+  nextExchangeLimitFn=mod.nextExchangeLimit;
+  mdzExchangePageSize=mod.EXCHANGE_PAGE_SIZE;
+  mdzExchangeLimit=mod.EXCHANGE_PAGE_SIZE;
+  if(mdzMarketSnapshot) renderExchangeBoard();
+});
+
 document.querySelectorAll('[data-exchange-tab]').forEach(button=>button.addEventListener('click',()=>{
   document.querySelectorAll('[data-exchange-tab]').forEach(x=>x.classList.remove('active'));
   button.classList.add('active');
   mdzExchangeTab=button.dataset.exchangeTab||'meat';
+  mdzExchangeLimit=mdzExchangePageSize;
   renderExchangeProductButtons();
   renderExchangeBoard();
 }));
 document.getElementById('refreshExchangeBtn')?.addEventListener('click',()=>loadLivestockPrices(true));
+document.getElementById('exchangeShowMoreBtn')?.addEventListener('click',()=>{
+  mdzExchangeLimit=typeof nextExchangeLimitFn==='function'
+    ? nextExchangeLimitFn(mdzExchangeLimit,mdzExchangePageSize)
+    : mdzExchangeLimit+mdzExchangePageSize;
+  renderExchangeBoard();
+});
+/* Reset page window when product chips change (delegated after render). */
+document.getElementById('exchangeProducts')?.addEventListener('click',e=>{
+  if(e.target.closest('[data-exchange-product]')) mdzExchangeLimit=mdzExchangePageSize;
+});
 
 /* ===== الأخبار الآلية المتخصصة v1.9.2 ===== */
 const NEWS_ENDPOINT='/api/livestock-news';
@@ -3384,10 +3575,15 @@ document.getElementById('refreshNewsBtn')?.addEventListener('click',()=>loadLive
 window.addEventListener('DOMContentLoaded',async()=>{
   updateAuthChrome();
   await handleAuthRedirect();
-  const session=await ensureFreshSession();
-  if(session){
-    mdzUserRoles=await fetchMyRoles(session.access_token);
-    if(location.hash==='#account'||location.hash==='#auth-callback') await openAccount();
+  const recoveryMod=await import('./js/password-recovery.mjs');
+  if(recoveryMod.isRecoveryActive() || location.hash==='#reset-password'){
+    openResetPasswordModal();
+  }else{
+    const session=await ensureFreshSession();
+    if(session){
+      mdzUserRoles=await fetchMyRoles(session.access_token);
+      if(location.hash==='#account'||location.hash==='#auth-callback') await openAccount();
+    }
   }
   loadWeather(false);
   tickLivestockPrices();

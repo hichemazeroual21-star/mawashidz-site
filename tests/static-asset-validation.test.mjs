@@ -67,6 +67,10 @@ assert.match(html, /member_id يُخصَّص على السيرفر/, 'registrati
 assert.ok(!/await allocateMemberId\(raw\.role\)/.test(html), 'registration must not call allocateMemberId RPC from browser');
 assert.match(html, new RegExp(`assets/i18n\\.js\\?v=${buildInfo.version.replace(/\./g, '\\.')}`), 'public index cache-bust must match build-info version');
 assert.equal(readFileSync(join(root, 'index.html'), 'utf8'), html, 'root index.html must match public/index.html after build');
+assert.ok(existsSync(join(publicRoot, 'js/password-recovery.mjs')), 'password-recovery module must be synced');
+assert.ok(existsSync(join(publicRoot, 'js/exchange-pagination.mjs')), 'exchange-pagination module must be synced');
+assert.match(html, /resetPasswordModal/, 'reset password modal must ship in public index');
+assert.match(html, /review_registration_status|wireDashboardReviewActions/, 'admin review wiring must ship');
 const payloadBlock = html.match(/const payload=\{[\s\S]*?founding_terms_accepted:checked\(form,'founder_terms'\)\s*\}/);
 assert.ok(payloadBlock && !payloadBlock[0].includes('member_id:ids.memberId'),
   'registrations REST payload must not send member_id/registration_id as top-level columns (PGRST204 on legacy DB)');

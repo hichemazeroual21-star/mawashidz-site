@@ -432,6 +432,64 @@ for (const lang of I18N_LANGS) {
   }
 }
 
+// ================= TEST 7: exchange feed pagination (10 + Show more) =================
+{
+  const page = await newPage();
+  await page.setViewport({ width: 390, height: 900, isMobile: true, hasTouch: true });
+  await page.goto(`http://localhost:${PORT}/`, { waitUntil: 'networkidle2', timeout: 30000 });
+  await page.evaluate(() => { location.hash = '#exchange'; });
+  await new Promise(r => setTimeout(r, 800));
+  await page.evaluate(() => {
+    document.querySelector('[data-exchange-tab="feed"]')?.click();
+  });
+  await new Promise(r => setTimeout(r, 500));
+  const before = await page.evaluate(() => {
+    const rows = [...document.querySelectorAll('#exchangeTableBody tr')].filter(tr => tr.querySelectorAll('td').length >= 3);
+    const btn = document.getElementById('exchangeShowMoreBtn');
+    const label = document.getElementById('exchangeShowingLabel');
+    return {
+      rowCount: rows.length,
+      btnHidden: !btn || btn.hidden,
+      labelText: label?.textContent || '',
+      overflow: document.documentElement.scrollWidth > window.innerWidth + 1,
+    };
+  });
+  check('exchange feed: initial page shows exactly 10 rows', before.rowCount === 10, `rows=${before.rowCount}`);
+  check('exchange feed: Show more visible when more exist', before.btnHidden === false);
+  check('exchange feed: showing label present', /10/.test(before.labelText), before.labelText);
+  check('exchange feed@w390: no horizontal overflow', before.overflow === false);
+
+  await page.click('#exchangeShowMoreBtn');
+  await new Promise(r => setTimeout(r, 200));
+  const after = await page.evaluate(() => {
+    const rows = [...document.querySelectorAll('#exchangeTableBody tr')].filter(tr => tr.querySelectorAll('td').length >= 3);
+    return { rowCount: rows.length };
+  });
+  check('exchange feed: Show more loads next batch (20)', after.rowCount === 20, `rows=${after.rowCount}`);
+
+  // Dashboard modal mobile smoke (structure present, no overflow when opened with stub)
+  await page.evaluate(() => {
+    const box = document.getElementById('adminDashContent');
+    if (box) {
+      box.innerHTML = `<div class="dash-hero admin"><h3>Admin</h3></div>
+        <div class="dash-stats admin"><article><strong>1</strong><span>t</span></article><article><strong>1</strong><span>t</span></article><article><strong>1</strong><span>t</span></article><article><strong>1</strong><span>t</span></article></div>
+        <div class="dash-card-list" style="display:grid"><article class="dash-card"><header><strong>اسم طويل جداً للتحقق من الكسر</strong><span class="dash-status-chip pending">pending</span></header>
+        <div class="dash-row-actions"><button class="btn primary dash-action">موافقة</button><button class="btn ghost dash-action">رفض</button></div></article></div>`;
+    }
+    document.getElementById('adminDashModal')?.classList.add('open');
+  });
+  await new Promise(r => setTimeout(r, 200));
+  const dash = await page.evaluate(() => ({
+    open: document.getElementById('adminDashModal')?.classList.contains('open'),
+    overflow: document.documentElement.scrollWidth > window.innerWidth + 1,
+    actionH: document.querySelector('.dash-action')?.getBoundingClientRect().height || 0,
+  }));
+  check('admin dash modal@w390: opens', dash.open === true);
+  check('admin dash modal@w390: no page overflow', dash.overflow === false);
+  check('admin dash modal@w390: touch-sized actions', dash.actionH >= 40, `h=${dash.actionH}`);
+  await page.close();
+}
+
 // ================= console errors summary =================
 const realErrors = consoleErrors.filter(e =>
   !e.includes('net::ERR_FAILED') && !e.includes('Failed to load resource') &&
