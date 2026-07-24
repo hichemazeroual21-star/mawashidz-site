@@ -26,7 +26,7 @@ Honest overall score after this elevation (implementation quality, not “alread
 | Security | **8.7 / 10** | Probeable uuid helpers removed; outbox requires distinct `EMAIL_OUTBOX_SECRET` (no service-role bearer) |
 | Frontend | **8.2 / 10** | Elevated modules + operator queue + deep links; still string-HTML, not a component framework |
 | UI | **8.0 / 10** | Design system tokens, underline IA, dialogs, skeletons; product still lives in modals |
-| UX | **8.1 / 10** | Inbox filters, badge, i18n statuses, reason dialog; not yet Linear-class workspace navigation |
+| UX | **6.1 / 10** | Board UX review 2026-07-24: DS + dialog + partial triad; modal-as-app, error≡empty, raw enums, dual chrome, a11y gaps keep score honest (see PHASE1_UX_BOARD_REVIEW) |
 | Documentation | **8.4 / 10** | Honest roadmap statuses, design system doc, email runbook corrected |
 | Scalability | **7.6 / 10** | SKIP LOCKED + cron fine for early ops; admin fan-out insert is O(admins); no queue metrics UI |
 | Maintainability | **7.9 / 10** | Design system + modules help; dual `public/` sync and mega-HTML remain debt |

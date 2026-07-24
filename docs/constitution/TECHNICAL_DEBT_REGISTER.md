@@ -24,8 +24,13 @@ Lightweight living list. Add items when shipping shortcuts. Clear when fixed.
 | TD-018 | Probeable SECURITY DEFINER helpers | Phase 1 MVP | Info disclosure | No-arg helpers in 012 | **Closed** |
 | TD-019 | Manager review audit gap | Phase 1 MVP | Forensic hole | Audit all reviews in 012 | **Closed** |
 | TD-020 | Prototype UI (prompt, enums) | Phase 1 MVP | Trust/UX | Dialog only; `window.prompt` removed from reject | **Closed** |
-| TD-021 | Modal-hosted product shell | Static-site architecture | Not workspace-class IA | Phase 1.5 / UX shell | Open |
+| TD-021 | Modal-hosted product shell | Static-site architecture | Not workspace-class IA | Full Smart Workspace = Future after Phase 2–3; light shell only if Board prompts | Open |
 | TD-022 | No live RLS integration tests | Static SQL tests only | False confidence | Phase 1 follow-up | Open |
+| TD-027 | Support fetch error ≡ empty | Catch collapses to empty list | Ops trust loss | Distinguish error/retry vs empty (MDZ-P1-UX-002 candidate) | Open |
+| TD-028 | Raw enums in review/ops priority UI | MVP speed | Non-human status language | Status/priority lexicon i18n (MDZ-P1-UX-003) | Open |
+| TD-029 | Dual marketing vs product chrome | Brochure + DS coexist | Visual inconsistency | Align account/ops to DS tokens (MDZ-P1-UX-006) | Open |
+| TD-030 | Incomplete a11y (bell EN label, dialog focus trap) | MVP | A11y gate fail | Localize bell + focus trap (MDZ-P1-UX-004) | Open |
+| TD-031 | Support list missing skeleton | Incomplete triad | Loading inconsistency | Match notifications skeleton (MDZ-P1-UX-005) | Open |
 | TD-023 | Outbox attempt exhaustion while awaiting Resend | Elevation 012 claim bump | Stranded mail without key | 013 awaiting_* attempt undo | **Closed** |
 | TD-024 | Duplicate send after Resend OK / mark fail | Crash window | Double email | Idempotency-Key + `provider_message_id` reconcile | **Closed** |
 | TD-025 | Service-role accepted as outbox HTTP bearer | Convenience fallback | Authz bypass risk | Require distinct `EMAIL_OUTBOX_SECRET` | **Closed** |

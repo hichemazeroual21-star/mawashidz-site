@@ -21,6 +21,7 @@
 | **[PHASE1_QUALITY_ELEVATION_REPORT.md](./PHASE1_QUALITY_ELEVATION_REPORT.md)** | Elevation work + honest scores |
 | **[STRICT_EVIDENCE_REVIEW_STANDARD.md](./STRICT_EVIDENCE_REVIEW_STANDARD.md)** | Strict review prompt + severity/confidence/cost/evidence rules |
 | **[AMENDMENT_ACCEPTANCE_2026-07-24.md](./AMENDMENT_ACCEPTANCE_2026-07-24.md)** | ACCEPT WITH AMENDMENTS dispositions |
+| **[PHASE1_UX_BOARD_REVIEW_2026-07-24.md](./PHASE1_UX_BOARD_REVIEW_2026-07-24.md)** | UI/ops UX board: 6.1/10, APPROVED WITH CONDITIONS; Future deferred |
 
 ## Subordinate
 
