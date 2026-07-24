@@ -26,7 +26,7 @@ const info = {
   version,
   commit,
   builtAt: new Date().toISOString(),
-  worker: 'mawashidz-live',
+  worker: 'mawashidz-site',
 };
 
 const outPath = join(publicDir, 'build-info.json');

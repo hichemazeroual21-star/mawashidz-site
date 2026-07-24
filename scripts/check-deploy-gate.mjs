@@ -11,7 +11,7 @@ if (!ok) {
 ╔══════════════════════════════════════════════════════════════════╗
 ║  DEPLOY BLOCKED — Cloudflare prerequisite not confirmed          ║
 ╠══════════════════════════════════════════════════════════════════╣
-║  mawashidz-live Version command MUST be:                         ║
+║  mawashidz-site Version command MUST be:                         ║
 ║    npx wrangler versions upload                                  ║
 ║  (NOT npx wrangler deploy on every branch)                       ║
 ║                                                                  ║
