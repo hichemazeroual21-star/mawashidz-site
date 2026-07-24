@@ -2,6 +2,38 @@
 
 All notable changes to MawashiDZ are documented here.
 
+## [1.10.0] — 2026-07-24 — Bug fixes, security hardening, and project hygiene
+
+### Security
+
+- **XSS fix**: Added `escapeHtml()` helper adjacent to `safeText()`; all user-controlled values
+  interpolated into `innerHTML` (success card warnings, email, account hero `member_id` /
+  `full_name`) now go through `escapeHtml()`.
+- `escapeNewsHTML()` refactored to delegate to the shared `escapeHtml()` — single source of truth
+  for HTML escaping.
+- Removed hardcoded personal email fallback in EmailJS `reply_to` field; callers must supply a
+  valid address.
+
+### Fixed
+
+- **Cloudflare Worker name** corrected in `wrangler.jsonc`: `mawashidz-site` → `mawashidz-live`
+  (deploying from the old config targeted the legacy Worker, not production).
+- **Cache-bust query strings** on `assets/i18n.js` and `assets/i18n-content.js` updated from
+  `?v=1.9.3` to `?v=1.10.0` so browsers fetch the latest translations after deploy.
+
+### Removed
+
+- Dead function `describeRegistrationError()` — defined but never called anywhere in the codebase.
+
+### Added
+
+- `test:db` npm script: `node supabase/tests/run-phase0-tests.mjs` (was documented in README and
+  CHANGELOG [1.8.0] but absent from `package.json`).
+- `package:review` npm script: `bash scripts/package-code-review.sh` (was documented in README
+  but absent from `package.json`).
+- `embedded-postgres` and `pg` declared as `devDependencies` (required by `test:db` but were
+  missing from `package.json`).
+
 ## [1.8.1] — 2026-07-19 — Security: server-side member_id only
 
 ### Changed

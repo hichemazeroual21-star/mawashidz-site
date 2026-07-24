@@ -1100,8 +1100,8 @@ footer .foot a:hover{color:#e2c77e}
 #bioField[hidden]{display:none!important}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-<script src="assets/i18n.js?v=1.9.3"></script>
-<script src="assets/i18n-content.js?v=1.9.3"></script>
+<script src="assets/i18n.js?v=1.10.0"></script>
+<script src="assets/i18n-content.js?v=1.10.0"></script>
 <script src="assets/algeria-location-normalize.js"></script>
 <script src="assets/market-engine.js"></script>
 
@@ -2229,7 +2229,7 @@ function sendRegistrationEmail(data){
   return emailjs.send('service_19r4gig', 'template_d0k3jxs', {
     name:memberName,
     // يبقى Reply-To صالحًا حتى عندما لا يكتب المسجل بريده الإلكتروني.
-    email:data.email || 'fokmin394@gmail.com',
+    email:data.email || 'noreply@mawashidz.com',
     title:`MawashiDZ | تسجيل جديد — ${memberName} (${memberRole})`,
     message:[
       `الاسم: ${memberName}`,
@@ -2412,6 +2412,7 @@ function syncAlgerianPhone(){
   return combined.value;
 }
 function safeText(value,max=2000){ return String(value||'').trim().slice(0,max); }
+function escapeHtml(v){return String(v||'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
 function checked(form,name){ const el=form.querySelector(`[name="${name}"]`); return Boolean(el && el.checked); }
 function selectedValues(form,name){ return [...form.querySelectorAll(`[name="${name}"]:checked`)].map(x=>x.value); }
 
@@ -2613,17 +2614,6 @@ function buildRegistrationRecords({raw,form,valid,ids}){
   return {extra,payload};
 }
 
-function describeRegistrationError(error){
-  const authText=String(error?.message||'').toLowerCase();
-  if(authText.includes('already registered')) return {duplicate:true,message:t('errEmailExists')};
-  const duplicateMessage=duplicateRegistrationMessage(error);
-  if(duplicateMessage) return {duplicate:true,message:duplicateMessage};
-  const isNetwork=error instanceof TypeError || error?.name==='AbortError';
-  return {duplicate:false,message:isNetwork
-    ? t('errNetwork')
-    : `${t('errSaveFailed')} (${error?.status||'?'})`};
-}
-
 function showRegistrationError(confirmBox,message){
   confirmBox.style.display='block';
   confirmBox.className='full confirm-card is-error';
@@ -2633,10 +2623,10 @@ function showRegistrationError(confirmBox,message){
 function renderRegistrationSuccess({confirmBox,ids,email,hasSession,warnings=[]}){
   const inviteUrl=`${location.origin}${location.pathname}?ref=${encodeURIComponent(ids.memberInviteCode)}#register`;
   const memberLabel=ids.memberId?`<span dir="ltr">${ids.memberId}</span>`:t('acctMemberPending');
-  const warnHtml=warnings.map(w=>`<div class="success-warn">⚠️ ${safeText(w,400)}</div>`).join('');
+  const warnHtml=warnings.map(w=>`<div class="success-warn">⚠️ ${escapeHtml(safeText(w,400))}</div>`).join('');
   confirmBox.style.display='block';
   confirmBox.className='full confirm-card premium-success';
-  confirmBox.innerHTML=`<div class="success-mark">✓</div><div class="success-title">${t('succTitle')}</div><div class="success-copy">${t('succCopy')}</div><div class="success-id">${t('succMemberId')} ${memberLabel}</div><div class="success-id">${t('succRegId')} ${ids.registrationId}</div>${warnHtml}<div class="auth-status ${hasSession?'ok':''}">${hasSession?t('succAuthOk'):t('succAuthPending')}</div><div class="invite-panel"><div class="invite-label">${t('succInviteLabel')}</div><div class="invite-code">${ids.memberInviteCode}</div><div class="invite-actions"><button type="button" id="copyInviteCode">${t('succCopyCode')}</button><button type="button" id="shareInviteLink">${t('succShareLink')}</button>${hasSession?`<button type="button" id="openAccountAfterSignup">${t('succOpenAccount')}</button>`:''}</div></div><div class="success-mail">✉ ${t('succMail')} ${safeText(email,254)}</div>`;
+  confirmBox.innerHTML=`<div class="success-mark">✓</div><div class="success-title">${t('succTitle')}</div><div class="success-copy">${t('succCopy')}</div><div class="success-id">${t('succMemberId')} ${memberLabel}</div><div class="success-id">${t('succRegId')} ${escapeHtml(ids.registrationId)}</div>${warnHtml}<div class="auth-status ${hasSession?'ok':''}">${hasSession?t('succAuthOk'):t('succAuthPending')}</div><div class="invite-panel"><div class="invite-label">${t('succInviteLabel')}</div><div class="invite-code">${escapeHtml(ids.memberInviteCode)}</div><div class="invite-actions"><button type="button" id="copyInviteCode">${t('succCopyCode')}</button><button type="button" id="shareInviteLink">${t('succShareLink')}</button>${hasSession?`<button type="button" id="openAccountAfterSignup">${t('succOpenAccount')}</button>`:''}</div></div><div class="success-mail">✉ ${t('succMail')} ${escapeHtml(safeText(email,254))}</div>`;
   document.getElementById('copyInviteCode')?.addEventListener('click',async()=>{try{await navigator.clipboard.writeText(ids.memberInviteCode);showToast(t('toastCopyInvite'));}catch{showToast(`كودك: ${ids.memberInviteCode}`);}});
   document.getElementById('shareInviteLink')?.addEventListener('click',async()=>{const shareData={title:'MawashiDZ',text:t('shareInviteText',{code:ids.memberInviteCode}),url:inviteUrl};try{if(navigator.share) await navigator.share(shareData);else{await navigator.clipboard.writeText(inviteUrl);showToast(t('toastCopyLink'));}}catch(error){if(error?.name!=='AbortError') showToast(t('toastShareFail'));}});
 }
@@ -2752,7 +2742,7 @@ function wireAccountTabs(box,profile){
    const panel=document.getElementById('acctPanel');
    if(!panel) return;
    const dash=await import('./js/mdz-dashboards.mjs');
-   panel.innerHTML=`<div class="member-hero"><span class="member-id-chip" dir="ltr">${safeText(profile.member_id,40)||'—'}</span><h2 class="member-name">${safeText(profile.full_name,180)}</h2><p class="member-role">${t('accountOf')} ${registrationRoleLabel(profile.role)}</p><span class="member-status-pill">${statusLabelArabic(profile.status)}</span></div>${dash.renderAccountPanel(t,profile,tab,accountHelpers())}`;
+   panel.innerHTML=`<div class="member-hero"><span class="member-id-chip" dir="ltr">${escapeHtml(safeText(profile.member_id,40))||'—'}</span><h2 class="member-name">${escapeHtml(safeText(profile.full_name,180))}</h2><p class="member-role">${t('accountOf')} ${registrationRoleLabel(profile.role)}</p><span class="member-status-pill">${statusLabelArabic(profile.status)}</span></div>${dash.renderAccountPanel(t,profile,tab,accountHelpers())}`;
    wireInviteActions(profile);
    document.getElementById('acctForgotBtn')?.addEventListener('click',()=>document.getElementById('forgotPasswordBtn')?.click());
   });
@@ -3335,7 +3325,7 @@ function updateSpecialNewsStreams(streams,animate=false){
   if(vetDot) vetDot.className='live-dot'+(healthNext?'':' error');
   if(offDot) offDot.className='live-dot'+(officialNext?'':' error');
 }
-function escapeNewsHTML(v){return String(v||'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
+function escapeNewsHTML(v){return escapeHtml(v);}
 function formatNewsDate(value){try{return new Intl.DateTimeFormat(mdzDateLocale(),{dateStyle:'medium',timeStyle:'short'}).format(new Date(value));}catch{return '';}}
 function renderLivestockNews(){
  const list=document.getElementById('newsList'); if(!list) return;
