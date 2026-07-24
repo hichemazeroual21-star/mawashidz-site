@@ -21,10 +21,13 @@ Phase 1 ops UI is above a raw prototype, below world-class SaaS ops (Stripe/Line
 
 | Claim in weakness list | Status after P0 gate | Evidence |
 |------------------------|----------------------|----------|
-| `window.prompt` reject fallback | **Mitigated in code** | `js/mdz-dashboards.mjs` — dialog failure cancels; tests assert no `window.prompt` |
-| `#admin-dash` Open broken | **Mitigated in code** | `resolveNotificationDeepLink` → `openAdminDashboard` in `index.html` |
-| Modal shell / dual DS / error≡empty / raw enums / a11y / support skeleton / ops queue placement | **Still open** | See Remaining conditions |
-| Live QA of deep-link + dialog | **Not Verified** | Requires documented live smoke (static ≠ live) |
+| `window.prompt` reject fallback | **Closed in code** (`94fc6ff` + UI remediation) | `js/mdz-dashboards.mjs` |
+| `#admin-dash` Open broken | **Closed in code** | `resolveNotificationDeepLink` → admin |
+| Support fetch error≡empty | **Closed in code** (MDZ-UI-001) | error + retry panels |
+| Raw registration status / priority enums | **Closed in code** (MDZ-UI-004/005) | i18n chips |
+| Bell EN aria / dialog focus | **Closed in code** (MDZ-UI-006/007) | i18n aria + Tab trap |
+| Ops density / support skeleton / auth chrome DS / demo chip / tab comment | **Closed in code** (MDZ-UI-008–012) | shell densify within modals |
+| Modal-as-app full workspace replacement | **Still deferred** (Future / PI-008) | Not this cycle |
 
 Do **not** re-open EMAIL/NOTIF/prompt Issues as Open without new evidence against `94fc6ff`+.
 
