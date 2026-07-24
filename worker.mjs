@@ -6,6 +6,7 @@
  */
 import defaultNewsHandler from './netlify/functions/news.mjs';
 import defaultPricesHandler from './netlify/functions/prices.mjs';
+import { processEmailOutbox } from './netlify/functions/email-outbox.mjs';
 
 const JSON_HEADERS = {
   'Content-Type': 'application/json; charset=utf-8',
@@ -35,15 +36,25 @@ async function asHead(response) {
 }
 
 /**
- * @param {{ newsHandler?: Function, pricesHandler?: Function }} [deps]
+ * @param {{ newsHandler?: Function, pricesHandler?: Function, emailOutboxHandler?: Function }} [deps]
  */
 export function createWorker(deps = {}) {
   const newsHandler = deps.newsHandler || defaultNewsHandler;
   const pricesHandler = deps.pricesHandler || defaultPricesHandler;
+  const emailOutboxHandler = deps.emailOutboxHandler || ((req, env) => processEmailOutbox(req, env));
 
   return {
     async fetch(request, env) {
       const pathname = normalizeApiPath(new URL(request.url).pathname);
+
+      if (pathname === '/api/process-email-outbox') {
+        try {
+          return await emailOutboxHandler(request, env);
+        } catch (error) {
+          console.error('email outbox error', error);
+          return jsonError(503, 'email-outbox-failed');
+        }
+      }
 
       if (pathname === '/api/livestock-news' || pathname === '/api/livestock-prices') {
         if (request.method !== 'GET' && request.method !== 'HEAD') {

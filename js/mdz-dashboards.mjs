@@ -69,6 +69,8 @@ export function renderAccountTabs(t, active = 'profile') {
   const tabs = [
     ['profile', t('acctTabProfile')],
     ['request', t('acctTabRequest')],
+    ['notifications', t('acctTabNotifications')],
+    ['support', t('acctTabSupport')],
     ['invites', t('acctTabInvites')],
     ['security', t('acctTabSecurity')],
   ];
@@ -90,14 +92,31 @@ export function renderAccountPanel(t, profile, tab, helpers) {
   const status = statusLabel(p.status);
 
   if (tab === 'request') {
+    const reason = helpers.reviewReason
+      ? helpers.reviewReason
+      : '';
+    const reasonBlock = reason
+      ? `<div class="member-data review-reason"><small>${escapeHtml(t('acctReviewReason'))}</small><b>${escapeHtml(reason)}</b></div>`
+      : (String(p.status || '').toLowerCase() === 'rejected'
+        ? `<p class="acct-tab-note">${escapeHtml(t('acctReviewReasonMissing'))}</p>`
+        : '');
     return `<div class="member-data-grid">
       <div class="member-data"><small>${escapeHtml(t('acctRegId'))}</small><b dir="ltr">${escapeHtml(safeText(p.registration_id, 60) || '—')}</b></div>
       <div class="member-data"><small>${escapeHtml(t('wilaya'))}</small><b>${escapeHtml(safeText(p.wilaya, 120) || '—')}</b></div>
       <div class="member-data"><small>${escapeHtml(t('daira'))}</small><b>${escapeHtml(safeText(p.daira, 120) || '—')}</b></div>
       <div class="member-data"><small>${escapeHtml(t('commune'))}</small><b>${escapeHtml(safeText(p.commune, 120) || '—')}</b></div>
+      ${reasonBlock}
     </div>
     ${renderStatusProgress(t, p.status)}
     <p class="acct-tab-note">${escapeHtml(t('acctRequestNote'))}</p>`;
+  }
+
+  if (tab === 'notifications') {
+    return `<div id="acctNotificationsMount"><p class="acct-tab-note">${escapeHtml(t('notifLoading'))}</p></div>`;
+  }
+
+  if (tab === 'support') {
+    return `<div id="acctSupportMount"><p class="acct-tab-note">${escapeHtml(t('ticketLoading'))}</p></div>`;
   }
 
   if (tab === 'invites') {
@@ -348,13 +367,28 @@ export function wireDashboardReviewActions(root, {
 
     if (busy) return;
     busy = true;
+
+    let reason = null;
+    if (action === 'rejected') {
+      const entered = typeof window !== 'undefined'
+        ? window.prompt(t('dashRejectReasonPrompt') || 'سبب الرفض (يظهر للعضو):', '')
+        : '';
+      reason = entered == null ? null : String(entered).trim() || null;
+      if (entered === null) {
+        busy = false;
+        root.querySelectorAll('[data-review-action]').forEach((el) => { el.disabled = false; });
+        if (statusEl) statusEl.textContent = t('dashReviewCancelled') || '';
+        return;
+      }
+    }
+
     root.querySelectorAll('[data-review-action]').forEach((el) => { el.disabled = true; });
     if (statusEl) statusEl.textContent = t('dashReviewWorking');
 
     try {
-      await reviewRegistrationStatus(token, restUrl, apiKey, registrationId, action);
+      await reviewRegistrationStatus(token, restUrl, apiKey, registrationId, action, reason);
       if (statusEl) statusEl.textContent = action === 'approved' ? t('dashReviewApproved') : t('dashReviewRejected');
-      if (typeof onDone === 'function') await onDone({ registrationId, action });
+      if (typeof onDone === 'function') await onDone({ registrationId, action, reason });
     } catch (error) {
       console.error('review_registration_status failed', error);
       if (statusEl) statusEl.textContent = t('dashReviewFailed');

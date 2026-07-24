@@ -17,5 +17,7 @@ Amendments require Founder approval when they change Constitution meaning.
 | 2026-07-24 | D-010 | Stay Supabase+edge; incremental modularization | Premature microservices / SPA rewrite | Risk vs benefit | When pain measured |
 | 2026-07-24 | D-011 | Canonical roadmap in `docs/constitution/ROADMAP.md` | Dual conflicting roadmaps | One sequencing truth | — |
 | 2026-07-24 | D-012 | Historical reviews archived, not authoritative | Keep competing SSOT docs | Freeze strategy | — |
+| 2026-07-24 | D-013 | Phase 1 email = outbox + Resend adapter | Client EmailJS for membership outcomes | Keys stay server-side; PRD allows Resend/Brevo | After first prod sends |
+| 2026-07-24 | D-014 | Support = typed tickets only (no DM) | Chat-style inbox | Constitution NON-GOAL | Phase 1 exit |
 
 Pending Founder checkmarks: see [FOUNDER_DECISIONS.md](./FOUNDER_DECISIONS.md) FD-01…FD-08, FD-10.
