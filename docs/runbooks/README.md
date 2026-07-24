@@ -1,9 +1,11 @@
 # Runbooks
 
-Operational procedures. Create as Phase 0.8 matures.
+Operational procedures for MawashiDZ.
 
-- `backup-restore.md` — Supabase backup restore drill
-- `incident-response.md` — severity, comms, postmortem
-- `deploy-production.md` — pointer to root DEPLOYMENT.md
+| Runbook | Status |
+|---------|--------|
+| [backup-restore.md](./backup-restore.md) | Phase 0.8 stub |
+| [incident-response.md](./incident-response.md) | Phase 0.8 stub |
+| [../DEPLOYMENT.md](../DEPLOYMENT.md) | Production deploy (Cloudflare) |
 
-See Constitution §13 and TECHNICAL_DEBT_REGISTER.
+See Constitution §13 and [TECHNICAL_DEBT_REGISTER.md](../constitution/TECHNICAL_DEBT_REGISTER.md).

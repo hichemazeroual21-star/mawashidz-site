@@ -2,6 +2,22 @@
 
 All notable changes to MawashiDZ are documented here.
 
+## [1.10.0] — 2026-07-24 — Phase 0 foundation hardening
+
+### Added
+
+- `supabase/migrations/008_admin_audit_and_roles.sql` — `user_roles` create-if-missing, `admin_audit_log`, grant/revoke role RPCs
+- `supabase/migrations/009_schema_baseline_hardening.sql` — `registrations.status`, hardened insert policies, phone rate guard
+- GitHub Actions CI (`.github/workflows/ci.yml`) running `test:ci`
+- Runbooks: backup-restore, incident-response
+- Static migration reviews for 008/009
+
+### Changed
+
+- `supabase/setup.sql` v1.10.0 — `user_roles`, registration status columns, profile protection trigger, insert guards
+- `docs/database-schema.md` expanded to match production baseline
+- Technical debt register updated (TD-003/006/007/008/011 closed or mitigated)
+
 ## [1.8.1] — 2026-07-19 — Security: server-side member_id only
 
 ### Changed

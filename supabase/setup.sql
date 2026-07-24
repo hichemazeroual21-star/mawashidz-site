@@ -1,10 +1,13 @@
 -- ============================================================
--- MawashiDZ — Fresh database setup (v1.8.0)
+-- MawashiDZ — Fresh database setup (v1.10.0 Phase 0 baseline)
 -- For NEW Supabase projects only.
 -- Idempotent · safe to re-run · does not drop existing data.
 --
+-- After this file, run numbered migrations 003–009 for dashboard RLS,
+-- admin/review RPCs, audit log, and insert hardening (see README).
+--
 -- ⚠️ إذا كانت الجداول موجودة مسبقًا (مشروع قديم): لا تشغّل هذا الملف —
---    استخدم بدلًا منه supabase/migrations/001_compatible_existing_db.sql
+--    استخدم بدلًا منه supabase/migrations/001…009
 --    لأن CREATE TABLE IF NOT EXISTS لا يضيف أعمدة جديدة للجداول القديمة،
 --    وقد يفشل عند إنشاء فهارس على أعمدة غير موجودة (مثل member_id).
 -- ============================================================
@@ -226,9 +229,13 @@ create table if not exists public.registrations (
   email text,
   whatsapp text,
   wilaya text,
+  daira text,
   user_type text,
   role text,
   message text,
+  member_id text,
+  registration_id text,
+  status text not null default 'pending',
   is_verified boolean not null default false,
   privacy_accepted boolean not null default false,
   founding_terms_accepted boolean not null default false,
@@ -237,10 +244,126 @@ create table if not exists public.registrations (
   unique (phone)
 );
 
+alter table public.registrations add column if not exists daira text;
+alter table public.registrations add column if not exists member_id text;
+alter table public.registrations add column if not exists registration_id text;
+alter table public.registrations add column if not exists status text;
+
+update public.registrations
+set status = 'pending'
+where status is null or btrim(status) = '';
+
+alter table public.registrations alter column status set default 'pending';
+
+alter table public.profiles add column if not exists updated_at timestamptz;
+update public.profiles set updated_at = coalesce(updated_at, created_at, now()) where updated_at is null;
+alter table public.profiles alter column updated_at set default now();
+
 alter table public.registrations enable row level security;
 drop policy if exists "registrations: public insert" on public.registrations;
-create policy "registrations: public insert" on public.registrations for insert
-  to anon, authenticated with check (true);
+create policy "registrations: public insert"
+  on public.registrations for insert
+  to anon, authenticated
+  with check (
+    length(btrim(coalesce(full_name, ''))) between 2 and 200
+    and length(btrim(coalesce(phone, ''))) between 8 and 32
+    and (email is null or length(btrim(email)) between 3 and 320)
+    and (message is null or length(message) <= 20000)
+    and (wilaya is null or length(wilaya) <= 120)
+    and (role is null or length(role) <= 64)
+    and (user_type is null or length(user_type) <= 64)
+  );
+
+create or replace function public.mdz_registrations_insert_guard()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  recent_count int;
+  phone_key text := public.normalize_algerian_phone(new.phone);
+begin
+  if phone_key is null then
+    phone_key := regexp_replace(coalesce(new.phone, ''), '[^0-9+]', '', 'g');
+  end if;
+  if phone_key is null or length(phone_key) < 8 then
+    raise exception 'invalid phone' using errcode = '22023';
+  end if;
+  select count(*)::int into recent_count
+  from public.registrations r
+  where r.created_at > now() - interval '1 hour'
+    and (
+      public.normalize_algerian_phone(r.phone) = phone_key
+      or regexp_replace(coalesce(r.phone, ''), '[^0-9+]', '', 'g') = phone_key
+    );
+  if recent_count >= 5 then
+    raise exception 'registration rate limit exceeded' using errcode = '54000';
+  end if;
+  if new.status is null or btrim(new.status) = '' then
+    new.status := 'pending';
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists mdz_registrations_insert_guard on public.registrations;
+create trigger mdz_registrations_insert_guard
+  before insert on public.registrations
+  for each row execute function public.mdz_registrations_insert_guard();
+
+-- ------------------------------------------------------------
+-- 3b) Platform elevation roles + profile protection
+-- ------------------------------------------------------------
+create table if not exists public.user_roles (
+  id bigint generated always as identity primary key,
+  user_id uuid not null references auth.users (id) on delete cascade,
+  role text not null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  constraint user_roles_role_nonempty check (length(btrim(role)) > 0)
+);
+
+create unique index if not exists user_roles_user_id_role_uidx
+  on public.user_roles (user_id, role);
+create index if not exists user_roles_user_id_idx on public.user_roles (user_id);
+
+alter table public.user_roles enable row level security;
+drop policy if exists "user_roles: self read" on public.user_roles;
+create policy "user_roles: self read"
+  on public.user_roles for select
+  to authenticated
+  using (user_id = (select auth.uid()));
+
+create or replace function public.protect_profile_sensitive_columns()
+returns trigger
+language plpgsql
+as $$
+declare
+  admin_bypass boolean := coalesce(current_setting('mdz.admin_profile_update', true), '') = 'true';
+begin
+  if tg_op = 'UPDATE' and not admin_bypass then
+    if old.status is distinct from new.status then
+      raise exception 'status cannot be changed from client' using errcode = 'P0001';
+    end if;
+    if old.member_id is distinct from new.member_id then
+      raise exception 'member_id cannot be changed from client' using errcode = 'P0001';
+    end if;
+    if old.role is distinct from new.role then
+      raise exception 'role cannot be changed from client' using errcode = 'P0001';
+    end if;
+    if old.registration_id is distinct from new.registration_id then
+      raise exception 'registration_id cannot be changed from client' using errcode = 'P0001';
+    end if;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists protect_profile_sensitive_columns on public.profiles;
+create trigger protect_profile_sensitive_columns
+  before update on public.profiles
+  for each row execute function public.protect_profile_sensitive_columns();
 
 -- ------------------------------------------------------------
 -- 4) Contact + feedback
@@ -261,8 +384,16 @@ create table if not exists public.contact_messages (
 
 alter table public.contact_messages enable row level security;
 drop policy if exists "contact: public insert" on public.contact_messages;
-create policy "contact: public insert" on public.contact_messages for insert
-  to anon, authenticated with check (true);
+create policy "contact: public insert"
+  on public.contact_messages for insert
+  to anon, authenticated
+  with check (
+    (full_name is null or length(btrim(full_name)) <= 200)
+    and (phone is null or length(btrim(phone)) <= 32)
+    and (message is null or length(message) <= 10000)
+    and (request_type is null or length(request_type) <= 120)
+    and (ticket_id is null or length(ticket_id) <= 120)
+  );
 
 create table if not exists public.feedback_tickets (
   id bigint generated always as identity primary key,
@@ -277,9 +408,21 @@ create table if not exists public.feedback_tickets (
 
 alter table public.feedback_tickets enable row level security;
 drop policy if exists "feedback: public insert" on public.feedback_tickets;
-create policy "feedback: public insert" on public.feedback_tickets for insert
-  to anon, authenticated with check (true);
+create policy "feedback: public insert"
+  on public.feedback_tickets for insert
+  to anon, authenticated
+  with check (
+    (full_name is null or length(btrim(full_name)) <= 200)
+    and (contact is null or length(btrim(contact)) <= 320)
+    and (details is null or length(details) <= 10000)
+    and (report_type is null or length(report_type) <= 120)
+    and (ticket_id is null or length(ticket_id) <= 120)
+  );
 
+-- ============================================================
+-- After setup.sql on a NEW project, also run migrations 003–009
+-- (dashboard RLS, admin RPCs, unique indexes, review RPC, audit, hardening)
+-- or apply the numbered path documented in README.md.
 -- ============================================================
 -- Manual steps (Supabase Dashboard):
 -- Auth → Emails → Confirm signup (Arabic template with member_id)
