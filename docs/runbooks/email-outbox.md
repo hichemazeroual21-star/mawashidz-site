@@ -47,7 +47,8 @@ curl -sS -X POST "$ORIGIN/api/process-email-outbox" \
 2. Set `EMAIL_OUTBOX_SECRET` (new random value ≠ service role) on Worker.  
 3. Deploy Worker (`worker.mjs` + `netlify/functions/email-outbox.mjs`).  
 4. Set `RESEND_API_KEY` when ready to deliver.  
-5. Run **live smoke** (not covered by `npm run test:ci`): claim → send → mark sent; awaiting-key behaviour; cron tick.
+5. Run **live smoke** (not covered by `npm run test:ci`): claim → send → mark sent; awaiting-key behaviour; cron tick.  
+   See [PHASE1_LIVE_SMOKE_EVIDENCE_2026-07-24.md](./PHASE1_LIVE_SMOKE_EVIDENCE_2026-07-24.md) — **Phase 1 is not Verified** until the operator Must checklist passes on a deployed tip.
 
 ## What static tests do **not** prove
 
