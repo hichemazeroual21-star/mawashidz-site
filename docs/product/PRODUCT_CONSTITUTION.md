@@ -1,23 +1,27 @@
 # Product Constitution: Smart Role Workspaces
 
-**Founder Vision – Smart Role Workspaces (Mandatory Product Direction)**
+**Founder Vision – Smart Role Workspaces (Mandatory Product Direction for Hub mechanics)**
 
-> **Single source of truth:** This document is the **highest product vision authority** for MawashiDZ. If any other document conflicts with this constitution, **this document takes precedence** unless explicitly superseded by a newer **approved** [Product Decision Record (PDR)](./PRODUCT_DECISIONS/).
+> **Authority (amended):** This document is the **product mechanics authority for Smart Workspaces / Hub card architecture only**. It is **subordinate** to [`docs/constitution/MAWASHIDZ_CONSTITUTION.md`](../constitution/MAWASHIDZ_CONSTITUTION.md) v3.0 (frozen) and [`docs/constitution/ROADMAP.md`](../constitution/ROADMAP.md) for vision, NON-GOALS, Years 1–2 scope, and **phase sequencing**. If this document conflicts with the strategic Constitution or canonical ROADMAP, **those win**. Hub/workspace PDR records may refine card mechanics only after sequencing gates pass.
 
-> **Design gate:** Every new feature added to MawashiDZ must first answer one question: *“Which workspace benefits from it?”* If the answer is **“none”**, the feature should be **reconsidered**.
+> **Design gate:** Every new feature added to MawashiDZ must first answer one question: *“Which workspace benefits from it?”* If the answer is **“none”**, the feature should be **reconsidered**. Features that violate Constitution NON-GOALS (e.g. Years 1–2 feed catalog, open member chat, medical AI) must not ship regardless of workspace fit.
 
 | | |
 |--|--|
-| **Status** | **Approved product constitution** — mandatory for all workspace and Hub work |
-| **Constitution version** | **1.4** (see [version history](#version-history)) |
+| **Status** | **Approved product constitution for Hub mechanics** — subordinate to strategic Constitution v3.0 |
+| **Constitution version** | **1.5** (see [version history](#version-history)) — **1.5 authority amendment 2026-07-24** |
 | **Owner** | Product / Founder / MawashiDZ |
 | **Audience** | Engineering (Cursor), design, ops |
 | **Constraint** | Ship in **dedicated branches and PRs**. Do **not** mix with registration, Auth, or existing RLS changes unless an approved migration explicitly covers them. |
 
-This document is the **MawashiDZ product constitution**: role **Smart Workspaces**, Smart Hub framework, notification center, search, security, and phased engineering. It is **not** a feature wishlist. Treat it as **how the platform is built** for the next several years.
+This document is the **MawashiDZ product constitution for Smart Role Workspaces**: role surfaces, Smart Hub framework, notification placement in Hub, search, security patterns for cards, and phased Hub engineering. It is **not** a feature wishlist and **not** the Years 1–2 sequencing SSOT.
 
 **Canonical location:** `docs/product/PRODUCT_CONSTITUTION.md`  
-**Related:** [Product decisions (PDR)](./PRODUCT_DECISIONS/), [Roadmap](./ROADMAP.md), [Glossary](./GLOSSARY.md), [Product docs README](./README.md).
+**Related:** Strategic [Constitution library](../constitution/README.md), [Product decisions (PDR)](./PRODUCT_DECISIONS/), [Roadmap (Phase 1 tracks)](./ROADMAP.md), [Glossary](./GLOSSARY.md), [Product docs README](./README.md).
+
+### Feed sellers (Years 1–2)
+
+Constitution §1.3 / §3.4: **feed registration may exist**; **feed product catalog is a NON-GOAL for Years 1–2**. Any Hub card or marketing copy that implies live feed storefronts is **aspirational** until a Founder Decision reopens the feed vertical. Do not implement feed catalog APIs in Hub P0–P1.
 
 ### Terminology: Smart Workspace (not “Dashboard”)
 
@@ -770,19 +774,22 @@ Each phase: **one branch, one PR**, green `npm test`.
 
 ## Approved execution sequence (Founder)
 
-Order is fixed to protect production stability:
+Order is fixed to protect production stability and **must follow** [`docs/constitution/ROADMAP.md`](../constitution/ROADMAP.md):
 
-1. **Complete [Member Operations & Communication](./MEMBER_OPERATIONS_AND_COMMUNICATION.md)** — tracks **A–E** (admin operations first; support & messages last within the phase).
-2. **Smart Workspace P0** on `cursor/smart-profile-hub-p0-6004` after roadmap gates.
-3. **P1 breeder-first** Hub + Breeder Smart Workspace.
+1. **Complete Phase 0–1** per constitution ROADMAP (foundation + Member Operations & Communication tracks **A–E**).  
+2. **Phase 2 — Livestock Identity** (animals, ownership events, QR, media) — **required before Hub.**  
+3. **Phase 3 — Marketplace MVP** (after relevant Founder Decisions).  
+4. **Phase 4 — Smart Workspace / Hub polish** on real objects (`cursor/smart-profile-hub-p0-6004` and successors) — **not before Phases 2–3 exit criteria.**
 
-**Implementers:** build **mdz-hub-core** + Card Providers and **Smart Workspace shell** toward the five pillars—**not** a monolithic settings page. Every feature passes the **design gate** at the top of this document. New services = **cards** + workspace sections + **events**. Respect **rank order and wilaya fence**. **No Card → SQL.**
+**Deprecated sequencing:** Any earlier reading that placed **Hub P0 immediately after Member Ops** is **void**. FD-09 / D-003: Animals before Hub.
+
+**Implementers (when Phase 4 opens):** build **mdz-hub-core** + Card Providers and **Smart Workspace shell** toward the five pillars—**not** a monolithic settings page. Every feature passes the **design gate** at the top of this document. New services = **cards** + workspace sections + **events**. Respect **rank order and wilaya fence**. **No Card → SQL.** No feed catalog cards in Years 1–2.
 
 ---
 
 ## Decision recorded
 
-**Founder:** this document is the **product constitution** for Smart Role Workspaces. **P0 + P1 (breeder-first)** proceed after Admin Operations are live, under the constraints above.
+**Founder:** this document is the **product constitution for Smart Role Workspaces / Hub mechanics**, subordinate to strategic Constitution v3.0. **Hub P0 + P1 (breeder-first)** proceed only after constitution Phases **2–3** gates (and Phase 1 ops), under the constraints above.
 
 ---
 
@@ -810,6 +817,7 @@ When you change a decision, add a new PDR or mark the old one **Superseded** and
 | **1.1** | 2026-07-23 | Smart Workspace framework, Hub, Card Provider, PDR index, execution order |
 | **1.2** | 2026-07-23 | Alignment with member ops / messaging phases; SSOT clause; product library |
 | **1.3** | 2026-07-23 | Split detail specs; roadmap phases |
+| **1.5** | 2026-07-24 | **Authority amendment:** subordinate to strategic Constitution v3.0 + ROADMAP; Hub after Phases 2–3; feed catalog NON-GOAL restated |
 | **1.4** | 2026-07-23 | Phase umbrella Member Operations & Communication; Admin Operations named; Hub = roadmap Phase 2 |
 
 Update this table when the constitution changes materially; bump **Constitution version** in the header metadata.
