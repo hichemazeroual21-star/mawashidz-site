@@ -1,8 +1,10 @@
 # MawashiDZ — Product documentation library
 
-**Last updated:** 2026-07-23
+**Last updated:** 2026-07-24
 
 This folder is the **official product reference** for MawashiDZ: member operations, constitution, decisions, roadmap, and shared vocabulary. Engineering ADRs (e.g. member ID allocation) live under `docs/adr/`; **product direction and workspace philosophy** live here.
+
+**Platform-wide Master Constitution (5-year / governance):** see [`docs/constitution/`](../constitution/README.md). That library reconstructs and critically improves the draft Master Constitution; it does **not** silently override this folder’s Founder-approved Smart Workspace constitution. Precedence rules are documented in the constitution README.
 
 **Document types (do not mix):**
 
@@ -29,8 +31,10 @@ This folder is the **official product reference** for MawashiDZ: member operatio
 | **1.3** | 2026-07-23 | Split detail specs; roadmap tree |
 | **1.4** | 2026-07-23 | Umbrella phase; Admin Operations named |
 | **1.5** | 2026-07-23 | PRD vs ROADMAP split; non-goals; per-section acceptance criteria |
+| **1.6** | 2026-07-24 | Link to platform Master Constitution library (`docs/constitution/`) |
 
-Constitution-only versions: see [PRODUCT_CONSTITUTION.md#version-history](./PRODUCT_CONSTITUTION.md#version-history).
+Constitution-only versions: see [PRODUCT_CONSTITUTION.md#version-history](./PRODUCT_CONSTITUTION.md#version-history).  
+Master Constitution versions: see [`docs/constitution/MASTER_CONSTITUTION.md`](../constitution/MASTER_CONSTITUTION.md).
 
 ---
 
