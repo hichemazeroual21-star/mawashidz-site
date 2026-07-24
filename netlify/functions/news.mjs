@@ -103,7 +103,7 @@ async function fetchCategory(category, query) {
     const url = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=ar&gl=DZ&ceid=DZ:ar`;
     const response = await fetch(url, {
       signal: controller.signal,
-      headers: { 'User-Agent': 'MawashiDZ-NewsBot/1.9 (+https://mawashidz.com)' },
+      headers: { 'User-Agent': 'MawashiDZ-NewsBot/1.10 (+https://mawashidz.com)' },
     });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     return parseRssItems(await response.text(), category);

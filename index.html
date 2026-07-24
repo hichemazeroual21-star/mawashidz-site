@@ -1100,8 +1100,8 @@ footer .foot a:hover{color:#e2c77e}
 #bioField[hidden]{display:none!important}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-<script src="assets/i18n.js?v=1.9.3"></script>
-<script src="assets/i18n-content.js?v=1.9.3"></script>
+<script src="assets/i18n.js?v=1.10.0"></script>
+<script src="assets/i18n-content.js?v=1.10.0"></script>
 <script src="assets/algeria-location-normalize.js"></script>
 <script src="assets/market-engine.js"></script>
 
@@ -2295,7 +2295,7 @@ async function memberIdAfterSignup(authResult){
  const token=authResult?.session?.access_token||authResult?.access_token;
  if(!token) return null;
  try{
-  const profile=await fetchMyProfile(token);
+  const profile=await fetchMyProfile(token,authResult?.user?.id);
   if(profile?.member_id) return profile.member_id;
  }catch(e){console.warn('member_id lookup skipped',e)}
  return null;
@@ -2338,8 +2338,9 @@ async function resolveLoginEmail(identifier){
  if(!r.ok) throw new Error('تعذر العثور على الحساب. استعمل البريد الإلكتروني أو تأكد من الرقم.');
  const email=await r.json(); if(!email) throw new Error('لم نعثر على حساب مطابق لهذه البيانات.'); return String(email);
 }
-async function fetchMyProfile(token){
- const r=await fetch(`${SUPABASE_REST}/profiles?select=*&limit=1`,{headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:`Bearer ${token}`}});
+async function fetchMyProfile(token, userId){
+ const idFilter=userId?`&id=eq.${encodeURIComponent(userId)}`:'';
+ const r=await fetch(`${SUPABASE_REST}/profiles?select=*&limit=1${idFilter}`,{headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:`Bearer ${token}`}});
  if(r.status===401||r.status===403) throw new Error(t('authErrSession'));
  if(!r.ok) throw new Error(t('authErrProfile'));
  const rows=await r.json();return rows[0]||null;
@@ -2728,7 +2729,7 @@ document.getElementById('loginForm')?.addEventListener('submit',async e=>{
 
 document.getElementById('forgotPasswordBtn')?.addEventListener('click',async()=>{
  const id=document.getElementById('loginIdentifier')?.value.trim();if(!id){showToast(t('toastEnterEmail'));return}
- try{const email=await resolveLoginEmail(id);await authRequest('/recover',{method:'POST',body:JSON.stringify({email,redirect_to:MDZ_SITE_URL()+'#auth-callback'})});showToast(t('toastRecoverSent'))}catch(e){showToast(t('toastRecoverSent'))}
+ try{const email=await resolveLoginEmail(id);await authRequest('/recover',{method:'POST',body:JSON.stringify({email,redirect_to:MDZ_SITE_URL()+'#auth-callback'})});showToast(t('toastRecoverSent'))}catch(e){showToast(t('toastRecoverFail'))}
 });
 
 let mdzAccountProfile=null;
@@ -2773,7 +2774,7 @@ async function openAccount(){
  const box=document.getElementById('accountContent');
  box.innerHTML=`<div class="notice">${t('accountLoading')}</div>`;
  try{
-  const p=await fetchMyProfile(session.access_token);
+  const p=await fetchMyProfile(session.access_token,session.user?.id);
   if(!p) throw new Error(t('authErrProfileMissing'));
   mdzAccountProfile=p;
   mdzUserRoles=await fetchMyRoles(session.access_token);
@@ -2800,7 +2801,7 @@ async function openManagerDashboard(){
  document.getElementById('managerDashModal').classList.add('open');
  const box=document.getElementById('managerDashContent');
  box.innerHTML=`<div class="notice">${t('accountLoading')}</div>`;
- const profile=mdzAccountProfile||await fetchMyProfile(session.access_token);
+ const profile=mdzAccountProfile||await fetchMyProfile(session.access_token,session.user?.id);
  try{
   const data=await dash.loadManagerData(session.access_token,SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY,profile?.wilaya);
   box.innerHTML=dash.renderManagerDashboard(t,{wilaya:profile?.wilaya,rows:data.rows,source:data.source,safeText,registrationRoleLabel});

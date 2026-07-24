@@ -76,7 +76,7 @@ if (!prodInfo.ok) {
 // --- legacy shell detection (evidence-based, not cache guessing) ---
 const prodIndex = await fetchText(`${PROD_BASE}/index.html`);
 if (prodIndex.ok) {
-  if (prodIndex.text.includes(`الإصدار v${LEGACY_BANNED_VERSION}`) || prodIndex.text.includes(`v${LEGACY_BANNED_VERSION}`) && prodIndex.text.includes('Phase 1 Auth UI')) {
+  if (prodIndex.text.includes(`الإصدار v${LEGACY_BANNED_VERSION}`) || (/\bv1\.9\.0\b/.test(prodIndex.text) && prodIndex.text.includes('Phase 1 Auth UI'))) {
     fail(`production index.html still declares or embeds legacy v${LEGACY_BANNED_VERSION} monolith`);
   }
   if (!prodIndex.text.includes('MDZ_APP_VERSION') && !prodIndex.text.includes('assets/i18n.js')) {

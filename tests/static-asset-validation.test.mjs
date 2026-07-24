@@ -32,6 +32,8 @@ const headersPath = join(publicRoot, '_headers');
 assert.ok(existsSync(buildInfoPath), 'public/build-info.json must exist after npm run build');
 const buildInfo = JSON.parse(readFileSync(buildInfoPath, 'utf8'));
 assert.ok(buildInfo.version && buildInfo.commit && buildInfo.builtAt, 'build-info must include version, commit, builtAt');
+assert.equal(buildInfo.worker, wrangler.name, 'build-info.worker must match wrangler.jsonc name');
+assert.ok(existsSync(join(root, 'worker.mjs')), 'worker.mjs must exist for API routes');
 assert.ok(buildInfo.version !== '1.9.0', 'build-info version must not be legacy 1.9.0');
 assert.ok(existsSync(headersPath), 'public/_headers must exist after build (cache policy)');
 
