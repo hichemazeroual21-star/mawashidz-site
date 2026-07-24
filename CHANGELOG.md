@@ -2,6 +2,22 @@
 
 All notable changes to MawashiDZ are documented here.
 
+## [1.11.0] — 2026-07-24 — Phase 1 foundation: notifications, tickets, email outbox
+
+### Added
+
+- Migrations `010` (notifications, support tickets/messages/notes, email_outbox + RPCs) and `011` (review → notify/email hooks; member read own registration)
+- Account tabs: Notifications + Support & Messages Center MVP
+- Rejection reason prompt + member-visible reason on request tab
+- Worker `/api/process-email-outbox` (Resend when configured)
+- Phase 1 execution plan + email outbox runbook
+
+### Security
+
+- No client INSERT on notifications/tickets/outbox — SECURITY DEFINER RPCs only
+- Internal notes staff-only RLS
+- Wilaya fence on ticket visibility
+
 ## [1.10.0] — 2026-07-24 — Phase 0 foundation hardening
 
 ### Added

@@ -36,6 +36,8 @@ Official website package with multilingual interface, automatic dark mode, and t
 7. `supabase/migrations/007_review_registration_status.sql` (موافقة/رفض الطلبات من اللوحات عبر RPC آمن)
 8. `supabase/migrations/008_admin_audit_and_roles.sql` (سجل التدقيق + منح/سحب الأدوار + إنشاء `user_roles` إن لزم)
 9. `supabase/migrations/009_schema_baseline_hardening.sql` (`registrations.status` + سياسات إدراج مُقيَّدة + حد معدّل التسجيل)
+10. `supabase/migrations/010_notifications_tickets_email_outbox.sql` (إشعارات + تذاكر الدعم + طابور البريد)
+11. `supabase/migrations/011_review_notify_email_hooks.sql` (ربط المراجعة بالإشعار/البريد + قراءة العضو لطلبه)
 
 **مسار Phase 0 (timestamped — من `main`):**
 

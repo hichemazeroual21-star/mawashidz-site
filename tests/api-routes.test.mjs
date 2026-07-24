@@ -102,4 +102,20 @@ async function call(path, init = {}) {
   assert.equal((await res.json()).error, 'assets-binding-missing');
 }
 
+// email outbox route exists and rejects bad method/auth
+{
+  const emailWorker = createWorker({
+    emailOutboxHandler: async () => new Response(JSON.stringify({ ok: true }), { status: 200 }),
+  });
+  const post = await emailWorker.fetch(
+    new Request('https://mawashidz.com/api/process-email-outbox', { method: 'POST' }),
+    env,
+  );
+  assert.equal(post.status, 200);
+  const get = await call('/api/process-email-outbox', { method: 'GET' });
+  // default handler returns 405 for GET
+  assert.equal(get.status, 405);
+}
+
 console.log('  ✓ Worker API routes: prices, news mock, methods, HEAD status, ASSETS guard');
+

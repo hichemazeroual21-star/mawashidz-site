@@ -1076,6 +1076,17 @@ footer .foot a:hover{color:#e2c77e}
 .dash-status-chip{display:inline-flex;padding:4px 8px;border-radius:999px;background:#eef4f0;font-size:.75rem;font-weight:800;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .dash-status-chip.approved{background:#e5f7ec;color:#0f5a36}
 .dash-status-chip.rejected,.dash-status-chip.suspended{background:#fdecec;color:#8a1f1f}
+.notif-toolbar,.ticket-create{display:flex;flex-wrap:wrap;gap:.55rem;align-items:center;margin:.6rem 0}
+.notif-list,.ticket-list{display:grid;gap:.65rem;margin-top:.75rem}
+.notif-item,.ticket-item,.ticket-thread{border:1px solid rgba(0,0,0,.08);border-radius:12px;padding:.75rem .85rem;background:rgba(255,255,255,.72)}
+.notif-item.unread{border-color:rgba(46,125,50,.35);box-shadow:inset 3px 0 0 #2e7d32}
+.notif-item header,.ticket-item header{display:flex;justify-content:space-between;gap:.5rem;align-items:baseline}
+.notif-item p,.ticket-item p,.ticket-msg p{margin:.35rem 0 0;line-height:1.45}
+.ticket-create label{display:grid;gap:.25rem;width:100%}
+.ticket-create input,.ticket-create textarea,.ticket-create select,#ticketReplyBody{width:100%;border-radius:10px;border:1px solid rgba(0,0,0,.12);padding:.55rem .65rem;font:inherit}
+.ticket-msgs{display:grid;gap:.5rem;margin:0.75rem 0}
+.ticket-msg{background:rgba(0,0,0,.03);border-radius:10px;padding:.55rem .7rem}
+.member-data.review-reason b{white-space:pre-wrap}
 .dash-status-chip.pending{background:#fff6e5;color:#8a5a00}
 .dash-card-list{display:none;gap:10px}
 .dash-card{border:1px solid #d7e4dc;border-radius:14px;background:#fff;padding:12px}
@@ -2782,7 +2793,7 @@ document.getElementById('forgotPasswordBtn')?.addEventListener('click',()=>{
 });
 
 let mdzAccountProfile=null;
-const accountHelpers=()=>({safeText,registrationRoleLabel,statusLabel:statusLabelArabic});
+const accountHelpers=(extra={})=>({safeText,registrationRoleLabel,statusLabel:statusLabelArabic,...extra});
 
 function wireInviteActions(profile){
  const code=profile?.invite_code;
@@ -2794,17 +2805,99 @@ function wireInviteActions(profile){
  });
 }
 
-function wireAccountTabs(box,profile){
+async function fetchRegistrationReviewReason(token, registrationId){
+ if(!registrationId) return '';
+ try{
+  const ops=await import('./js/mdz-member-ops.mjs');
+  const r=await fetch(`${SUPABASE_REST}/registrations?select=message&registration_id=eq.${encodeURIComponent(registrationId)}&limit=1`,{
+   headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:`Bearer ${token}`}
+  });
+  if(!r.ok) return '';
+  const rows=await r.json();
+  return ops.parseReviewReason(rows?.[0]?.message);
+ }catch{ return ''; }
+}
+
+async function mountAccountNotifications(session){
+ const mount=document.getElementById('acctNotificationsMount');
+ if(!mount) return;
+ const ops=await import('./js/mdz-member-ops.mjs');
+ try{
+  const rows=await ops.listMyNotifications(session.access_token,SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY);
+  mount.innerHTML=ops.renderNotificationsPanel(t,rows,{safeText});
+ }catch{
+  mount.innerHTML=`<p class="acct-tab-note">${t('notifError')}</p><button type="button" class="btn ghost" id="notifRefreshBtn">${t('notifRefresh')}</button>`;
+ }
+ document.getElementById('notifRefreshBtn')?.addEventListener('click',()=>mountAccountNotifications(session));
+ document.getElementById('notifMarkAllBtn')?.addEventListener('click',async()=>{
+  try{await ops.markAllNotificationsRead(session.access_token,SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY);await mountAccountNotifications(session);}catch{showToast(t('notifError'))}
+ });
+ mount.querySelectorAll('.notif-mark-read').forEach(btn=>{
+  btn.addEventListener('click',async()=>{
+   try{await ops.markNotificationRead(session.access_token,SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY,Number(btn.dataset.notificationId));await mountAccountNotifications(session);}catch{showToast(t('notifError'))}
+  });
+ });
+}
+
+async function mountAccountSupport(session){
+ const mount=document.getElementById('acctSupportMount');
+ if(!mount) return;
+ const ops=await import('./js/mdz-member-ops.mjs');
+ let tickets=[];
+ try{tickets=await ops.fetchMyTickets(session.access_token,SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY);}catch{tickets=[];}
+ mount.innerHTML=ops.renderSupportPanel(t,tickets,{safeText});
+ document.getElementById('ticketCreateBtn')?.addEventListener('click',async()=>{
+  const status=document.getElementById('ticketCreateStatus');
+  try{
+   await ops.createSupportTicket(session.access_token,SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY,{
+    requestType:document.getElementById('ticketType')?.value||'inquiry',
+    subject:document.getElementById('ticketSubject')?.value||'',
+    body:document.getElementById('ticketBody')?.value||'',
+   });
+   if(status) status.textContent=t('ticketCreated');
+   await mountAccountSupport(session);
+  }catch{ if(status) status.textContent=t('ticketError'); }
+ });
+ mount.querySelectorAll('.ticket-open-btn').forEach(btn=>{
+  btn.addEventListener('click',async()=>{
+   const id=Number(btn.dataset.ticketId);
+   const thread=document.getElementById('ticketThreadMount');
+   if(!thread) return;
+   try{
+    const ticket=tickets.find(x=>Number(x.id)===id)||{id,ticket_code:String(id),subject:'',status:'open'};
+    const messages=await ops.fetchTicketMessages(session.access_token,SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY,id);
+    thread.innerHTML=ops.renderTicketThread(t,ticket,messages,{safeText});
+    document.getElementById('ticketReplyBtn')?.addEventListener('click',async()=>{
+     const st=document.getElementById('ticketThreadStatus');
+     try{
+      await ops.replySupportTicket(session.access_token,SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY,id,document.getElementById('ticketReplyBody')?.value||'');
+      if(st) st.textContent=t('ticketReplied');
+      const messages2=await ops.fetchTicketMessages(session.access_token,SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY,id);
+      thread.innerHTML=ops.renderTicketThread(t,ticket,messages2,{safeText});
+     }catch{ if(st) st.textContent=t('ticketError'); }
+    });
+   }catch{ thread.innerHTML=`<p class="acct-tab-note">${t('ticketError')}</p>`; }
+  });
+ });
+}
+
+function wireAccountTabs(box,profile,session){
  box.querySelectorAll('[data-acct-tab]').forEach(btn=>{
   btn.addEventListener('click',async()=>{
    const tab=btn.dataset.acctTab;
-   box.querySelectorAll('.acct-tab').forEach(t=>{t.classList.toggle('on',t.dataset.acctTab===tab);t.setAttribute('aria-selected',t.dataset.acctTab===tab?'true':'false')});
+   box.querySelectorAll('.acct-tab').forEach(el=>{el.classList.toggle('on',el.dataset.acctTab===tab);el.setAttribute('aria-selected',el.dataset.acctTab===tab?'true':'false')});
    const panel=document.getElementById('acctPanel');
    if(!panel) return;
    const dash=await import('./js/mdz-dashboards.mjs');
-   panel.innerHTML=`<div class="member-hero"><span class="member-id-chip" dir="ltr">${safeText(profile.member_id,40)||'—'}</span><h2 class="member-name">${safeText(profile.full_name,180)}</h2><p class="member-role">${t('accountOf')} ${registrationRoleLabel(profile.role)}</p><span class="member-status-pill">${statusLabelArabic(profile.status)}</span></div>${dash.renderAccountPanel(t,profile,tab,accountHelpers())}`;
+   let reviewReason='';
+   if(tab==='request' && session?.access_token){
+    reviewReason=await fetchRegistrationReviewReason(session.access_token,profile.registration_id);
+   }
+   panel.innerHTML=`<div class="member-hero"><span class="member-id-chip" dir="ltr">${safeText(profile.member_id,40)||'—'}</span><h2 class="member-name">${safeText(profile.full_name,180)}</h2><p class="member-role">${t('accountOf')} ${registrationRoleLabel(profile.role)}</p><span class="member-status-pill">${statusLabelArabic(profile.status)}</span></div>${dash.renderAccountPanel(t,profile,tab,accountHelpers({reviewReason}))}`;
    wireInviteActions(profile);
    document.getElementById('acctForgotBtn')?.addEventListener('click',()=>document.getElementById('forgotPasswordBtn')?.click());
+   if(tab==='notifications' && session) await mountAccountNotifications(session);
+   if(tab==='support' && session) await mountAccountSupport(session);
   });
  });
 }
@@ -2832,7 +2925,7 @@ async function openAccount(){
   const dash=await import('./js/mdz-dashboards.mjs');
   box.innerHTML=dash.renderAccountDashboard(t,p,accountHelpers());
   document.getElementById('logoutBtn').onclick=()=>logoutAccount();
-  wireAccountTabs(box,p);
+  wireAccountTabs(box,p,session);
   wireInviteActions(p);
   updateAuthChrome();
  }catch(e){

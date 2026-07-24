@@ -84,6 +84,17 @@ Public insert with length checks. Default `status = 'new'`. No admin read polici
 
 **RLS:** admin/founder/super_admin `SELECT` only. No direct client writes — SECURITY DEFINER helpers insert.
 
+### `public.notifications` / `public.support_tickets` / `public.email_outbox`
+
+Phase 1 (migrations 010–011). See [PHASE1_EXECUTION_PLAN.md](./product/PHASE1_EXECUTION_PLAN.md).
+
+| Table | Access |
+|-------|--------|
+| `notifications` | Recipient SELECT; write via `mdz_notify_user` / mark-read RPCs |
+| `support_tickets` / `support_messages` | Member own + admin + wilaya fence; write via ticket RPCs |
+| `support_internal_notes` | Staff SELECT only |
+| `email_outbox` | Admin SELECT; claim/mark via service_role |
+
 ## Functions (RPC)
 
 | Function | Grants | Purpose |
@@ -97,6 +108,9 @@ Public insert with length checks. Default `status = 'new'`. No admin read polici
 | `admin_grant_user_role` / `admin_revoke_user_role` | authenticated | Elevation management + audit |
 | `admin_list_audit_log(int)` | authenticated | Recent audit rows for admins |
 | `mdz_assert_admin_caller()` | authenticated | Shared admin gate |
+| `list_my_notifications` / `mark_notification_read` / `mark_all_notifications_read` | authenticated | Inbox |
+| `create_support_ticket` / `reply_support_ticket` / `set_support_ticket_status` / `add_support_internal_note` | authenticated | Support Center |
+| `mdz_claim_email_outbox` / `mdz_mark_email_outbox` | service_role | Email worker |
 
 ## Triggers
 
@@ -110,7 +124,7 @@ Public insert with length checks. Default `status = 'new'`. No admin read polici
 ### Existing Supabase project (recommended)
 
 ```text
-001 → 002 → 003 → 004 → 005 → 006 → 007 → 008 → 009
+001 → 002 → 003 → 004 → 005 → 006 → 007 → 008 → 009 → 010 → 011
 ```
 
 ### New Supabase project
