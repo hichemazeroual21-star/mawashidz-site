@@ -2,6 +2,12 @@
 
 All notable changes to MawashiDZ are documented here.
 
+## [Unreleased] — Fix: Wrangler Worker name drift
+
+### Fixed
+
+- `wrangler.jsonc`: restored `"name": "mawashidz-live"` (the deployed production Worker per `DEPLOYMENT.md`). A prior automated PR had drifted this to `mawashidz-site`, which is the legacy/non-production Worker — deploying with that name would target the wrong Worker instead of `mawashidz.com`.
+
 ## [1.8.1] — 2026-07-19 — Security: server-side member_id only
 
 ### Changed
