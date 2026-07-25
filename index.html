@@ -1122,6 +1122,12 @@ footer .foot a:hover{color:#e2c77e}
 #resetPasswordModal .modal-box{width:min(480px,96vw)}
 .reset-state{margin-top:10px;font-weight:800;min-height:1.2em}
 .reset-state.is-error{color:#8a1f1f}.reset-state.is-ok{color:#0f5a36}
+/* Temporary auth diagnostic panel (founder or ?debug=1) — remove after prod triage */
+#mdzAuthDiagPanel{position:fixed;inset:auto 8px 72px 8px;z-index:99999;max-height:42vh;overflow:auto;background:#0b1f14;color:#e8f5ee;border:1px solid #2f6b4a;border-radius:10px;padding:10px 12px;font:12px/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;box-shadow:0 8px 28px rgba(0,0,0,.35);display:none}
+#mdzAuthDiagPanel[data-open="1"]{display:block}
+#mdzAuthDiagPanel h3{margin:0 0 8px;font:700 13px/1.2 system-ui,sans-serif;color:#9fe0bb}
+#mdzAuthDiagPanel .mdz-auth-diag-row{margin:0 0 6px;word-break:break-word}
+#mdzAuthDiagPanel .mdz-auth-diag-close{position:absolute;top:6px;inset-inline-end:8px;background:transparent;border:0;color:#9fe0bb;font-size:18px;line-height:1;cursor:pointer}
 @media(max-width:620px){
   .dash-stats,.dash-stats.admin{grid-template-columns:repeat(2,minmax(0,1fr))}
   .dash-table-wrap{display:none}
@@ -2293,6 +2299,11 @@ body[data-lang]:not([data-lang="ar"]) .hero-title-sub{white-space:normal!importa
  </div>
 </div>
 <div class="toast" id="toast"></div>
+<aside id="mdzAuthDiagPanel" hidden aria-live="polite" data-mdz-auth-diag="1">
+  <button type="button" class="mdz-auth-diag-close" id="mdzAuthDiagClose" aria-label="Close">×</button>
+  <h3>Auth diagnostic (temp)</h3>
+  <div id="mdzAuthDiagBody"></div>
+</aside>
 
 <script>
 const $=s=>document.querySelector(s), $$=s=>document.querySelectorAll(s);
@@ -2345,6 +2356,62 @@ const SUPABASE_AUTH = `${SUPABASE_URL}/auth/v1`;
 const MDZ_SESSION_KEY='mdz_auth_session';
 const MDZ_SITE_URL=()=>`${location.origin}${location.pathname}`;
 let mdzUserRoles=[];
+/** Last auth/account failure for on-phone triage (cleared only on logout). */
+let mdzAuthLastError=null;
+/** Last fetchMyRoles payload (raw rows + normalized roles). */
+let mdzAuthLastRolesRaw=null;
+function mdzAuthDebugFlag(){
+ try{return new URLSearchParams(location.search).get('debug')==='1'}catch{return false}
+}
+function mdzAuthCanShowDiag(){
+ return mdzAuthDebugFlag() || mdzUserRoles.some(r=>r==='founder');
+}
+function mdzAuthDiagRecord(step, error, extra={}){
+ const status=error?.status ?? extra.status ?? null;
+ const code=error?.code || extra.code || error?.error || null;
+ const entry={
+  step:String(step||'unknown'),
+  message:String(error?.message||error||''),
+  status,
+  code:code!=null?String(code):null,
+  at:new Date().toISOString(),
+ };
+ mdzAuthLastError=entry;
+ console.error('[mdz-auth-diag]', entry.step, {
+  error,
+  status:entry.status,
+  code:entry.code,
+  message:entry.message,
+  supabase:extra.body||extra.supabase||null,
+  extra,
+ });
+ try{renderAuthDiagPanel()}catch(_){}
+}
+function renderAuthDiagPanel(){
+ const panel=document.getElementById('mdzAuthDiagPanel');
+ const body=document.getElementById('mdzAuthDiagBody');
+ if(!panel||!body) return;
+ if(!mdzAuthCanShowDiag()){
+  panel.hidden=true;panel.removeAttribute('data-open');return;
+ }
+ const session=(()=>{try{return getSession()}catch(e){mdzAuthDiagRecord('getSession.render',e);return null}})();
+ const uid=session?.user?.id||userIdFromAccessToken(session?.access_token||'')||null;
+ const hasSession=Boolean(session?.access_token);
+ const rolesRaw=mdzAuthLastRolesRaw==null?'(not fetched yet)':JSON.stringify(mdzAuthLastRolesRaw);
+ const lastErr=mdzAuthLastError
+  ?`${mdzAuthLastError.code||'—'} | status=${mdzAuthLastError.status??'—'} | step=${mdzAuthLastError.step} | ${mdzAuthLastError.message}`
+  :'(none)';
+ body.innerHTML=`
+  <p class="mdz-auth-diag-row"><strong>getSession()</strong><br>has session: ${hasSession?'yes':'no'}<br>user id: ${uid||'—'}</p>
+  <p class="mdz-auth-diag-row"><strong>fetchMyRoles() raw</strong><br>${rolesRaw.replace(/</g,'&lt;')}</p>
+  <p class="mdz-auth-diag-row"><strong>last real error code</strong><br>${String(lastErr).replace(/</g,'&lt;')}</p>
+  <p class="mdz-auth-diag-row">roles (memory): ${JSON.stringify(mdzUserRoles)} | debug=${mdzAuthDebugFlag()?'1':'0'}</p>`;
+ panel.hidden=false;panel.setAttribute('data-open','1');
+}
+document.getElementById('mdzAuthDiagClose')?.addEventListener('click',()=>{
+ const panel=document.getElementById('mdzAuthDiagPanel');
+ if(panel){panel.hidden=true;panel.removeAttribute('data-open')}
+});
 const ROLE_PREFIX={breeder:'F',vet:'V',feed:'S',buyer:'U',manager:'W',ambassador:'B',partner:'P'};
 function generateMemberId(role){
  const d=new Date(), date=String(d.getFullYear()).slice(-2)+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0');
@@ -2370,7 +2437,10 @@ function saveSession(session){
  }else localStorage.removeItem(MDZ_SESSION_KEY);
  updateAuthChrome();
 }
-function getSession(){try{return JSON.parse(localStorage.getItem(MDZ_SESSION_KEY)||'null')}catch{return null}}
+function getSession(){
+ try{return JSON.parse(localStorage.getItem(MDZ_SESSION_KEY)||'null')}
+ catch(e){mdzAuthDiagRecord('getSession.parse',e,{code:'session_parse_error'});return null}
+}
 function isAuthenticated(){return Boolean(getSession()?.access_token)}
 function memberIdFromAuthResult(authResult){
  const fromUser=authResult?.user?.user_metadata?.member_id;
@@ -2385,7 +2455,7 @@ async function memberIdAfterSignup(authResult){
  try{
   const profile=await fetchMyProfile(token,authResult?.user?.id);
   if(profile?.member_id) return profile.member_id;
- }catch(e){console.warn('member_id lookup skipped',e)}
+ }catch(e){mdzAuthDiagRecord('memberIdAfterSignup.profile',e);console.warn('member_id lookup skipped',e)}
  return null;
 }
 function authErrorArabic(error){
@@ -2408,12 +2478,19 @@ async function ensureFreshSession(){
  if(session.expires_at&&session.expires_at>now+30) return session;
  if(!session.refresh_token){saveSession(null);return null}
  try{const renewed=await refreshSession(session.refresh_token);saveSession(renewed);return getSession()}
- catch{saveSession(null);return null}
+ catch(e){mdzAuthDiagRecord('ensureFreshSession.refresh',e,{code:e?.code||'refresh_failed'});saveSession(null);return null}
 }
 async function authRequest(path,options={}){
  const response=await fetch(`${SUPABASE_AUTH}${path}`,{...options,headers:{apikey:SUPABASE_PUBLISHABLE_KEY,'Content-Type':'application/json',...(options.headers||{})}});
  let data={};try{data=await response.json()}catch{}
- if(!response.ok){const e=new Error(data.msg||data.error_description||data.message||`HTTP ${response.status}`);e.status=response.status;throw e}return data;
+ if(!response.ok){
+  const e=new Error(data.msg||data.error_description||data.message||`HTTP ${response.status}`);
+  e.status=response.status;
+  e.code=data.error_code||data.error||data.code||`http_${response.status}`;
+  e.body=data;
+  throw e;
+ }
+ return data;
 }
 async function signUpAccount(email,password,metadata){
  const redirect=encodeURIComponent(MDZ_SITE_URL()+'#auth-callback');
@@ -2432,22 +2509,49 @@ function userIdFromAccessToken(token){
   const json=atob(part.replace(/-/g,'+').replace(/_/g,'/'));
   const payload=JSON.parse(json);
   return typeof payload.sub==='string'&&payload.sub?payload.sub:null;
- }catch{return null}
+ }catch(e){mdzAuthDiagRecord('userIdFromAccessToken',e,{code:'jwt_parse_error'});return null}
 }
 async function fetchMyProfile(token, userId){
+ const step='fetchMyProfile';
  const id=userId||userIdFromAccessToken(token);
- if(!id) throw new Error(t('authErrSession'));
+ if(!id){
+  const e=new Error(t('authErrSession')); e.status=401; e.code='missing_user_id';
+  mdzAuthDiagRecord(step,e); throw e;
+ }
  const r=await fetch(`${SUPABASE_REST}/profiles?select=*&id=eq.${encodeURIComponent(id)}&limit=1`,{headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:`Bearer ${token}`}});
- if(r.status===401||r.status===403) throw new Error(t('authErrSession'));
- if(!r.ok) throw new Error(t('authErrProfile'));
- const rows=await r.json();return rows[0]||null;
+ let body=null; try{body=await r.json()}catch(_){body=null}
+ if(r.status===401||r.status===403){
+  const e=new Error(t('authErrSession')); e.status=r.status; e.code=(body&&(body.code||body.error))||`http_${r.status}`;
+  mdzAuthDiagRecord(step,e,{body}); throw e;
+ }
+ if(!r.ok){
+  const e=new Error(t('authErrProfile')); e.status=r.status; e.code=(body&&(body.code||body.error||body.message))||`http_${r.status}`;
+  mdzAuthDiagRecord(step,e,{body}); throw e;
+ }
+ const rows=Array.isArray(body)?body:(body?[body]:[]);
+ return rows[0]||null;
 }
 async function fetchMyRoles(token){
+ const step='fetchMyRoles';
  try{
   const r=await fetch(`${SUPABASE_REST}/user_roles?select=role`,{headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:`Bearer ${token}`}});
-  if(!r.ok) return [];
-  return (await r.json()).map(x=>String(x.role||'').toLowerCase()).filter(Boolean);
- }catch{return []}
+  let body=null; try{body=await r.json()}catch(_){body=null}
+  if(!r.ok){
+   mdzAuthLastRolesRaw={ok:false,status:r.status,body};
+   const e=new Error(`user_roles_fetch_failed_${r.status}`);
+   e.status=r.status; e.code=(body&&(body.code||body.error||body.message))||`http_${r.status}`;
+   mdzAuthDiagRecord(step,e,{body});
+   return [];
+  }
+  const rows=Array.isArray(body)?body:[];
+  const roles=rows.map(x=>String(x.role||'').toLowerCase()).filter(Boolean);
+  mdzAuthLastRolesRaw={ok:true,status:r.status,rows,roles};
+  return roles;
+ }catch(e){
+  mdzAuthLastRolesRaw={ok:false,error:String(e?.message||e)};
+  mdzAuthDiagRecord(step,e,{code:e?.code||'user_roles_network'});
+  return [];
+ }
 }
 function statusLabelArabic(status){
  const key=({pending:'statusPending',approved:'statusApproved',active:'statusApproved',rejected:'statusRejected',suspended:'statusSuspended'})[String(status||'').toLowerCase()]||'statusPending';
@@ -2799,8 +2903,19 @@ passwordInput?.addEventListener('input',()=>{const v=passwordInput.value;let sco
 document.getElementById('loginForm')?.addEventListener('submit',async e=>{
  e.preventDefault();const form=e.target,btn=document.getElementById('loginSubmit'),state=document.getElementById('loginState');const raw=Object.fromEntries(new FormData(form).entries());
  btn.disabled=true;btn.textContent=t('loginChecking');state.className='full login-state';state.textContent='';
- try{const email=await resolveLoginEmail(raw.identifier);const result=await signInAccount(email,String(raw.password||''));saveSession(result);state.className='full login-state is-ok';state.textContent=t('toastLoginSuccess');closeModal('loginModal');form.reset();await openAccount();showToast(t('toastLoginOk'));}
- catch(err){state.className='full login-state is-error';state.textContent=authErrorArabic(err)}finally{btn.disabled=false;btn.textContent=t('loginSubmit')}
+ try{
+  const email=await resolveLoginEmail(raw.identifier);
+  const result=await signInAccount(email,String(raw.password||''));
+  saveSession(result); /* updateAuthChrome runs here before roles */
+  state.className='full login-state is-ok';state.textContent=t('toastLoginSuccess');
+  closeModal('loginModal');form.reset();
+  await openAccount(); /* loads roles + updateAuthChrome */
+  updateAuthChrome(); /* re-run post-login so chrome reflects live session + roles */
+  renderAuthDiagPanel();
+  showToast(t('toastLoginOk'));
+ }
+ catch(err){mdzAuthDiagRecord('loginForm',err,{code:err?.code||'login_failed'});state.className='full login-state is-error';state.textContent=authErrorArabic(err)}
+ finally{btn.disabled=false;btn.textContent=t('loginSubmit')}
 });
 
 document.getElementById('forgotPasswordBtn')?.addEventListener('click',()=>{
@@ -3106,31 +3221,54 @@ async function openLoginOrAccount(){
 window.openLoginOrAccount=openLoginOrAccount;
 
 async function openAccount(){
- const recovery=await import('./js/password-recovery.mjs');
- if(recovery.isRecoveryActive()){openResetPasswordModal();return}
- const session=await ensureFreshSession();
- if(!session?.access_token){openLogin();return}
- closeAll();
- document.getElementById('accountModal').classList.add('open');
- const box=document.getElementById('accountContent');
- box.innerHTML=`<div class="notice">${t('accountLoading')}</div>`;
+ let step='openAccount';
  try{
-  const p=await fetchMyProfile(session.access_token,session.user?.id);
-  if(!p) throw new Error(t('authErrProfileMissing'));
-  mdzAccountProfile=p;
-  mdzUserRoles=await fetchMyRoles(session.access_token);
-  const dash=await import('./js/mdz-dashboards.mjs');
-  box.innerHTML=dash.renderAccountDashboard(t,p,accountHelpers());
-  document.getElementById('logoutBtn').onclick=()=>logoutAccount();
-  wireAccountTabs(box,p,session);
-  wireInviteActions(p);
-  updateAuthChrome();
-  await refreshNotifBadge(session);
-  const deep=mdzAccountDeepTab || parseAccountDeepTab(location.hash);
-  if(deep && deep!=='profile') await renderAccountTab(box,p,session,deep);
+  step='password-recovery.import';
+  const recovery=await import('./js/password-recovery.mjs');
+  if(recovery.isRecoveryActive()){openResetPasswordModal();return}
+  step='ensureFreshSession';
+  const session=await ensureFreshSession();
+  if(!session?.access_token){
+   mdzAuthDiagRecord(step,new Error('no_access_token'),{code:'no_session'});
+   openLogin();return;
+  }
+  closeAll();
+  document.getElementById('accountModal').classList.add('open');
+  const box=document.getElementById('accountContent');
+  box.innerHTML=`<div class="notice">${t('accountLoading')}</div>`;
+  try{
+   step='fetchMyProfile';
+   const p=await fetchMyProfile(session.access_token,session.user?.id);
+   if(!p){
+    const miss=new Error(t('authErrProfileMissing'));
+    miss.code='profile_missing';
+    mdzAuthDiagRecord(step,miss);
+    throw miss;
+   }
+   mdzAccountProfile=p;
+   step='fetchMyRoles';
+   mdzUserRoles=await fetchMyRoles(session.access_token);
+   updateAuthChrome(); /* after roles resolve */
+   step='import.mdz-dashboards';
+   const dash=await import('./js/mdz-dashboards.mjs');
+   step='renderAccountDashboard';
+   box.innerHTML=dash.renderAccountDashboard(t,p,accountHelpers());
+   document.getElementById('logoutBtn').onclick=()=>logoutAccount();
+   wireAccountTabs(box,p,session);
+   wireInviteActions(p);
+   updateAuthChrome();
+   renderAuthDiagPanel();
+   await refreshNotifBadge(session);
+   const deep=mdzAccountDeepTab || parseAccountDeepTab(location.hash);
+   if(deep && deep!=='profile') await renderAccountTab(box,p,session,deep);
+  }catch(e){
+   mdzAuthDiagRecord(step,e,{code:e?.code||'openAccount_inner'});
+   box.innerHTML=`<div class="notice">${safeText(authErrorArabic(e),500)}</div><button class="mdz-btn mdz-btn-primary" type="button" id="reloginBtn">${t('btnLogin')}</button>`;
+   document.getElementById('reloginBtn')?.addEventListener('click',()=>{closeModal('accountModal');openLogin()});
+   renderAuthDiagPanel();
+  }
  }catch(e){
-  box.innerHTML=`<div class="notice">${safeText(authErrorArabic(e),500)}</div><button class="mdz-btn mdz-btn-primary" type="button" id="reloginBtn">${t('btnLogin')}</button>`;
-  document.getElementById('reloginBtn')?.addEventListener('click',()=>{closeModal('accountModal');openLogin()});
+  mdzAuthDiagRecord(step,e,{code:e?.code||'openAccount_outer'});
  }
 }
 window.openAccount=openAccount;
@@ -3173,44 +3311,63 @@ async function refreshAdminDashboard(session, dash){
 }
 
 async function openManagerDashboard(){
- const recovery=await import('./js/password-recovery.mjs');
- if(recovery.isRecoveryActive()){openResetPasswordModal();return}
- const session=await ensureFreshSession();
- if(!session?.access_token){openLogin();return}
- mdzUserRoles=await fetchMyRoles(session.access_token);
- const dash=await import('./js/mdz-dashboards.mjs');
- if(!dash.hasManagerAccess(mdzUserRoles, mdzAccountProfile?.role)){showToast(t('dashNoAccess'));return}
- closeAll();
- document.getElementById('managerDashModal').classList.add('open');
- const box=document.getElementById('managerDashContent');
- box.innerHTML=`<div class="notice">${t('accountLoading')}</div>`;
+ let step='openManagerDashboard';
  try{
-  const profile=mdzAccountProfile||await fetchMyProfile(session.access_token,session.user?.id);
-  await refreshManagerDashboard(session,dash,profile);
- }catch(e){
-  console.error('Manager dashboard load failed',e);
-  box.innerHTML=`<div class="dash-hero manager"><h3>${t('mgrDashTitle')}</h3><div class="notice is-error" style="margin-top:12px">${t('dashLoadFailed')}</div></div>`;
- }
+  const recovery=await import('./js/password-recovery.mjs');
+  if(recovery.isRecoveryActive()){openResetPasswordModal();return}
+  step='ensureFreshSession';
+  const session=await ensureFreshSession();
+  if(!session?.access_token){openLogin();return}
+  step='fetchMyRoles';
+  mdzUserRoles=await fetchMyRoles(session.access_token);
+  updateAuthChrome();
+  step='import.mdz-dashboards';
+  const dash=await import('./js/mdz-dashboards.mjs');
+  if(!dash.hasManagerAccess(mdzUserRoles, mdzAccountProfile?.role)){showToast(t('dashNoAccess'));return}
+  closeAll();
+  document.getElementById('managerDashModal').classList.add('open');
+  const box=document.getElementById('managerDashContent');
+  box.innerHTML=`<div class="notice">${t('accountLoading')}</div>`;
+  try{
+   step='fetchMyProfile';
+   const profile=mdzAccountProfile||await fetchMyProfile(session.access_token,session.user?.id);
+   await refreshManagerDashboard(session,dash,profile);
+   renderAuthDiagPanel();
+  }catch(e){
+   mdzAuthDiagRecord(step,e,{code:e?.code||'manager_dash_load'});
+   console.error('Manager dashboard load failed',e);
+   box.innerHTML=`<div class="dash-hero manager"><h3>${t('mgrDashTitle')}</h3><div class="notice is-error" style="margin-top:12px">${t('dashLoadFailed')}</div></div>`;
+  }
+ }catch(e){mdzAuthDiagRecord(step,e)}
 }
 
 async function openAdminDashboard(){
- const recovery=await import('./js/password-recovery.mjs');
- if(recovery.isRecoveryActive()){openResetPasswordModal();return}
- const session=await ensureFreshSession();
- if(!session?.access_token){openLogin();return}
- const dash=await import('./js/mdz-dashboards.mjs');
- mdzUserRoles=mdzUserRoles.length?mdzUserRoles:await fetchMyRoles(session.access_token);
- if(!dash.hasAdminAccess(mdzUserRoles)){showToast(t('dashNoAccess'));return}
- closeAll();
- document.getElementById('adminDashModal').classList.add('open');
- const box=document.getElementById('adminDashContent');
- box.innerHTML=`<div class="notice">${t('accountLoading')}</div>`;
+ let step='openAdminDashboard';
  try{
-  await refreshAdminDashboard(session,dash);
- }catch(e){
-  console.error('Admin dashboard load failed',e);
-  box.innerHTML=`<div class="dash-hero admin"><h3>${t('adminDashTitle')}</h3><div class="notice is-error" style="margin-top:12px">${t('dashLoadFailed')}</div></div>`;
- }
+  const recovery=await import('./js/password-recovery.mjs');
+  if(recovery.isRecoveryActive()){openResetPasswordModal();return}
+  step='ensureFreshSession';
+  const session=await ensureFreshSession();
+  if(!session?.access_token){openLogin();return}
+  step='import.mdz-dashboards';
+  const dash=await import('./js/mdz-dashboards.mjs');
+  step='fetchMyRoles';
+  mdzUserRoles=mdzUserRoles.length?mdzUserRoles:await fetchMyRoles(session.access_token);
+  updateAuthChrome();
+  if(!dash.hasAdminAccess(mdzUserRoles)){showToast(t('dashNoAccess'));renderAuthDiagPanel();return}
+  closeAll();
+  document.getElementById('adminDashModal').classList.add('open');
+  const box=document.getElementById('adminDashContent');
+  box.innerHTML=`<div class="notice">${t('accountLoading')}</div>`;
+  try{
+   await refreshAdminDashboard(session,dash);
+   renderAuthDiagPanel();
+  }catch(e){
+   mdzAuthDiagRecord('refreshAdminDashboard',e,{code:e?.code||'admin_dash_load'});
+   console.error('Admin dashboard load failed',e);
+   box.innerHTML=`<div class="dash-hero admin"><h3>${t('adminDashTitle')}</h3><div class="notice is-error" style="margin-top:12px">${t('dashLoadFailed')}</div></div>`;
+  }
+ }catch(e){mdzAuthDiagRecord(step,e)}
 }
 window.openManagerDashboard=openManagerDashboard;
 window.openAdminDashboard=openAdminDashboard;
@@ -3248,8 +3405,10 @@ function dashRoleFlag(kind){
 }
 function logoutAccount(){
  saveSession(null);mdzAccountProfile=null;mdzUserRoles=[];
+ mdzAuthLastError=null;mdzAuthLastRolesRaw=null;
  try{sessionStorage.removeItem('mdz_password_recovery');localStorage.removeItem('mdz_password_recovery');sessionStorage.removeItem('mdz_expect_recovery');localStorage.removeItem('mdz_expect_recovery')}catch{}
  closeAll();showToast(t('toastLogout'));
+ renderAuthDiagPanel();
  if(location.hash==='#account'||location.hash==='#auth-callback'||location.hash==='#reset-password') history.replaceState(null,'',location.pathname+location.search);
 }
 window.logoutAccount=logoutAccount;
@@ -3287,7 +3446,7 @@ async function handleAuthRedirect(){
   const uid=userIdFromAccessToken(access);
   sessionPayload={access_token:access,refresh_token:refresh,expires_in:expires_in?Number(expires_in):3600,user:uid?{id:uid}:null};
  }
- else if(code){try{sessionPayload=await exchangeAuthCode(code)}catch(err){console.warn(err);promptLoginAfterConfirm(t('authConfirmLogin'));history.replaceState(null,'',MDZ_SITE_URL());return}}
+ else if(code){try{sessionPayload=await exchangeAuthCode(code)}catch(err){mdzAuthDiagRecord('handleAuthRedirect.exchangeAuthCode',err,{code:err?.code||'pkce_exchange'});console.warn(err);promptLoginAfterConfirm(t('authConfirmLogin'));history.replaceState(null,'',MDZ_SITE_URL());return}}
  else if(fromConfirm){promptLoginAfterConfirm(t('authConfirmOk'));history.replaceState(null,'',MDZ_SITE_URL());return}
  else return;
 
@@ -3311,6 +3470,8 @@ async function handleAuthRedirect(){
  history.replaceState(null,'',MDZ_SITE_URL()+'#account');
  showToast(type==='signup'?t('authConfirmOk'):t('authSessionOk'));
  await openAccount();
+ updateAuthChrome();
+ renderAuthDiagPanel();
 }
 
 document.getElementById('resetPasswordCloseBtn')?.addEventListener('click',()=>{
@@ -3347,7 +3508,8 @@ document.getElementById('resetPasswordForm')?.addEventListener('submit',async e=
   showToast(t('resetPasswordSuccess'));
   e.target.reset();
  }catch(err){
-  console.warn('password update failed',err);
+  mdzAuthDiagRecord('resetPasswordForm',err,{code:err?.code||'password_update_failed',status:err?.status});
+  console.error('[mdz-auth-diag] resetPasswordForm',err);
   if(state){state.className='full reset-state is-error';state.textContent=authErrorArabic(err)||t('resetPasswordFailed')}
  }finally{
   if(btn){btn.disabled=false;btn.textContent=t('resetPasswordSubmit')}
@@ -3897,6 +4059,7 @@ document.querySelectorAll('[data-news-filter]').forEach(button=>button.addEventL
 document.getElementById('refreshNewsBtn')?.addEventListener('click',()=>loadLivestockNews(true));
 window.addEventListener('DOMContentLoaded',async()=>{
   updateAuthChrome();
+  renderAuthDiagPanel();
   await handleAuthRedirect();
   const recoveryMod=await import('./js/password-recovery.mjs');
   if(recoveryMod.isRecoveryActive() || location.hash==='#reset-password'){
@@ -3905,6 +4068,8 @@ window.addEventListener('DOMContentLoaded',async()=>{
     const session=await ensureFreshSession();
     if(session){
       mdzUserRoles=await fetchMyRoles(session.access_token);
+      updateAuthChrome(); /* after roles resolve on boot */
+      renderAuthDiagPanel();
       await refreshNotifBadge(session);
       const deep=parseAccountDeepTab(location.hash);
       if(deep){mdzAccountDeepTab=deep;await openAccount();}

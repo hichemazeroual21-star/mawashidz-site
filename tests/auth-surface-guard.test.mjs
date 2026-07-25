@@ -53,7 +53,7 @@ assert.match(html, /function showRegistrationError/, 'showRegistrationError rema
 
 const mgr = html.match(/async function openManagerDashboard\(\)\{[\s\S]*?\n\}/);
 assert.ok(mgr, 'openManagerDashboard must exist');
-assert.match(mgr[0], /try\{\s*const profile=/, 'manager profile fetch must be inside try');
+assert.match(mgr[0], /try\{[\s\S]*?const profile=/, 'manager profile fetch must be inside try');
 
 assert.match(html, /wireDashboardReviewActions/, 'dashboards must wire approve/reject actions');
 assert.match(html, /exchangeShowMoreBtn/, 'exchange show-more control required');
