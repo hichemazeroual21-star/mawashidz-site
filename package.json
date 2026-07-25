@@ -10,6 +10,7 @@
     "test:ui-guard": "node tests/registration-ui-guard.test.mjs",
     "test:e2e": "node tests/registration-e2e.test.mjs",
     "test:security": "node tests/security-allocate-member-id.test.mjs",
+    "test:db": "node supabase/tests/run-phase0-tests.mjs",
     "test:ui-layout": "node tests/ui-layout.test.mjs",
     "test:i18n-layout": "node tests/i18n-layout.test.mjs",
     "test:layout": "node tests/ui-layout.test.mjs && node tests/i18n-layout.test.mjs",

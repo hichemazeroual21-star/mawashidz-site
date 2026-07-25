@@ -65,12 +65,14 @@ select public.allocate_member_id('breeder');
 - `npm test` — اختبارات الوحدة + أمان + E2E + تخطيط Puppeteer
 - `npm run test:ci` — ما يشغّله GitHub Actions (بدون متصفح)
 - `npm run test:layout` — اختبارات Puppeteer لتخطيط الهيدر/الموبايل (`tests/ui-layout.test.mjs`, `tests/i18n-layout.test.mjs`). تصميم الهيدر على الموبايل: القائمة يسارًا + العلامة يمينًا (صف 1)، دخول + تسجيل مجمّعان يسارًا (صف 2)، مبدّل اللغة وسطًا (صف 3).
-- `npm run test:db` — اختبارات قاعدة البيانات المحلية (Phase 0)
+- `npm run test:db` — اختبارات قاعدة البيانات المحلية (Phase 0) — تتطلب أولًا `npm i -D embedded-postgres pg` (غير مضمّنة في `devDependencies` لإبقاء تثبيت CI خفيفًا)
 - `npm run test:security` — تحقق حي أن `allocate_member_id` محظور لـ anon
 
 ## الوثائق
 
 - [الدستور الاستراتيجي](docs/constitution/MAWASHIDZ_CONSTITUTION.md) (v3.0 FROZEN)
+- [دستور الهندسة ALGERMA](docs/constitution/ENGINEERING_CONSTITUTION.md) (v1.0 — قواعد السلوك الهندسي)
+- [مراجعة معمارية 2026-07-25](docs/ARCHITECTURE_REVIEW_2026-07-25.md)
 - [خارطة الطريق](docs/constitution/ROADMAP.md)
 - [مخطط قاعدة البيانات](docs/database-schema.md)
 - [ADR 001: تخصيص رقم العضوية](docs/adr/001-member-id-allocation.md)

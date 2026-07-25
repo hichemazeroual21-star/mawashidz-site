@@ -8,6 +8,7 @@
 | Document | Role |
 |----------|------|
 | **[MAWASHIDZ_CONSTITUTION.md](./MAWASHIDZ_CONSTITUTION.md)** | Frozen source of truth — identity + commerce thesis |
+| **[ENGINEERING_CONSTITUTION.md](./ENGINEERING_CONSTITUTION.md)** | Binding engineering conduct (ALGERMA v1.0) |
 | **[ARCHITECTURAL_PRINCIPLES.md](./ARCHITECTURAL_PRINCIPLES.md)** | Engineering invariants |
 | **[ROADMAP.md](./ROADMAP.md)** | Canonical sequencing + phase exit criteria |
 | **[FOUNDER_DECISIONS.md](./FOUNDER_DECISIONS.md)** | Irreversible Founder choices (Proposed / Decided) |
