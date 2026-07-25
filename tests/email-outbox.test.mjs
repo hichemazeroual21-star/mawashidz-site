@@ -248,7 +248,10 @@ function mockFetchSequence(handlers) {
       baseEnv,
     );
     assert.equal(res.status, 503);
-    assert.equal((await res.json()).error, 'claim-failed-require-012');
+    const body = await res.json();
+    assert.equal(body.error, 'claim-failed-require-012');
+    assert.match(String(body.detail || ''), /rpc_mdz_claim_email_outbox_404/);
+    assert.equal(body.supabase?.message, 'no 2-arg fn');
     assert.equal(mock.calls.length, 1);
     assert.match(mock.calls[0].body, /p_worker_id/);
   } finally {
