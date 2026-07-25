@@ -1,37 +1,25 @@
-# ADR 003 — Membership role vs operational elevation (proposal)
+# ADR 003 — Membership role vs operational elevation
 
-**Status:** Proposed — awaiting Founder confirmation  
-**Date:** 2026-07-24  
+**Status:** Accepted — Option A  
+**Date:** 2026-07-24 (accepted 2026-07-25 via pre-launch P0 Build Prompt)  
 **Tags:** authz, RLS, roles  
-**Blocks:** least-privilege cleanup; wilaya governance clarity  
+**Implements:** `supabase/migrations/014_signup_authz_harden.sql` + client gates  
 
 ## Context
 
 Strategic Constitution §3.1 separates:
 
-- **`profiles.role`** — membership type (breeder, vet, buyer, …)
+- **`profiles.role`** — membership type (breeder, vet, buyer, manager, …)
 - **`user_roles`** — operational elevation (wilaya_manager, admin, …)
 
-Current Phase 1 helpers (e.g. `mdz_is_wilaya_manager` in `010_notifications_tickets_email_outbox.sql` / successors) treat **either** a `user_roles` manager row **or** `profiles.role` in (`manager`, `wilaya_manager`, `wilaya_mgr`) as sufficient for wilaya-scoped ticket/ops access.
+Prior Phase 1 helpers treated **either** a `user_roles` manager row **or** `profiles.role` in (`manager`, `wilaya_manager`, `wilaya_mgr`) as sufficient for wilaya-scoped ticket/ops access. That dual source conflicted with least-privilege intent and enabled signup/metadata confusion.
 
-That matches transitional UX (managers may only have `profiles.role`) but conflicts with the constitutional separation and least-privilege intent.
+## Decision
 
-## Options
+**Option A (Strict):** operational power only via `user_roles`. `profiles.role=manager` is a membership label only (member_id prefix `W`); it does **not** grant review/ticket elevation.
 
-| ID | Option | Pros | Cons |
-|----|--------|------|------|
-| A | **Strict:** operational power only via `user_roles`; `profiles.role=manager` is membership label only | Matches Constitution §3.1 | Requires backfill + registration/review UX for every manager |
-| B | **Bridge (current):** allow both during Years 1–2; document as transitional TD | No immediate break | Dual source of truth; audit confusion |
-| C | **Collapse:** store elevation only on `profiles.role` | Simpler tables | Rejects Constitution model; worse multi-role users |
+## Consequences
 
-## Recommendation
-
-**A** as end state; keep **B** only until Founder marks a date and engineering ships backfill + admin tooling.
-
-## Consequences if deferred
-
-Privilege grants remain ambiguous; TD-009 role alias sprawl continues; security reviews cannot assert a single elevation source.
-
-## Not done in this ADR PR
-
-No RLS/RPC behavior change until Founder selects A/B/C and a follow-up migration is approved.
+- Live managers must have a `user_roles` row (`wilaya_manager` / `manager` / `wilaya_mgr`) before they can operate dashboards after migration 014.
+- Signup metadata can no longer set `status` or non-whitelisted roles into `profiles`.
+- Client UI gates (`hasManagerAccess`, `dashRoleFlag`) align with server helpers.

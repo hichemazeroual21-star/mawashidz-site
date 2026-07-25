@@ -3153,7 +3153,7 @@ async function refreshManagerDashboard(session, dash, profile){
  if(mdzDashReviewDisposer) mdzDashReviewDisposer();
  mdzDashReviewDisposer=dash.wireDashboardReviewActions(box,{
   t, token:session.access_token, restUrl:SUPABASE_REST, apiKey:SUPABASE_PUBLISHABLE_KEY,
-  roles:mdzUserRoles, actorWilaya:profile?.wilaya, asAdmin:false, profileRole:profile?.role,
+  roles:mdzUserRoles, actorWilaya:profile?.wilaya, asAdmin:false,
   onDone:async()=>{await refreshManagerDashboard(session,dash,profile)},
  });
  await mountOperatorSupport(session,{isAdmin:false});
@@ -3166,7 +3166,7 @@ async function refreshAdminDashboard(session, dash){
  if(mdzDashReviewDisposer) mdzDashReviewDisposer();
  mdzDashReviewDisposer=dash.wireDashboardReviewActions(box,{
   t, token:session.access_token, restUrl:SUPABASE_REST, apiKey:SUPABASE_PUBLISHABLE_KEY,
-  roles:mdzUserRoles, actorWilaya:null, asAdmin:true, profileRole:mdzAccountProfile?.role,
+  roles:mdzUserRoles, actorWilaya:null, asAdmin:true,
   onDone:async()=>{await refreshAdminDashboard(session,dash)},
  });
  await mountOperatorSupport(session,{isAdmin:true});
@@ -3179,7 +3179,7 @@ async function openManagerDashboard(){
  if(!session?.access_token){openLogin();return}
  mdzUserRoles=await fetchMyRoles(session.access_token);
  const dash=await import('./js/mdz-dashboards.mjs');
- if(!dash.hasManagerAccess(mdzUserRoles, mdzAccountProfile?.role)){showToast(t('dashNoAccess'));return}
+ if(!dash.hasManagerAccess(mdzUserRoles)){showToast(t('dashNoAccess'));return}
  closeAll();
  document.getElementById('managerDashModal').classList.add('open');
  const box=document.getElementById('managerDashContent');
@@ -3244,7 +3244,8 @@ function updateAuthChrome(){
 }
 function dashRoleFlag(kind){
  if(kind==='admin') return mdzUserRoles.some(r=>['admin','founder','super_admin'].includes(r));
- return mdzUserRoles.some(r=>['wilaya_manager','manager','wilaya_mgr','admin','founder','super_admin'].includes(r))||String(mdzAccountProfile?.role||'').toLowerCase()==='manager';
+ // ADR-003 A: elevation from user_roles only — profiles.role is membership label.
+ return mdzUserRoles.some(r=>['wilaya_manager','manager','wilaya_mgr','admin','founder','super_admin'].includes(r));
 }
 function logoutAccount(){
  saveSession(null);mdzAccountProfile=null;mdzUserRoles=[];

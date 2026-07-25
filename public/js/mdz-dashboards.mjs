@@ -38,17 +38,16 @@ export function hasAdminAccess(roles) {
   return roles.some((r) => ADMIN_ROLES.has(r));
 }
 
-export function hasManagerAccess(roles, profileRole) {
+/** Elevation only via user_roles (ADR-003 A). profiles.role is membership label only. */
+export function hasManagerAccess(roles) {
   if (hasAdminAccess(roles)) return true;
-  if (roles.some((r) => MANAGER_ROLES.has(r))) return true;
-  return String(profileRole || '').toLowerCase() === 'manager';
+  return roles.some((r) => MANAGER_ROLES.has(r));
 }
 
 /** Client-side gate before RPC — server RLS/RPC remains source of truth. */
-export function canReviewRegistration(roles, actorWilaya, rowWilaya, { asAdmin, profileRole } = {}) {
+export function canReviewRegistration(roles, actorWilaya, rowWilaya, { asAdmin } = {}) {
   if (asAdmin || hasAdminAccess(roles || [])) return true;
-  // Honor profiles.role=manager when user_roles has no manager row.
-  if (!hasManagerAccess(roles || [], profileRole)) return false;
+  if (!hasManagerAccess(roles || [])) return false;
   const a = String(actorWilaya || '').trim();
   const b = String(rowWilaya || '').trim();
   return Boolean(a && b && a === b);
@@ -372,7 +371,6 @@ export function wireDashboardReviewActions(root, {
   roles,
   actorWilaya,
   asAdmin,
-  profileRole,
   onDone,
 }) {
   if (!root) return () => {};
@@ -387,7 +385,7 @@ export function wireDashboardReviewActions(root, {
     const rowWilaya = btn.getAttribute('data-wilaya') || '';
     if (!action || !registrationId) return;
 
-    if (!canReviewRegistration(roles, actorWilaya, rowWilaya, { asAdmin, profileRole })) {
+    if (!canReviewRegistration(roles, actorWilaya, rowWilaya, { asAdmin })) {
       if (statusEl) statusEl.textContent = t('dashNoAccess');
       return;
     }
