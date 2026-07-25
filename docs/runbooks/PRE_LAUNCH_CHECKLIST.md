@@ -14,7 +14,7 @@
 | 2 | INSERT policies reverted to `WITH CHECK (true)` after `009` | **Done on branch** | Migration `015`; `migration-015-insert-hardening.test.mjs` |
 | 3 | Contact/feedback blind inbox (TD-013) | **Done on branch** | Migration `016` admin SELECT + admin inbox UI; `migration-016` + `admin-inbox` tests |
 
-**Merge gate:** apply `014`–`016` on production after merge; backfill `user_roles` for live wilaya managers before `014` goes live.
+**Merge gate:** apply `014`–`016` on production after merge; **run ADR-003 backfill plan first** — [ADR003_USER_ROLES_BACKFILL.md](./ADR003_USER_ROLES_BACKFILL.md) (GATE Founder `has_platform_admin`, then wilaya backfill, then `014`).
 
 ---
 
