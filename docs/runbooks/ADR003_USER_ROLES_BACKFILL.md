@@ -121,8 +121,12 @@ order by p.created_at nulls last;
 
 ### GATE — شغّل قبل أي كتابة (بدّل البريد إن لزم)
 
-بريد حساب Cursor المرتبط بهذه البيئة التشغيلية: `sadbenmoad7@gmail.com`  
-**أكّد غداً** أنه فعلاً بريد Founder على **إنتاج** MawashiDZ؛ إن اختلف، استبدله:
+بريد Founder / الحسابات ذات الصلة (تحقّق على الإنتاج — قد تكون حسابات منفصلة):
+- تقرير العضو (بدون صلاحية إدارة / حسابي معطوب): `saadbenmoad7@gmail.com`
+- حساب Cursor المرتبط بهذه البيئة: `sadbenmoad7@gmail.com` (حرف `a` أقل — **لا تفترض أنه نفس الحساب**)
+- حساب ثانٍ لنفس الشخص (موال + تسجيل «إداري» عضوية): `alkhuta3@gmail.com`
+
+**شغّل الاكتشاف لكل البريدين/الثلاثة** (انظر أيضاً PL-AUTH-001) ثم أكّد أيّ `id` هو Founder الإنتاج قبل أي إدراج:
 
 ```sql
 select
@@ -140,8 +144,13 @@ select
   ) as has_platform_admin
 from public.profiles p
 left join public.user_roles ur on ur.user_id = p.id
-where lower(p.email) = lower('sadbenmoad7@gmail.com')
-group by p.id, p.email, p.role;
+where lower(p.email) in (
+  lower('saadbenmoad7@gmail.com'),
+  lower('sadbenmoad7@gmail.com'),
+  lower('alkhuta3@gmail.com')
+)
+group by p.id, p.email, p.role
+order by p.email;
 ```
 
 | نتيجة `has_platform_admin` | القرار |

@@ -2513,7 +2513,12 @@ function openRegister(role='breeder'){
  modal.classList.add('open');
  setRole(role);
 }
-function openLogin(){closeAll();$('#loginModal').classList.add('open')}
+function openLogin(){
+ closeAll();
+ const state=document.getElementById('loginState');
+ if(state){state.className='full login-state';state.textContent=''}
+ $('#loginModal').classList.add('open');
+}
 window.openLogin=openLogin;
 function openPolicyModal(id){closeAll();document.getElementById(id)?.classList.add('open')}
 function closeModal(id){
@@ -3129,7 +3134,11 @@ async function openAccount(){
   const deep=mdzAccountDeepTab || parseAccountDeepTab(location.hash);
   if(deep && deep!=='profile') await renderAccountTab(box,p,session,deep);
  }catch(e){
-  box.innerHTML=`<div class="notice">${safeText(authErrorArabic(e),500)}</div><button class="mdz-btn mdz-btn-primary" type="button" id="reloginBtn">${t('btnLogin')}</button>`;
+  /* Prefer already-localized profile/session messages; authErrorArabic maps unknown text to authErrGeneric. */
+  const known=[t('authErrProfileMissing'),t('authErrProfile'),t('authErrSession')];
+  const raw=String(e?.message||'');
+  const msg=known.includes(raw)?raw:authErrorArabic(e);
+  box.innerHTML=`<div class="notice">${safeText(msg,500)}</div><button class="mdz-btn mdz-btn-primary" type="button" id="reloginBtn">${t('btnLogin')}</button>`;
   document.getElementById('reloginBtn')?.addEventListener('click',()=>{closeModal('accountModal');openLogin()});
  }
 }
