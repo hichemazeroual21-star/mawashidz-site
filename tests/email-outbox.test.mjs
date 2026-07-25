@@ -172,6 +172,44 @@ function mockFetchSequence(handlers) {
   // Does not prove live cron or live Resend delivery — only worker logic + SQL contract in 013.
 }
 
+// Resend failure surfaces real provider error in results (operator visibility)
+{
+  const mock = mockFetchSequence([
+    () => new Response(JSON.stringify([{
+      id: 11, recipient_email: 'a@b.c', subject: 'Hi', body_text: 'Body', attempts: 1, status: 'processing',
+    }]), { status: 200 }),
+    ({ u }) => {
+      assert.match(u, /api\.resend\.com/);
+      return new Response(JSON.stringify({
+        statusCode: 403,
+        name: 'validation_error',
+        message: 'The mawashidz.com domain is not verified.',
+      }), { status: 403 });
+    },
+    ({ body }) => {
+      assert.match(body, /mawashidz\.com domain is not verified/);
+      return new Response('null', { status: 200 });
+    },
+  ]);
+  try {
+    const res = await processEmailOutbox(
+      new Request('https://mawashidz.com/api/process-email-outbox', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer outbox-secret-distinct' },
+      }),
+      { ...baseEnv, RESEND_API_KEY: 're_test' },
+    );
+    assert.equal(res.status, 200);
+    const payload = await res.json();
+    assert.equal(payload.results[0].status, 'retry');
+    assert.match(payload.results[0].error, /domain is not verified/);
+    assert.equal(payload.results[0].resend_status, 403);
+    assert.equal(payload.from, 'MawashiDZ <noreply@mawashidz.com>');
+  } finally {
+    mock.restore();
+  }
+}
+
 // MDZ-P1-EMAIL-002: provider success + mark failure still records provider id path
 {
   const mock = mockFetchSequence([

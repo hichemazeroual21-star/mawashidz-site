@@ -59,8 +59,17 @@ async function sendResend({ apiKey, from, to, subject, text, idempotencyKey }) {
   });
   const payload = await r.json().catch(() => ({}));
   if (!r.ok) {
-    const err = new Error(payload?.message || `resend_${r.status}`);
+    const msg = payload?.message || payload?.name || `resend_${r.status}`;
+    const err = new Error(msg);
+    err.status = r.status;
     err.payload = payload;
+    console.error('resend send failed', {
+      status: r.status,
+      from,
+      to,
+      message: msg,
+      payload,
+    });
     throw err;
   }
   return payload;
@@ -171,17 +180,31 @@ export async function processEmailOutbox(request, runtimeEnv = {}) {
         results.push({ id: row.id, status: 'provider_ok_mark_pending', provider_message_id: providerId });
       }
     } catch (error) {
-      console.error('send failed', row.id, error);
+      const errText = String(error?.message || error).slice(0, 500);
+      console.error('send failed', {
+        id: row.id,
+        error: errText,
+        resendStatus: error?.status ?? null,
+        resend: error?.payload ?? null,
+        from,
+      });
       const attempts = Number(row.attempts || 0);
       const next = attempts >= 8 ? 'failed' : 'pending';
       try {
         await supabaseRpc(supabaseUrl, serviceKey, 'mdz_mark_email_outbox', {
           p_id: row.id,
           p_status: next,
-          p_error: String(error.message || error).slice(0, 500),
+          p_error: errText,
         });
       } catch { /* ignore */ }
-      results.push({ id: row.id, status: next === 'failed' ? 'failed' : 'retry' });
+      results.push({
+        id: row.id,
+        status: next === 'failed' ? 'failed' : 'retry',
+        error: errText,
+        from,
+        resend_status: error?.status ?? null,
+        resend: error?.payload ?? null,
+      });
     }
   }
 
@@ -189,6 +212,7 @@ export async function processEmailOutbox(request, runtimeEnv = {}) {
     processed: results.length,
     results,
     provider: resendKey ? 'resend' : 'none',
+    from,
   });
 }
 
