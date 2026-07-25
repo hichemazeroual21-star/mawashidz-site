@@ -10,10 +10,30 @@ Do **not** use `/api/email-outbox` — that path is not registered on the Worker
 
 | Secret | Required | Notes |
 |--------|----------|--------|
-| `SUPABASE_URL` | Yes | Project URL |
+| `SUPABASE_URL` | Yes | **Project root only:** `https://<ref>.supabase.co`. Do **not** append `/` or `/rest/v1` — the Worker builds `${SUPABASE_URL}/rest/v1/rpc/...`. A value ending in `/rest/v1/` caused PostgREST `PGRST125` / `claim-failed-require-012`. |
 | `SUPABASE_SERVICE_ROLE_KEY` | Yes | Server-only; never accept as HTTP bearer for this endpoint |
 | `EMAIL_OUTBOX_SECRET` | **Yes** | Distinct shared secret for Worker/cron → `/api/process-email-outbox`. **Must not** equal the service-role key. Without it the Worker skips drain and the HTTP endpoint returns **503**. |
 | `RESEND_API_KEY` | For delivery | Without it, rows stay `pending` with `awaiting_resend_api_key` and **attempts are not exhausted** (013). |
+| `EMAIL_FROM` | Optional | Default `MawashiDZ <noreply@mawashidz.com>`. Domain must be Verified in Resend or sends `retry` with provider error. |
+
+### Diagnose Resend `retry` (operator)
+
+```sql
+select id, status, attempts, last_error
+from public.email_outbox
+order by id;
+```
+
+| `last_error` / drain `results[].error` | Meaning |
+|----------------------------------------|---------|
+| domain / not verified / 403 | Verify domain in Resend or set `EMAIL_FROM` to a verified domain |
+| unauthorized / invalid API key / 401 | Fix `RESEND_API_KEY` on **mawashidz-live** |
+| `awaiting_resend_api_key` | Key unset on Worker |
+| Other | Read `results[].resend` after drain (surfaced by Worker) |
+
+```bash
+npm run smoke:email-outbox   # needs EMAIL_OUTBOX_SECRET in env
+```
 
 ## Worker cron
 

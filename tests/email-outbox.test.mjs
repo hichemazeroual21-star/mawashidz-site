@@ -172,6 +172,44 @@ function mockFetchSequence(handlers) {
   // Does not prove live cron or live Resend delivery — only worker logic + SQL contract in 013.
 }
 
+// Resend failure surfaces real provider error in results (operator visibility)
+{
+  const mock = mockFetchSequence([
+    () => new Response(JSON.stringify([{
+      id: 11, recipient_email: 'a@b.c', subject: 'Hi', body_text: 'Body', attempts: 1, status: 'processing',
+    }]), { status: 200 }),
+    ({ u }) => {
+      assert.match(u, /api\.resend\.com/);
+      return new Response(JSON.stringify({
+        statusCode: 403,
+        name: 'validation_error',
+        message: 'The mawashidz.com domain is not verified.',
+      }), { status: 403 });
+    },
+    ({ body }) => {
+      assert.match(body, /mawashidz\.com domain is not verified/);
+      return new Response('null', { status: 200 });
+    },
+  ]);
+  try {
+    const res = await processEmailOutbox(
+      new Request('https://mawashidz.com/api/process-email-outbox', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer outbox-secret-distinct' },
+      }),
+      { ...baseEnv, RESEND_API_KEY: 're_test' },
+    );
+    assert.equal(res.status, 200);
+    const payload = await res.json();
+    assert.equal(payload.results[0].status, 'retry');
+    assert.match(payload.results[0].error, /domain is not verified/);
+    assert.equal(payload.results[0].resend_status, 403);
+    assert.equal(payload.from, 'MawashiDZ <noreply@mawashidz.com>');
+  } finally {
+    mock.restore();
+  }
+}
+
 // MDZ-P1-EMAIL-002: provider success + mark failure still records provider id path
 {
   const mock = mockFetchSequence([
@@ -248,7 +286,10 @@ function mockFetchSequence(handlers) {
       baseEnv,
     );
     assert.equal(res.status, 503);
-    assert.equal((await res.json()).error, 'claim-failed-require-012');
+    const body = await res.json();
+    assert.equal(body.error, 'claim-failed-require-012');
+    assert.match(String(body.detail || ''), /rpc_mdz_claim_email_outbox_404/);
+    assert.equal(body.supabase?.message, 'no 2-arg fn');
     assert.equal(mock.calls.length, 1);
     assert.match(mock.calls[0].body, /p_worker_id/);
   } finally {
@@ -265,5 +306,32 @@ assert.match(m013, /provider_message_id/);
 assert.match(m013, /awaiting_/);
 assert.match(m013, /greatest\(0, attempts - 1\)/);
 assert.match(m013, /drop function if exists public\.mdz_claim_email_outbox\(int\)/i);
+
+// SUPABASE_URL with trailing /rest/v1/ must still hit single /rest/v1/rpc/ path
+{
+  const mock = mockFetchSequence([
+    ({ u }) => {
+      assert.equal(u, 'https://example.supabase.co/rest/v1/rpc/mdz_claim_email_outbox');
+      assert.doesNotMatch(u, /rest\/v1\/rest\/v1/);
+      return new Response('[]', { status: 200 });
+    },
+  ]);
+  try {
+    const res = await processEmailOutbox(
+      new Request('https://mawashidz.com/api/process-email-outbox', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer outbox-secret-distinct' },
+      }),
+      {
+        ...baseEnv,
+        SUPABASE_URL: 'https://example.supabase.co/rest/v1/',
+      },
+    );
+    assert.equal(res.status, 200);
+    assert.equal((await res.json()).processed, 0);
+  } finally {
+    mock.restore();
+  }
+}
 
 console.log('  ✓ email outbox P0 gates (secret, await attempts, idempotency, no 1-arg claim)');

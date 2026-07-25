@@ -1,3 +1,5 @@
+import { normalizeSupabaseUrl } from '../../scripts/lib/supabase-url.mjs';
+
 /**
  * Process email_outbox via Resend.
  * - Requires EMAIL_OUTBOX_SECRET (distinct from service role) as HTTP bearer
@@ -6,6 +8,7 @@
  * - Idempotency-Key + provider_message_id prevent duplicate sends after mark failure
  *
  * Env: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, EMAIL_OUTBOX_SECRET, RESEND_API_KEY?, EMAIL_FROM?
+ * SUPABASE_URL must be project root (no trailing slash, no /rest/v1) — see normalizeSupabaseUrl.
  */
 
 const JSON_HEADERS = {
@@ -24,7 +27,8 @@ function envOf(request, runtimeEnv, name) {
 }
 
 async function supabaseRpc(baseUrl, serviceKey, fn, args) {
-  const r = await fetch(`${baseUrl.replace(/\/$/, '')}/rest/v1/rpc/${fn}`, {
+  const base = normalizeSupabaseUrl(baseUrl);
+  const r = await fetch(`${base}/rest/v1/rpc/${fn}`, {
     method: 'POST',
     headers: {
       apikey: serviceKey,
@@ -59,8 +63,17 @@ async function sendResend({ apiKey, from, to, subject, text, idempotencyKey }) {
   });
   const payload = await r.json().catch(() => ({}));
   if (!r.ok) {
-    const err = new Error(payload?.message || `resend_${r.status}`);
+    const msg = payload?.message || payload?.name || `resend_${r.status}`;
+    const err = new Error(msg);
+    err.status = r.status;
     err.payload = payload;
+    console.error('resend send failed', {
+      status: r.status,
+      from,
+      to,
+      message: msg,
+      payload,
+    });
     throw err;
   }
   return payload;
@@ -68,7 +81,9 @@ async function sendResend({ apiKey, from, to, subject, text, idempotencyKey }) {
 
 export async function processEmailOutbox(request, runtimeEnv = {}) {
   const get = (name) => envOf(request, runtimeEnv, name);
-  const supabaseUrl = get('SUPABASE_URL') || get('MDZ_SUPABASE_URL');
+  const supabaseUrlRaw = get('SUPABASE_URL') || get('MDZ_SUPABASE_URL');
+  // Normalize on every invoke (Worker has no separate boot hook).
+  const supabaseUrl = normalizeSupabaseUrl(supabaseUrlRaw);
   const serviceKey = get('SUPABASE_SERVICE_ROLE_KEY') || get('MDZ_SERVICE_ROLE_KEY');
   const outboxSecret = get('EMAIL_OUTBOX_SECRET');
   const resendKey = get('RESEND_API_KEY');
@@ -109,7 +124,12 @@ export async function processEmailOutbox(request, runtimeEnv = {}) {
     if (!Array.isArray(claimed)) claimed = claimed ? [claimed] : [];
   } catch (error) {
     console.error('claim outbox failed (require migration 012+ two-arg claim)', error);
-    return json(503, { error: 'claim-failed-require-012' });
+    // Temporary: surface PostgREST/Supabase payload so operators can see PGRST* / 401 / 404
+    return json(503, {
+      error: 'claim-failed-require-012',
+      detail: String(error?.message || error).slice(0, 500),
+      supabase: error?.payload ?? null,
+    });
   }
 
   const results = [];
@@ -166,17 +186,31 @@ export async function processEmailOutbox(request, runtimeEnv = {}) {
         results.push({ id: row.id, status: 'provider_ok_mark_pending', provider_message_id: providerId });
       }
     } catch (error) {
-      console.error('send failed', row.id, error);
+      const errText = String(error?.message || error).slice(0, 500);
+      console.error('send failed', {
+        id: row.id,
+        error: errText,
+        resendStatus: error?.status ?? null,
+        resend: error?.payload ?? null,
+        from,
+      });
       const attempts = Number(row.attempts || 0);
       const next = attempts >= 8 ? 'failed' : 'pending';
       try {
         await supabaseRpc(supabaseUrl, serviceKey, 'mdz_mark_email_outbox', {
           p_id: row.id,
           p_status: next,
-          p_error: String(error.message || error).slice(0, 500),
+          p_error: errText,
         });
       } catch { /* ignore */ }
-      results.push({ id: row.id, status: next === 'failed' ? 'failed' : 'retry' });
+      results.push({
+        id: row.id,
+        status: next === 'failed' ? 'failed' : 'retry',
+        error: errText,
+        from,
+        resend_status: error?.status ?? null,
+        resend: error?.payload ?? null,
+      });
     }
   }
 
@@ -184,6 +218,7 @@ export async function processEmailOutbox(request, runtimeEnv = {}) {
     processed: results.length,
     results,
     provider: resendKey ? 'resend' : 'none',
+    from,
   });
 }
 
