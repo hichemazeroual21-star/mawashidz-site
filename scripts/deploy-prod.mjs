@@ -10,6 +10,7 @@ function run(cmd, env = {}) {
 }
 
 run('node scripts/check-deploy-gate.mjs');
+run('node scripts/check-outbox-env.mjs');
 run('npm test');
 run('npm run build');
 
@@ -22,5 +23,11 @@ try {
 
 run('npx wrangler deploy', { VERIFY_GIT_COMMIT: commit });
 run('npm run verify:prod', { VERIFY_GIT_COMMIT: commit });
+
+if (process.env.EMAIL_OUTBOX_SECRET) {
+  run('npm run smoke:email-outbox');
+} else {
+  console.log('skip smoke:email-outbox (EMAIL_OUTBOX_SECRET unset)');
+}
 
 console.log('\nEmergency deploy finished. Prefer Git → main → Cloudflare for routine releases.');

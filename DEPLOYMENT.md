@@ -110,7 +110,39 @@ This is **not** explained by browser cache alone: missing JS paths prove the **d
 | **Build command** | **`npm ci && npm run build`** (required — generates `public/build-info.json`; **not** `None`) |
 | Deploy command | `npx wrangler deploy` |
 | Version command / non-production deploy | `npx wrangler versions upload` |
-| Legacy worker `mawashidz-site` | Disable builds or ignore — **not** production domain |
+| Legacy worker `mawashidz-site` | **Not production.** Do not attach `mawashidz.com` here. Disable builds or ignore. If `build-info.json` shows `worker: mawashidz-site`, a stale/wrong Worker is serving the domain — fix Domains & Routes + redeploy `mawashidz-live`. |
+
+### Worker secrets (runtime — on `mawashidz-live` only)
+
+Set under **Settings → Variables and secrets** on the Worker that owns `mawashidz.com`:
+
+| Name | Rule |
+|------|------|
+| `SUPABASE_URL` | Project root only: `https://<ref>.supabase.co` — **must not** end with `/` and **must not** contain `/rest/v1` (code appends `/rest/v1/rpc/...`). Wrong value caused `PGRST125` / `claim-failed-require-012`. |
+| `SUPABASE_SERVICE_ROLE_KEY` | Service role; never use as outbox HTTP bearer |
+| `EMAIL_OUTBOX_SECRET` | Distinct from service role |
+| `RESEND_API_KEY` | Required for real delivery |
+| `EMAIL_FROM` | Optional; default `MawashiDZ <noreply@mawashidz.com>` — domain must be **Verified** in Resend |
+
+Preflight (local / CI with env):
+
+```bash
+npm run check:outbox-env
+# When secrets are in the shell (not typical for CF build):
+OUTBOX_REQUIRE_SECRETS=1 npm run check:outbox-env
+```
+
+Post-deploy smoke (requires bearer in env; does not print the secret):
+
+```bash
+export EMAIL_OUTBOX_SECRET='…'   # from Worker secrets vault — do not commit
+# optional: export RESEND_API_KEY='…'  # also checks domain verification
+npm run smoke:email-outbox
+```
+
+### API module path (`netlify/functions/`)
+
+Production does **not** run Netlify Functions. `worker.mjs` **imports** handlers from `netlify/functions/*.mjs` as plain ES modules (folder name is historical). Renaming to e.g. `server/api/` is optional cleanup — until then treat `netlify/functions/` as Worker-owned code.
 
 ---
 
