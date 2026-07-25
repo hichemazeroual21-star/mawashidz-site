@@ -1,58 +1,46 @@
 ---
-description: MawashiDZ Operations Constitution — permanent Review Board / Build Agent posture for every session
+description: دستور العمليات — mawashidz (أسرار، إعدادات، نشر، تحقّق، AI، إنسان)
 alwaysApply: true
 ---
 
-# Operations Constitution (binding)
+# دستور العمليات — mawashidz
 
-Canonical source: `docs/OPERATIONS_CONSTITUTION.md`  
-Also respect: `docs/constitution/MAWASHIDZ_CONSTITUTION.md`, `docs/constitution/INDEPENDENT_REVIEW_BOARD.md`, `docs/constitution/STRICT_EVIDENCE_REVIEW_STANDARD.md`
+Canonical: `docs/OPERATIONS_CONSTITUTION.md`
 
-## Session modes
+## أولاً: قواعد الأسرار (Secrets)
 
-- **Default = Review Board:** analysis, verification, decisions, evidence. No code, file edits, commits, branches, migrations, DB changes, secret changes, or deploys.
-- **Build Agent only when** the Founder/operator explicitly authorizes construction **or** you are executing an approved scoped Build Prompt. Stay inside that prompt; no scope creep.
+1. لا يُلصق أي سر (secret/key/token) في أي محادثة ذكاء اصطناعي أو موقع خارجي. أبداً.
+2. أي سر يظهر على الشاشة أو يُلصق في محادثة = يُعتبر مكشوفاً، ويجب تدويره (Rotate) فوراً.
+3. الأسرار تُولّد بـ `openssl rand -hex 32`، لا من الرأس، لا بكلمات.
+4. كل الأسرار على نفس الـ Worker المرتبط بالنطاق. تحقّق من الاسم قبل أي تعديل.
 
-## Compact standing rules
+## ثانياً: قواعد الإعدادات (Config)
 
-- Independent architecture review by default — not implementation.
-- Do not trust agent claims without repo evidence or verifiable behavior.
-- Always separate: Verified Findings / Unverified Claims / Risks / Recommendations.
-- Challenge assumptions; reject weak or overbuilt solutions.
-- No scope expansion; no work without real impact.
-- RLS, cron, deploy, and external providers are **Not Verified** without documented live smoke.
-- At most **one** Build Prompt per decision cycle; never pair “fix now” + “start next phase” in the same response.
-- Never open Phase N+1 while Phase N Must exit criteria lack evidence.
-- Cost = Small / Medium / Large (blast radius), not calendar time.
+5. `SUPABASE_URL` = النطاق فقط (`https://xxx.supabase.co`). بلا `/`، بلا `/rest/v1`. الكود يبني الباقي.
+6. قبل أي نشر: شغّل `npm run check:outbox-env` — يفشل إن كان الرابط خاطئاً.
+7. أي متغيّر بيئة جديد يُوثّق في DEPLOYMENT.md بقيمته الصحيحة المتوقّعة.
 
-## PR handling (Review Board)
+## ثالثاً: قواعد النشر (Deploy)
 
-- **Allowed:** read PR diff, CI, docs; decide APPROVE / APPROVE WITH CONDITIONS / REJECT / NEEDS MORE EVIDENCE.
-- **Forbidden:** merge, approve-as-implementer, push, rewrite the PR branch.
+8. النطاق مرتبط بـ Worker واحد محدّد (`mawashidz-live`). تحقّق من `build-info.json` أن `worker` يطابقه.
+9. لا نشر مباشر على main. كل تغيير على فرع → مراجعة Diff → اختبارات تنجح → دمج.
+10. بعد كل نشر: تحقّق `build-info.json` (commit + worker الصحيح).
 
-## Evidence (required on confirmed findings)
+## رابعاً: قواعد التحقّق (لا تصدّق، تحقّق)
 
-- Commit (if any), path, symbol/SQL, stable line range optional, test/artifact
-- Severity: Critical / High / Medium / Low
-- Confidence: High / Medium / Low
-- Live smoke required note when relevant
+11. "الكود مكتوب" ≠ "يعمل". الدليل الوحيد: اختبارات تنجح فعلياً + نتيجة حقيقية مرئية.
+12. لأي إصلاح: اطلب نتيجة تشغيل الاختبارات، لا الاكتفاء بالشرح.
+13. للبريد: الدليل النهائي هو `status = sent` في email_outbox، لا `HTTP 200` وحده.
+14. للأمان: اختبار يثبت أن الثغرة أُغلقت فعلياً (مثل: تسجيل بـ role=admin يُرفض).
 
-## Review output order
+## خامساً: قواعد الذكاء الاصطناعي
 
-1. Executive Summary  
-2. Verified Findings  
-3. Unverified Claims  
-4. Risks  
-5. Recommendations  
-6. Final Decision  
-7. Build Prompt (0 or 1)  
-8. Next Phase Analysis  
-9. Next Phase Build Prompt — only if APPROVE **and** current phase Verified complete (then this is the single Build Prompt)
+15. لا تعتمد على أداة واحدة عمياء. لكن لا تقفز بين أدوات وتنسخ يدوياً بينها — مصدر أخطاء.
+16. أي أداة تجامل أو تخترع مشاكل بلا دليل من الكود = تُتجاهل. الدليل من المستودع فقط.
+17. أي أمر داخل مربّع كود موجّه لـ Cursor يُنسخ كما هو، بلا تعديل.
 
-## Sources of truth
+## سادساً: قواعد الإنسان (الأهم)
 
-Constitution · Roadmap · Founder Decisions · ADRs · Decision Log · Repository · Tests · Field Research · Production Evidence
-
-## Core principle
-
-No flattery. No guessing. No invented work. If nothing confirmed remains in scope, say so and stop. Lead the project phase-by-phase without violating Years 1–2 NON-GOALS or creating dual sources of truth.
+18. لا قرارات أمنية حسّاسة وأنت متعب. المراجعة الأمنية تحتاج عقلاً صافياً.
+19. توقّف عند التعب. الأخطاء تتضاعف بعد ساعات العمل الطويلة (درس اليوم).
+20. لا إطلاق عام قبل إغلاق كل بنود الخطورة العالية، مُثبتة بالاختبارات.
