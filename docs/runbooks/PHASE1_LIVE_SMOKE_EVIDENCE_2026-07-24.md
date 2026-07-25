@@ -170,3 +170,126 @@ These **do not** substitute for this report’s live Must table.
 | Phase 1 Verified | Still **No** |
 
 Excellence polish (**MDZ-CE-001/002**) is Phase-1-safe chrome/table work that **does not depend** on live providers (Board scope B). It **does not** change this smoke verdict or authorize a Zero Known Defects production claim.
+
+---
+
+## Recheck addendum — 2026-07-25T08:40:00Z (Board Order 0–4)
+
+**Executor:** Cloud Agent (Board review cycle)  
+**Branch tip:** `e22f08d` (`cursor/phase1-p0-gate-fixes-4b6e`) — **12 commits ahead of `main` (`d845298`)**  
+**Build Prompt issued:** **None** (operator path only)
+
+### Agent constraints (Order 0)
+
+| Constraint | Status |
+|------------|--------|
+| No new product / CE / MDZ-PI / Phase 2 | **Honoured** — no code changes this run |
+| No authenticated smoke without secrets | **Honoured** |
+| Secrets in agent env | **UNSET** (`SUPABASE_*`, `EMAIL_OUTBOX_SECRET`, `RESEND_API_KEY`, Wrangler) |
+
+### Static gates on `e22f08d` (Order 4 — parallel, no prod secrets)
+
+| Check | Command | Result |
+|-------|---------|--------|
+| CI | `npm run test:ci` | **PASS** (2026-07-25) |
+| Public sync | `npm run verify:public` | **PASS** |
+| Migrations 010–013 present in repo | `ls supabase/migrations/01{0,1,2,3}_*.sql` | **PASS** |
+
+### Public probes — `https://mawashidz.com` (2026-07-25T08:40:00Z)
+
+| # | Scenario | HTTP / body | Result |
+|---|----------|-------------|--------|
+| P1 | `GET /` | **200** | **PASS** |
+| P2 | `GET /build-info.json` | **200** — `commit=d845298…`, `builtAt=2026-07-24T14:37:04.116Z` | **PASS** (site live) |
+| P3 | Tip vs prod | Prod **`d845298` ≠ branch `e22f08d`** | **FAIL** — branch **not deployed** |
+| P4 | `POST /api/email-outbox` | **404** | **PASS** |
+| P5 | `POST /api/process-email-outbox` (no bearer) | **401** `unauthorized` | **PASS (partial)** — endpoint exists; cannot prove secret ≠ service-role without secrets |
+| P6 | `GET /api/livestock-prices` | **200** | **PASS** |
+
+### Operator Must table (S1–S10) — unchanged BLOCKED
+
+| # | Step | Status | Notes |
+|---|------|--------|-------|
+| S1 | Migrations `010→011→012→013` on target DB | **BLOCKED** (agent) | Operator must apply + verify SQL below |
+| S2 | `EMAIL_OUTBOX_SECRET` ≠ service role | **BLOCKED** (agent) | Set on Worker; prove 401 with service-role bearer |
+| S3 | Deploy tip **≥ `e22f08d`** | **NOT DONE** | Prod still `d845298` |
+| S4 | `RESEND_API_KEY` | **BLOCKED** (agent) | Set when ready for delivery |
+| S5–S10 | E2E approve/reject/ticket/deep-link/cron | **BLOCKED** (agent) | Requires JWT + deployed tip + S1–S4 |
+
+### Post-migration SQL verification (Operator — run in Supabase SQL Editor after S1)
+
+```sql
+-- 010: Phase 1 tables
+select to_regclass('public.notifications') is not null as has_notifications,
+       to_regclass('public.support_tickets') is not null as has_tickets,
+       to_regclass('public.email_outbox') is not null as has_outbox;
+
+-- 011: review notify hooks (function exists)
+select proname from pg_proc p
+  join pg_namespace n on n.oid = p.pronamespace
+ where n.nspname = 'public' and proname like 'review_registration%';
+
+-- 012: review_reason + 2-arg privilege helpers + processing lease
+select column_name from information_schema.columns
+ where table_schema = 'public' and table_name = 'registrations' and column_name = 'review_reason';
+select column_name from information_schema.columns
+ where table_schema = 'public' and table_name = 'email_outbox' and column_name = 'locked_at';
+select count(*) filter (where proname = 'mdz_is_platform_admin' and pronargs = 0) as admin_helper_0arg
+  from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'public';
+
+-- 013: provider_message_id + 2-arg claim only (1-arg dropped)
+select column_name from information_schema.columns
+ where table_schema = 'public' and table_name = 'email_outbox' and column_name = 'provider_message_id';
+select proname, pronargs from pg_proc p
+  join pg_namespace n on n.oid = p.pronamespace
+ where n.nspname = 'public' and proname = 'mdz_claim_email_outbox';
+-- expect exactly one row: mdz_claim_email_outbox, pronargs = 2
+```
+
+**Acceptance:** all `has_*` true; `review_reason` + `locked_at` + `provider_message_id` columns exist; `mdz_claim_email_outbox` has **pronargs = 2** only.
+
+### Operator curl block (copy-paste after S2–S3)
+
+```bash
+export ORIGIN=https://mawashidz.com
+export EMAIL_OUTBOX_SECRET='…'          # distinct from service role
+export SUPABASE_SERVICE_ROLE_KEY='…'    # for negative test only — never use as outbox bearer
+
+# Deploy tip
+curl -sS "$ORIGIN/build-info.json" | jq -r '.commit'
+# expect full SHA of deployed tip (≥ e22f08d)
+
+# Secret bearer — expect 200 (processed ≥0)
+curl -sS -w "\nHTTP:%{http_code}\n" -X POST "$ORIGIN/api/process-email-outbox" \
+  -H "Authorization: Bearer $EMAIL_OUTBOX_SECRET" \
+  -H "Content-Type: application/json" -d '{"limit":5}'
+
+# Service-role bearer — expect 401
+curl -sS -w "\nHTTP:%{http_code}\n" -X POST "$ORIGIN/api/process-email-outbox" \
+  -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
+  -H "Content-Type: application/json" -d '{}'
+
+# Unset secret simulation — only on staging: Worker returns 503 email-outbox-secret-required
+```
+
+### Verdict (this recheck)
+
+| Gate | Result |
+|------|--------|
+| Code ready on branch (`e22f08d`) | **YES** — CI + verify:public green |
+| Migrations 010–013 in repo | **YES** |
+| Applied on prod DB | **UNKNOWN** (operator) |
+| Deployed to prod | **NO** (`d845298` still live) |
+| Live Smoke Must | **FAIL / BLOCKED** |
+| **Phase 1 Verified** | **NO** |
+
+### Board actions required (Order 1 sequence)
+
+1. Apply `010→011→012→013` on target DB → run SQL verification above  
+2. Merge/deploy `cursor/phase1-p0-gate-fixes-4b6e` (or `main` after merge) **≥ `e22f08d`**  
+3. Set `EMAIL_OUTBOX_SECRET` (≠ service role) on Worker  
+4. Set `RESEND_API_KEY` when delivery ready  
+5. Execute human E2E checklist (S5–S8) — record PASS/FAIL + entity IDs + UTC  
+6. Return stamped evidence → Board declares Verified or issues single Fix-Forward Build Prompt
+
+**Phase 2 / MDZ-PI / product polish:** **FORBIDDEN** until step 6 = all Must PASS.
