@@ -307,4 +307,31 @@ assert.match(m013, /awaiting_/);
 assert.match(m013, /greatest\(0, attempts - 1\)/);
 assert.match(m013, /drop function if exists public\.mdz_claim_email_outbox\(int\)/i);
 
+// SUPABASE_URL with trailing /rest/v1/ must still hit single /rest/v1/rpc/ path
+{
+  const mock = mockFetchSequence([
+    ({ u }) => {
+      assert.equal(u, 'https://example.supabase.co/rest/v1/rpc/mdz_claim_email_outbox');
+      assert.doesNotMatch(u, /rest\/v1\/rest\/v1/);
+      return new Response('[]', { status: 200 });
+    },
+  ]);
+  try {
+    const res = await processEmailOutbox(
+      new Request('https://mawashidz.com/api/process-email-outbox', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer outbox-secret-distinct' },
+      }),
+      {
+        ...baseEnv,
+        SUPABASE_URL: 'https://example.supabase.co/rest/v1/',
+      },
+    );
+    assert.equal(res.status, 200);
+    assert.equal((await res.json()).processed, 0);
+  } finally {
+    mock.restore();
+  }
+}
+
 console.log('  ✓ email outbox P0 gates (secret, await attempts, idempotency, no 1-arg claim)');

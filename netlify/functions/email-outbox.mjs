@@ -1,3 +1,5 @@
+import { normalizeSupabaseUrl } from '../../scripts/lib/supabase-url.mjs';
+
 /**
  * Process email_outbox via Resend.
  * - Requires EMAIL_OUTBOX_SECRET (distinct from service role) as HTTP bearer
@@ -6,6 +8,7 @@
  * - Idempotency-Key + provider_message_id prevent duplicate sends after mark failure
  *
  * Env: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, EMAIL_OUTBOX_SECRET, RESEND_API_KEY?, EMAIL_FROM?
+ * SUPABASE_URL must be project root (no trailing slash, no /rest/v1) — see normalizeSupabaseUrl.
  */
 
 const JSON_HEADERS = {
@@ -24,7 +27,8 @@ function envOf(request, runtimeEnv, name) {
 }
 
 async function supabaseRpc(baseUrl, serviceKey, fn, args) {
-  const r = await fetch(`${baseUrl.replace(/\/$/, '')}/rest/v1/rpc/${fn}`, {
+  const base = normalizeSupabaseUrl(baseUrl);
+  const r = await fetch(`${base}/rest/v1/rpc/${fn}`, {
     method: 'POST',
     headers: {
       apikey: serviceKey,
@@ -77,7 +81,9 @@ async function sendResend({ apiKey, from, to, subject, text, idempotencyKey }) {
 
 export async function processEmailOutbox(request, runtimeEnv = {}) {
   const get = (name) => envOf(request, runtimeEnv, name);
-  const supabaseUrl = get('SUPABASE_URL') || get('MDZ_SUPABASE_URL');
+  const supabaseUrlRaw = get('SUPABASE_URL') || get('MDZ_SUPABASE_URL');
+  // Normalize on every invoke (Worker has no separate boot hook).
+  const supabaseUrl = normalizeSupabaseUrl(supabaseUrlRaw);
   const serviceKey = get('SUPABASE_SERVICE_ROLE_KEY') || get('MDZ_SERVICE_ROLE_KEY');
   const outboxSecret = get('EMAIL_OUTBOX_SECRET');
   const resendKey = get('RESEND_API_KEY');
