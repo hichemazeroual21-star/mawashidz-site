@@ -46,3 +46,7 @@ Legend: `Proposed` · `Decided` · `Deferred`
 - Distinct broker *direction* recommended; **FD-01 still needs Founder checkmark**
 
 **Still need Founder checkmark before marketplace public launch:** FD-01, FD-02, FD-03, FD-04, FD-05, FD-06, FD-07, FD-08, FD-10.
+
+**Do not treat Proposed items as Decided.** Decision Log entries (e.g. D-005 broker direction) record *engineering recommendation / direction*, not Founder ratification. Schema and public trust claims wait for Status = **Decided**.
+
+**Authorization model (open):** Constitution §3.1 vs current `mdz_is_wilaya_manager` bridge — see [ADR-003](../adr/003-membership-vs-elevation.md) (Proposed).

@@ -20,6 +20,10 @@ jobs:
         run: npm install
       - name: Unit tests (no browser)
         run: npm run test:unit
+      - name: Verify public/ sync
+        run: |
+          npm run build
+          npm run verify:public
       - name: Security tests
         run: |
           npm run test:security
@@ -29,3 +33,6 @@ jobs:
           node tests/migration-review-registration.test.mjs
           node tests/migration-admin-audit.test.mjs
           node tests/migration-baseline-hardening.test.mjs
+          node tests/phase1-member-ops.test.mjs
+          node tests/email-outbox.test.mjs
+          node tests/ui-remediation.test.mjs

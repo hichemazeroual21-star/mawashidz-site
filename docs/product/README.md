@@ -13,7 +13,7 @@ This folder is the **official product reference** for MawashiDZ: member operatio
 | **Decisions** | `PRODUCT_DECISIONS/` | PDR — why we chose X |
 | **Terms** | `GLOSSARY.md` | Naming |
 
-**Hierarchy:** For **platform vision, trust, roles, NON-GOALS, and phase order**, **[../constitution/MAWASHIDZ_CONSTITUTION.md](../constitution/MAWASHIDZ_CONSTITUTION.md)** **v3.0 FROZEN** and **[../constitution/ROADMAP.md](../constitution/ROADMAP.md)** are highest authority. For **Smart Workspace / Hub card mechanics** (when Hub is built), **[PRODUCT_CONSTITUTION.md](./PRODUCT_CONSTITUTION.md)** applies unless a newer **approved PDR** supersedes it. **Phase 1 track detail:** [ROADMAP.md](./ROADMAP.md) — if sequencing conflicts with constitution ROADMAP (Animals before Hub), constitution wins.
+**Hierarchy:** For **platform vision, trust, roles, NON-GOALS, and phase order**, **[../constitution/MAWASHIDZ_CONSTITUTION.md](../constitution/MAWASHIDZ_CONSTITUTION.md)** **v3.0 FROZEN** and **[../constitution/ROADMAP.md](../constitution/ROADMAP.md)** are highest authority. **[PRODUCT_CONSTITUTION.md](./PRODUCT_CONSTITUTION.md) v1.5+** is **subordinate** and governs **Smart Workspace / Hub card mechanics only** (Phase 4), unless a newer **approved PDR** supersedes a Hub mechanic detail. **Phase 1 track detail:** [ROADMAP.md](./ROADMAP.md). Public marketing claims: [../constitution/PUBLIC_CLAIMS_POLICY.md](../constitution/PUBLIC_CLAIMS_POLICY.md).
 
 **Governance (Founder-approved):** Do not scatter major product decisions in random files. **Update the constitution** when vision changes; **add a PDR** for each important product/architecture choice; **update the roadmap** when execution order changes.
 

@@ -1,13 +1,11 @@
 /**
- * Process email_outbox via Resend (or skip when unset).
- * Auth: Authorization Bearer must match SUPABASE_SERVICE_ROLE_KEY or EMAIL_OUTBOX_SECRET.
+ * Process email_outbox via Resend.
+ * - Requires EMAIL_OUTBOX_SECRET (distinct from service role) as HTTP bearer
+ * - Claims via 2-arg mdz_claim_email_outbox only (012+); fail-closed otherwise
+ * - Without RESEND_API_KEY: requeue pending without exhausting attempt budget (013)
+ * - Idempotency-Key + provider_message_id prevent duplicate sends after mark failure
  *
- * Env:
- * - SUPABASE_URL
- * - SUPABASE_SERVICE_ROLE_KEY
- * - RESEND_API_KEY (optional — without it, messages marked skipped)
- * - EMAIL_FROM (default: MawashiDZ <noreply@mawashidz.com>)
- * - EMAIL_OUTBOX_SECRET (optional alternate bearer)
+ * Env: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, EMAIL_OUTBOX_SECRET, RESEND_API_KEY?, EMAIL_FROM?
  */
 
 const JSON_HEADERS = {
@@ -19,9 +17,10 @@ function json(status, body) {
   return new Response(JSON.stringify(body), { status, headers: JSON_HEADERS });
 }
 
-function envOf(request, name) {
-  // Netlify/Worker: prefer process.env; Worker also passes env via handler wrapper
-  return (typeof process !== 'undefined' && process.env && process.env[name]) || request?.__env?.[name] || '';
+function envOf(request, runtimeEnv, name) {
+  return runtimeEnv?.[name]
+    || (typeof process !== 'undefined' && process.env && process.env[name])
+    || '';
 }
 
 async function supabaseRpc(baseUrl, serviceKey, fn, args) {
@@ -46,13 +45,16 @@ async function supabaseRpc(baseUrl, serviceKey, fn, args) {
   return data;
 }
 
-async function sendResend({ apiKey, from, to, subject, text }) {
+async function sendResend({ apiKey, from, to, subject, text, idempotencyKey }) {
+  const headers = {
+    Authorization: `Bearer ${apiKey}`,
+    'Content-Type': 'application/json',
+  };
+  if (idempotencyKey) headers['Idempotency-Key'] = String(idempotencyKey).slice(0, 256);
+
   const r = await fetch('https://api.resend.com/emails', {
     method: 'POST',
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
+    headers,
     body: JSON.stringify({ from, to: [to], subject, text }),
   });
   const payload = await r.json().catch(() => ({}));
@@ -65,20 +67,32 @@ async function sendResend({ apiKey, from, to, subject, text }) {
 }
 
 export async function processEmailOutbox(request, runtimeEnv = {}) {
-  const get = (name) => runtimeEnv[name] || envOf(request, name) || '';
+  const get = (name) => envOf(request, runtimeEnv, name);
   const supabaseUrl = get('SUPABASE_URL') || get('MDZ_SUPABASE_URL');
   const serviceKey = get('SUPABASE_SERVICE_ROLE_KEY') || get('MDZ_SERVICE_ROLE_KEY');
-  const secret = get('EMAIL_OUTBOX_SECRET') || serviceKey;
+  const outboxSecret = get('EMAIL_OUTBOX_SECRET');
   const resendKey = get('RESEND_API_KEY');
   const from = get('EMAIL_FROM') || 'MawashiDZ <noreply@mawashidz.com>';
+  const workerId = get('CF_WORKER_NAME') || 'mawashidz-live';
 
   if (request.method !== 'POST') {
     return json(405, { error: 'method-not-allowed' });
   }
 
+  if (!outboxSecret) {
+    return json(503, { error: 'email-outbox-secret-required' });
+  }
+  if (serviceKey && outboxSecret === serviceKey) {
+    return json(503, { error: 'email-outbox-secret-must-differ' });
+  }
+
   const auth = request.headers.get('authorization') || '';
   const bearer = auth.startsWith('Bearer ') ? auth.slice(7).trim() : '';
-  if (!secret || bearer !== secret) {
+  if (!bearer || bearer !== outboxSecret) {
+    return json(401, { error: 'unauthorized' });
+  }
+  // Belt-and-suspenders: never treat service-role as a valid outbox bearer
+  if (serviceKey && bearer === serviceKey) {
     return json(401, { error: 'unauthorized' });
   }
 
@@ -88,54 +102,91 @@ export async function processEmailOutbox(request, runtimeEnv = {}) {
 
   let claimed = [];
   try {
-    claimed = await supabaseRpc(supabaseUrl, serviceKey, 'mdz_claim_email_outbox', { p_limit: 20 });
+    claimed = await supabaseRpc(supabaseUrl, serviceKey, 'mdz_claim_email_outbox', {
+      p_limit: 20,
+      p_worker_id: workerId,
+    });
     if (!Array.isArray(claimed)) claimed = claimed ? [claimed] : [];
   } catch (error) {
-    console.error('claim outbox failed', error);
-    return json(503, { error: 'claim-failed' });
+    console.error('claim outbox failed (require migration 012+ two-arg claim)', error);
+    return json(503, { error: 'claim-failed-require-012' });
   }
 
   const results = [];
   for (const row of claimed) {
     try {
+      if (row.provider_message_id) {
+        await supabaseRpc(supabaseUrl, serviceKey, 'mdz_mark_email_outbox', {
+          p_id: row.id,
+          p_status: 'sent',
+          p_provider_message_id: row.provider_message_id,
+        });
+        results.push({ id: row.id, status: 'reconciled' });
+        continue;
+      }
+
       if (!resendKey) {
         await supabaseRpc(supabaseUrl, serviceKey, 'mdz_mark_email_outbox', {
           p_id: row.id,
-          p_status: 'skipped',
-          p_error: 'RESEND_API_KEY unset',
+          p_status: 'pending',
+          p_error: 'awaiting_resend_api_key',
         });
-        results.push({ id: row.id, status: 'skipped' });
+        results.push({ id: row.id, status: 'requeued' });
         continue;
       }
-      await sendResend({
+
+      const payload = await sendResend({
         apiKey: resendKey,
         from,
         to: row.recipient_email,
         subject: row.subject,
         text: row.body_text,
+        idempotencyKey: `mdz-outbox-${row.id}`,
       });
-      await supabaseRpc(supabaseUrl, serviceKey, 'mdz_mark_email_outbox', {
-        p_id: row.id,
-        p_status: 'sent',
-      });
-      results.push({ id: row.id, status: 'sent' });
-    } catch (error) {
-      console.error('send failed', row.id, error);
+      const providerId = payload?.id || `resend-ok-${row.id}`;
+
       try {
         await supabaseRpc(supabaseUrl, serviceKey, 'mdz_mark_email_outbox', {
           p_id: row.id,
-          p_status: 'failed',
+          p_status: 'sent',
+          p_provider_message_id: providerId,
+        });
+        results.push({ id: row.id, status: 'sent', provider_message_id: providerId });
+      } catch (markErr) {
+        // Provider succeeded; persist provider id even if full mark fails on retry path
+        console.error('mark sent failed after provider success', row.id, markErr);
+        try {
+          await supabaseRpc(supabaseUrl, serviceKey, 'mdz_mark_email_outbox', {
+            p_id: row.id,
+            p_status: 'processing',
+            p_error: 'provider_ok_mark_pending',
+            p_provider_message_id: providerId,
+          });
+        } catch { /* next claim reconciles via provider_message_id */ }
+        results.push({ id: row.id, status: 'provider_ok_mark_pending', provider_message_id: providerId });
+      }
+    } catch (error) {
+      console.error('send failed', row.id, error);
+      const attempts = Number(row.attempts || 0);
+      const next = attempts >= 8 ? 'failed' : 'pending';
+      try {
+        await supabaseRpc(supabaseUrl, serviceKey, 'mdz_mark_email_outbox', {
+          p_id: row.id,
+          p_status: next,
           p_error: String(error.message || error).slice(0, 500),
         });
       } catch { /* ignore */ }
-      results.push({ id: row.id, status: 'failed' });
+      results.push({ id: row.id, status: next === 'failed' ? 'failed' : 'retry' });
     }
   }
 
-  return json(200, { processed: results.length, results, provider: resendKey ? 'resend' : 'none' });
+  return json(200, {
+    processed: results.length,
+    results,
+    provider: resendKey ? 'resend' : 'none',
+  });
 }
 
-export default async function handler(request, context) {
-  // Netlify: attach process.env
+export default async function handler(request) {
   return processEmailOutbox(request, typeof process !== 'undefined' ? process.env : {});
 }

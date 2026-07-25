@@ -1,8 +1,5 @@
 /**
- * Cloudflare Worker — API routes + static assets fallback.
- * Handlers are shared with Netlify Functions (same modules).
- *
- * Requires wrangler assets.binding = "ASSETS" and run_worker_first = ["/api/*"].
+ * Cloudflare Worker — API routes + static assets + scheduled email outbox drain.
  */
 import defaultNewsHandler from './netlify/functions/news.mjs';
 import defaultPricesHandler from './netlify/functions/prices.mjs';
@@ -30,14 +27,23 @@ async function serveAssets(request, env) {
   return env.ASSETS.fetch(request);
 }
 
-/** Strip body for HEAD while preserving status/headers from the real handler. */
 async function asHead(response) {
   return new Response(null, { status: response.status, headers: response.headers });
 }
 
-/**
- * @param {{ newsHandler?: Function, pricesHandler?: Function, emailOutboxHandler?: Function }} [deps]
- */
+async function runEmailOutbox(env) {
+  const secret = env.EMAIL_OUTBOX_SECRET || '';
+  if (!secret) {
+    console.error('email outbox cron skipped: EMAIL_OUTBOX_SECRET unset');
+    return new Response(JSON.stringify({ error: 'email-outbox-secret-required' }), { status: 503 });
+  }
+  const req = new Request('https://mawashidz.com/api/process-email-outbox', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${secret}` },
+  });
+  return processEmailOutbox(req, env);
+}
+
 export function createWorker(deps = {}) {
   const newsHandler = deps.newsHandler || defaultNewsHandler;
   const pricesHandler = deps.pricesHandler || defaultPricesHandler;
@@ -75,6 +81,14 @@ export function createWorker(deps = {}) {
       }
 
       return serveAssets(request, env);
+    },
+
+    async scheduled(_controller, env, ctx) {
+      ctx.waitUntil(
+        runEmailOutbox(env).then((res) => {
+          console.log('email outbox cron', res.status);
+        }).catch((err) => console.error('email outbox cron failed', err)),
+      );
     },
   };
 }

@@ -7,6 +7,10 @@
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title data-i18n="pageTitle">مواشي ديزاد | الثقة. التوثيق. السوق.</title>
 <meta name="description" data-i18n-content="metaDesc" content="منصة جزائرية تجمع الموالين، البياطرة، تجار الأعلاف والمشترين في نظام موثوق ومنظم.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/mdz-design-system.css">
 <style>
 :root{
  --g:#123d2b;--g2:#1f6a48;--mint:#edf6f0;--gold:#c9a64e;--ink:#17231d;
@@ -1035,7 +1039,18 @@ footer{background:#0b100d}
 .member-status-pill{display:inline-flex;margin-top:8px;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.14);font-weight:850;font-size:.86rem}
 .member-name{margin:14px 0 6px;font-size:1.25rem}.member-role{margin:0;opacity:.9;font-weight:750}
 #loginModal .modal-box,#accountModal .modal-box,#managerDashModal .modal-box,#adminDashModal .modal-box{width:min(560px,96vw)}
-#accountModal .modal-box{width:min(620px,96vw)}
+#accountModal .modal-box,#managerDashModal .modal-box,#adminDashModal .modal-box{width:min(960px,98vw);max-height:min(92vh,920px)}
+#accountModal .modal-box,#managerDashModal .modal-box,#adminDashModal .modal-box{overflow:auto}
+#headerActions{font-family:var(--mdz-font,"IBM Plex Sans Arabic","Segoe UI",Tahoma,sans-serif);align-items:center}
+#headerActions .mdz-btn{padding:0.55rem 0.9rem;font-size:0.86rem;border-radius:12px}
+.dash-row-actions{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+@media(max-width:860px){
+  .dash-table-wrap.desktop-only{display:none}
+  .mdz-ops-mount.is-thread-open .mdz-ops-list{display:none}
+  .mdz-ops-mount.is-thread-open .mdz-ops-thread{display:block}
+  .dash-row-actions .mdz-btn{flex:1 1 auto;min-width:7rem}
+}
+.mdz-field-hint{color:var(--mdz-danger,#b42318);font-size:.8rem;font-weight:700}
 #loginModal .login-state{min-height:1.4em;font-weight:800;color:#5c4a18}
 #loginModal .login-state.is-error{color:#9b1c1c}#loginModal .login-state.is-ok{color:#0f6a49}
 .acct-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px}
@@ -1057,12 +1072,17 @@ footer{background:#0b100d}
 .dash-stats.admin{grid-template-columns:repeat(4,minmax(0,1fr))}
 .dash-stats article{padding:12px;border-radius:14px;background:#fff;border:1px solid #d7e4dc;text-align:center}
 .dash-stats strong{display:block;font-size:1.35rem;color:#123326}.dash-stats span{display:block;margin-top:4px;color:#667c70;font-size:.8rem;font-weight:750}
-.dash-table-wrap{overflow:auto;border:1px solid #d7e4dc;border-radius:14px;background:#fff}
-.dash-table{width:100%;border-collapse:collapse;font-size:.84rem}
-.dash-table th,.dash-table td{padding:10px 12px;border-bottom:1px solid #e8efea;text-align:right}
-.dash-table th{background:#f4f8f5;color:#1b3d2e;font-weight:900}
+.dash-table-wrap{overflow:auto;border:1px solid var(--mdz-line,#d7e4dc);border-radius:14px;background:#fff}
+.dash-table{width:100%;border-collapse:collapse;font-size:.84rem;min-width:640px}
+.dash-table th,.dash-table td{padding:10px 12px;border-bottom:1px solid #e8efea;text-align:right;vertical-align:middle}
+.dash-table thead th{background:var(--mdz-surface-sunken,#eef1ee);color:var(--mdz-ink,#1b3d2e);font-weight:800;font-size:.78rem;letter-spacing:.01em;position:sticky;top:0;z-index:1}
+.dash-table tbody tr:hover{background:rgba(15,107,76,.04)}
+.dash-table .col-name{font-weight:800;color:var(--mdz-ink,#12201a);max-width:11rem}
+.dash-table .col-meta{color:var(--mdz-ink-soft,#3d4f46);font-size:.8rem}
+.dash-table .col-id{font-family:var(--mdz-mono,ui-monospace,monospace);font-size:.78rem;color:var(--mdz-muted,#6b7c73)}
+.dash-table .col-status,.dash-table .col-actions{white-space:nowrap}
 .dash-empty{padding:24px;text-align:center;color:#667c70;font-weight:750}
-#headerActions .btn[hidden],#drawerAccountLink[hidden],#drawerLogoutLink[hidden],#drawerLoginLink[hidden],#drawerRegisterLink[hidden],#headerMgrDashBtn[hidden],#headerAdminDashBtn[hidden]{display:none!important}
+#headerActions .btn[hidden],#headerActions .mdz-btn[hidden],#drawerAccountLink[hidden],#drawerLogoutLink[hidden],#drawerLoginLink[hidden],#drawerRegisterLink[hidden],#headerMgrDashBtn[hidden],#headerAdminDashBtn[hidden],#drawerMgrDashLink[hidden],#drawerAdminDashLink[hidden]{display:none!important}
 .policy-modal .modal-box{max-width:min(640px,96vw)}
 .policy-body{max-height:52vh;overflow:auto;line-height:1.75;color:#2a4035;font-size:.92rem}
 .hero-card{box-shadow:0 24px 60px rgba(8,35,24,.18)}
@@ -1091,11 +1111,11 @@ footer .foot a:hover{color:#e2c77e}
 .dash-card-list{display:none;gap:10px}
 .dash-card{border:1px solid #d7e4dc;border-radius:14px;background:#fff;padding:12px}
 .dash-card header{display:flex;justify-content:space-between;gap:8px;align-items:flex-start;margin-bottom:8px}
-.dash-card header strong{font-size:.95rem;line-height:1.35;word-break:break-word}
+.dash-card header strong{font-size:.95rem;line-height:1.35;word-break:break-word;color:var(--mdz-ink,#12201a)}
 .dash-card dl{display:grid;gap:6px;margin:0 0 10px;font-size:.82rem}
 .dash-card dt{color:#667c70;font-weight:700}.dash-card dd{margin:0;font-weight:800;word-break:break-word}
-.dash-table{min-width:640px}
 .dash-table td,.dash-table th{vertical-align:middle}
+.dash-table{min-width:640px}
 .exchange-more-wrap{display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:14px}
 .exchange-more-wrap .btn{min-height:44px;min-width:min(100%,220px)}
 .exchange-showing{color:var(--muted,#667c70);font-size:.84rem;font-weight:700}
@@ -1108,11 +1128,11 @@ footer .foot a:hover{color:#e2c77e}
   .dash-card-list{display:grid}
   .dash-hero{padding:14px}
   .dash-row-actions{justify-content:stretch}
-  .dash-row-actions .btn{flex:1 1 calc(50% - 8px)}
+  .dash-row-actions .mdz-btn,.dash-row-actions .btn{flex:1 1 calc(50% - 8px)}
 }
 @media(max-width:360px){
   .dash-stats,.dash-stats.admin{grid-template-columns:1fr 1fr}
-  .dash-row-actions .btn{flex:1 1 100%}
+  .dash-row-actions .mdz-btn,.dash-row-actions .btn{flex:1 1 100%}
 }
 
 @media(max-width:620px){.algeria-phone{grid-template-columns:auto 1fr}.algeria-phone input{grid-column:1/-1}.algeria-phone .country-code{min-height:50px}}
@@ -1645,12 +1665,16 @@ body[data-lang]:not([data-lang="ar"]) .hero-title-sub{white-space:normal!importa
     <button type="button" data-lang="de">DE</button>
   </div>
   <div class="actions" id="headerActions">
-   <button class="btn ghost" type="button" id="headerLoginBtn" onclick="openLogin()" data-i18n="btnLogin">دخول</button>
-   <button class="btn primary" type="button" id="headerRegisterBtn" onclick="openRegister()" data-i18n="btnRegister">سجّل الآن</button>
-   <button class="btn ghost" type="button" id="headerAccountBtn" onclick="openAccount()" hidden data-i18n="btnProfile">حسابي</button>
-   <button class="btn ghost" type="button" id="headerMgrDashBtn" onclick="openManagerDashboard()" hidden data-i18n="headerMgrDash">لوحة الولاية</button>
-   <button class="btn ghost" type="button" id="headerAdminDashBtn" onclick="openAdminDashboard()" hidden data-i18n="headerAdminDash">لوحة الإدارة</button>
-   <button class="btn primary" type="button" id="headerLogoutBtn" onclick="logoutAccount()" hidden data-i18n="btnLogout">تسجيل الخروج</button>
+   <button class="mdz-btn mdz-btn-ghost" type="button" id="headerLoginBtn" onclick="openLogin()" data-i18n="btnLogin">دخول</button>
+   <button class="mdz-btn mdz-btn-primary" type="button" id="headerRegisterBtn" onclick="openRegister()" data-i18n="btnRegister">سجّل الآن</button>
+   <button type="button" class="mdz-bell" id="mdzNotifBell" onclick="openAccountInbox()" hidden data-i18n-aria="notifBellAria" aria-label="الإشعارات">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3a6 6 0 0 0-6 6v2.2c0 .7-.2 1.4-.6 2L4 16h16l-1.4-2.8c-.4-.6-.6-1.3-.6-2V9a6 6 0 0 0-6-6Z" stroke="currentColor" stroke-width="1.8"/><path d="M10 19a2 2 0 0 0 4 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+    <span class="mdz-bell-badge" id="mdzNotifBadge" hidden>0</span>
+   </button>
+   <button class="mdz-btn mdz-btn-ghost" type="button" id="headerAccountBtn" onclick="openAccount()" hidden data-i18n="btnProfile">حسابي</button>
+   <button class="mdz-btn mdz-btn-ghost" type="button" id="headerMgrDashBtn" onclick="openManagerDashboard()" hidden data-i18n="headerMgrDash">لوحة الولاية</button>
+   <button class="mdz-btn mdz-btn-ghost" type="button" id="headerAdminDashBtn" onclick="openAdminDashboard()" hidden data-i18n="headerAdminDash">لوحة الإدارة</button>
+   <button class="mdz-btn mdz-btn-primary" type="button" id="headerLogoutBtn" onclick="logoutAccount()" hidden data-i18n="btnLogout">تسجيل الخروج</button>
    <button class="menu-btn" onclick="toggleMenu(true)" data-i18n-aria="menuLabel" aria-label="القائمة">☰</button>
   </div>
  </div>
@@ -1668,12 +1692,14 @@ body[data-lang]:not([data-lang="ar"]) .hero-title-sub{white-space:normal!importa
    <a href="#news" onclick="toggleMenu(false)" data-i18n="drawerNews">الأخبار والأسعار</a>
    <a href="#managers" onclick="toggleMenu(false)" data-i18n="drawerManagers">مدراء الولايات</a>
    <a href="#how" onclick="toggleMenu(false)" data-i18n="drawerHow"><span data-i18n="howTitle">كيف تعمل المنصة؟</span></a><a href="#trust-public" onclick="toggleMenu(false)" data-i18n="drawerTrust"><span data-i18n="trustTitle">الثقة والشفافية</span></a><a href="#animal-life" onclick="toggleMenu(false)" data-i18n="drawerAnimal">هوية الحيوان وQR</a><a href="#eid" onclick="toggleMenu(false)" data-i18n="drawerEid">قسم الأضاحي</a><a href="#identity" onclick="toggleMenu(false)" data-i18n="drawerIdentity">بطاقات الأعضاء</a>
-   <a href="#login" id="drawerLoginLink" onclick="toggleMenu(false);openLogin();return false" data-i18n="drawerLogin">تسجيل الدخول</a>
-   <a href="#register" id="drawerRegisterLink" onclick="toggleMenu(false);openRegister();return false" data-i18n="btnRegister">سجّل الآن</a>
-   <a href="#account" id="drawerAccountLink" onclick="toggleMenu(false);openAccount();return false" hidden data-i18n="btnProfile">حسابي</a>
-   <a href="#manager-dash" id="drawerMgrDashLink" onclick="toggleMenu(false);openManagerDashboard();return false" hidden data-i18n="headerMgrDash">لوحة الولاية</a>
-   <a href="#admin-dash" id="drawerAdminDashLink" onclick="toggleMenu(false);openAdminDashboard();return false" hidden data-i18n="headerAdminDash">لوحة الإدارة</a>
-   <a href="#logout" id="drawerLogoutLink" onclick="toggleMenu(false);logoutAccount();return false" hidden data-i18n="btnLogout">تسجيل الخروج</a>
+   <div class="mdz-drawer-auth" role="group" aria-label="Account">
+    <a class="mdz-drawer-link" href="#login" id="drawerLoginLink" onclick="toggleMenu(false);openLogin();return false" data-i18n="drawerLogin">تسجيل الدخول</a>
+    <a class="mdz-drawer-link mdz-drawer-link-primary" href="#register" id="drawerRegisterLink" onclick="toggleMenu(false);openRegister();return false" data-i18n="btnRegister">سجّل الآن</a>
+    <a class="mdz-drawer-link" href="#account" id="drawerAccountLink" onclick="toggleMenu(false);openAccount();return false" hidden data-i18n="btnProfile">حسابي</a>
+    <a class="mdz-drawer-link" href="#manager-dash" id="drawerMgrDashLink" onclick="toggleMenu(false);openManagerDashboard();return false" hidden data-i18n="headerMgrDash">لوحة الولاية</a>
+    <a class="mdz-drawer-link" href="#admin-dash" id="drawerAdminDashLink" onclick="toggleMenu(false);openAdminDashboard();return false" hidden data-i18n="headerAdminDash">لوحة الإدارة</a>
+    <a class="mdz-drawer-link mdz-drawer-link-danger" href="#logout" id="drawerLogoutLink" onclick="toggleMenu(false);logoutAccount();return false" hidden data-i18n="btnLogout">تسجيل الخروج</a>
+   </div>
    <a href="#contact" onclick="toggleMenu(false)" data-i18n="drawerContact">اتصل بنا</a>
   </div>
  </aside>
@@ -1778,7 +1804,7 @@ body[data-lang]:not([data-lang="ar"]) .hero-title-sub{white-space:normal!importa
  <div class="wrap">
   <div class="head">
    <div>
-    <span class="passport-kicker">MDZ Digital Animal Passport</span>
+    <span class="passport-kicker" data-i18n="passKicker">قريبًا — جواز حيوان رقمي (عرض توضيحي)</span>
     <h2><span data-i18n="passTitle">هوية رقمية موثقة ترافق الحيوان طوال حياته</span></h2>
     <p><span data-i18n="passDesc">رمز MDZ واحد يربط الحيوان بمالكه، وطبيبه البيطري، وآخر فحص، واللقاحات والعلاجات وسجل نقل الملكية — داخل المنصة أو عند البيع خارجها.</span></p>
    </div>
@@ -1807,7 +1833,7 @@ body[data-lang]:not([data-lang="ar"]) .hero-title-sub{white-space:normal!importa
     <small data-i18n="passDemoSmall">رقم دائم لا يتكرر حتى بعد انتقال الملكية</small>
    </div>
    <div class="passport-status">
-    <span class="verified-chip" data-i18n="passDemoChip">✓ موثق بيطريًا</span>
+    <span class="verified-chip" data-i18n="passDemoChip">عرض توضيحي — موثق بيطريًا (Demo)</span>
     <h3 data-i18n="passDemoLastCheck">آخر فحص: 14 يوليو 2026</h3>
     <p data-i18n="passDemoP">لقاح موثق — الطبيب: حساب مهني معتمد — موعد المتابعة القادم ظاهر للمالك.</p>
    </div>
@@ -2809,33 +2835,108 @@ async function fetchRegistrationReviewReason(token, registrationId){
  if(!registrationId) return '';
  try{
   const ops=await import('./js/mdz-member-ops.mjs');
-  const r=await fetch(`${SUPABASE_REST}/registrations?select=message&registration_id=eq.${encodeURIComponent(registrationId)}&limit=1`,{
+  const r=await fetch(`${SUPABASE_REST}/registrations?select=review_reason,message&registration_id=eq.${encodeURIComponent(registrationId)}&limit=1`,{
    headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:`Bearer ${token}`}
   });
   if(!r.ok) return '';
   const rows=await r.json();
-  return ops.parseReviewReason(rows?.[0]?.message);
+  const row=rows?.[0]||{};
+  return String(row.review_reason||'').trim() || ops.parseReviewReason(row.message);
  }catch{ return ''; }
+}
+
+let mdzNotifFilter={unreadOnly:false,eventType:''};
+let mdzAccountDeepTab=null;
+
+async function refreshNotifBadge(session){
+ if(!session?.access_token){
+  const badge=document.getElementById('mdzNotifBadge');
+  const bell=document.getElementById('mdzNotifBell');
+  if(badge) badge.hidden=true;
+  if(bell){ bell.hidden=true; bell.setAttribute('aria-label',t('notifBellAria')); }
+  return;
+ }
+ try{
+  const ops=await import('./js/mdz-member-ops.mjs');
+  await ops.updateNotificationBadge(session.access_token,SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY,t);
+  const bell=document.getElementById('mdzNotifBell');
+  if(bell) bell.hidden=false;
+ }catch{ /* non-blocking */ }
 }
 
 async function mountAccountNotifications(session){
  const mount=document.getElementById('acctNotificationsMount');
  if(!mount) return;
  const ops=await import('./js/mdz-member-ops.mjs');
+ mount.innerHTML=ops.renderNotificationsSkeleton();
  try{
-  const rows=await ops.listMyNotifications(session.access_token,SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY);
-  mount.innerHTML=ops.renderNotificationsPanel(t,rows,{safeText});
+  const rows=await ops.listMyNotifications(session.access_token,SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY,{limit:80});
+  mount.innerHTML=ops.renderNotificationsPanel(t,rows,{safeText,...mdzNotifFilter});
  }catch{
-  mount.innerHTML=`<p class="acct-tab-note">${t('notifError')}</p><button type="button" class="btn ghost" id="notifRefreshBtn">${t('notifRefresh')}</button>`;
+  mount.innerHTML=`<p class="acct-tab-note">${t('notifError')}</p><button type="button" class="mdz-btn mdz-btn-ghost" id="notifRefreshBtn">${t('notifRefresh')}</button>`;
  }
  document.getElementById('notifRefreshBtn')?.addEventListener('click',()=>mountAccountNotifications(session));
+ document.getElementById('notifUnreadOnly')?.addEventListener('change',(e)=>{mdzNotifFilter.unreadOnly=!!e.target.checked;mountAccountNotifications(session)});
+ document.getElementById('notifTypeFilter')?.addEventListener('change',(e)=>{mdzNotifFilter.eventType=e.target.value||'';mountAccountNotifications(session)});
  document.getElementById('notifMarkAllBtn')?.addEventListener('click',async()=>{
-  try{await ops.markAllNotificationsRead(session.access_token,SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY);await mountAccountNotifications(session);}catch{showToast(t('notifError'))}
+  try{await ops.markAllNotificationsRead(session.access_token,SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY);await mountAccountNotifications(session);await refreshNotifBadge(session);}catch{showToast(t('notifError'))}
  });
+ const openLink=async(id,link)=>{
+  try{if(id) await ops.markNotificationRead(session.access_token,SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY,Number(id))}catch{}
+  await refreshNotifBadge(session);
+  const surface=ops.resolveNotificationDeepLink(link);
+  if(surface==='admin'){ closeModal('accountModal'); await openAdminDashboard(); }
+  else if(surface==='manager'){ closeModal('accountModal'); await openManagerDashboard(); }
+  else if(surface==='support') await openAccountTab('support');
+  else if(surface==='request') await openAccountTab('request');
+  else if(surface==='inbox') await openAccountTab('notifications');
+  else await mountAccountNotifications(session);
+ };
  mount.querySelectorAll('.notif-mark-read').forEach(btn=>{
   btn.addEventListener('click',async()=>{
-   try{await ops.markNotificationRead(session.access_token,SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY,Number(btn.dataset.notificationId));await mountAccountNotifications(session);}catch{showToast(t('notifError'))}
+   try{await ops.markNotificationRead(session.access_token,SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY,Number(btn.dataset.notificationId));await mountAccountNotifications(session);await refreshNotifBadge(session);}catch{showToast(t('notifError'))}
   });
+ });
+ mount.querySelectorAll('.notif-open').forEach(btn=>{
+  btn.addEventListener('click',()=>openLink(btn.dataset.notificationId,btn.dataset.link));
+ });
+}
+
+async function bindTicketThread(session, ops, thread, ticket, memberUserId, isStaff){
+ const id=Number(ticket.id);
+ const reload=async()=>{
+  const messages=await ops.fetchTicketMessages(session.access_token,SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY,id);
+  let notes=[];
+  if(isStaff){
+   try{notes=await ops.fetchInternalNotes(session.access_token,SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY,id)}catch{notes=[]}
+  }
+  thread.innerHTML=ops.renderTicketThread(t,ticket,messages,{safeText,memberUserId,isStaff,notes});
+  await bindTicketThread(session,ops,thread,ticket,memberUserId,isStaff);
+ };
+ document.getElementById('ticketThreadBack')?.addEventListener('click',()=>mountAccountSupport(session));
+ document.getElementById('ticketReplyBtn')?.addEventListener('click',async()=>{
+  const st=document.getElementById('ticketThreadStatus');
+  try{
+   await ops.replySupportTicket(session.access_token,SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY,id,document.getElementById('ticketReplyBody')?.value||'');
+   if(st) st.textContent=t('ticketReplied');
+   const messages2=await ops.fetchTicketMessages(session.access_token,SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY,id);
+   ticket={...ticket};
+   thread.innerHTML=ops.renderTicketThread(t,ticket,messages2,{safeText,memberUserId,isStaff,notes:isStaff?await ops.fetchInternalNotes(session.access_token,SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY,id).catch(()=>[]):[]});
+   await bindTicketThread(session,ops,thread,ticket,memberUserId,isStaff);
+  }catch{ if(st) st.textContent=t('ticketError'); }
+ });
+ document.getElementById('ticketStatusSelect')?.addEventListener('change',async(e)=>{
+  try{
+   await ops.setSupportTicketStatus(session.access_token,SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY,id,e.target.value);
+   ticket={...ticket,status:e.target.value};
+   await reload();
+  }catch{showToast(t('ticketError'))}
+ });
+ document.getElementById('ticketNoteBtn')?.addEventListener('click',async()=>{
+  try{
+   await ops.addSupportInternalNote(session.access_token,SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY,id,document.getElementById('ticketNoteBody')?.value||'');
+   await reload();
+  }catch{showToast(t('ticketError'))}
  });
 }
 
@@ -2843,9 +2944,18 @@ async function mountAccountSupport(session){
  const mount=document.getElementById('acctSupportMount');
  if(!mount) return;
  const ops=await import('./js/mdz-member-ops.mjs');
+ mount.innerHTML=ops.renderSupportSkeleton();
  let tickets=[];
- try{tickets=await ops.fetchMyTickets(session.access_token,SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY);}catch{tickets=[];}
- mount.innerHTML=ops.renderSupportPanel(t,tickets,{safeText});
+ let fetchError=false;
+ try{
+  tickets=await ops.fetchMyTickets(session.access_token,SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY);
+ }catch{
+  fetchError=true;
+  tickets=[];
+ }
+ // MDZ-UI-001: never render empty copy after a failed fetch
+ mount.innerHTML=ops.renderSupportPanel(t,tickets,{safeText,error:fetchError});
+ document.getElementById('supportRetryBtn')?.addEventListener('click',()=>mountAccountSupport(session));
  document.getElementById('ticketCreateBtn')?.addEventListener('click',async()=>{
   const status=document.getElementById('ticketCreateStatus');
   try{
@@ -2858,6 +2968,8 @@ async function mountAccountSupport(session){
    await mountAccountSupport(session);
   }catch{ if(status) status.textContent=t('ticketError'); }
  });
+ if(fetchError) return;
+ const memberUserId=session.user?.id||null;
  mount.querySelectorAll('.ticket-open-btn').forEach(btn=>{
   btn.addEventListener('click',async()=>{
    const id=Number(btn.dataset.ticketId);
@@ -2866,41 +2978,126 @@ async function mountAccountSupport(session){
    try{
     const ticket=tickets.find(x=>Number(x.id)===id)||{id,ticket_code:String(id),subject:'',status:'open'};
     const messages=await ops.fetchTicketMessages(session.access_token,SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY,id);
-    thread.innerHTML=ops.renderTicketThread(t,ticket,messages,{safeText});
-    document.getElementById('ticketReplyBtn')?.addEventListener('click',async()=>{
-     const st=document.getElementById('ticketThreadStatus');
-     try{
-      await ops.replySupportTicket(session.access_token,SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY,id,document.getElementById('ticketReplyBody')?.value||'');
-      if(st) st.textContent=t('ticketReplied');
-      const messages2=await ops.fetchTicketMessages(session.access_token,SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY,id);
-      thread.innerHTML=ops.renderTicketThread(t,ticket,messages2,{safeText});
-     }catch{ if(st) st.textContent=t('ticketError'); }
-    });
+    thread.innerHTML=ops.renderTicketThread(t,ticket,messages,{safeText,memberUserId,isStaff:false,notes:[]});
+    await bindTicketThread(session,ops,thread,ticket,memberUserId,false);
    }catch{ thread.innerHTML=`<p class="acct-tab-note">${t('ticketError')}</p>`; }
   });
  });
+}
+
+async function mountOperatorSupport(session,{isAdmin=false}={}){
+ const mount=document.getElementById('opsSupportMount');
+ if(!mount) return;
+ const ops=await import('./js/mdz-member-ops.mjs');
+ const load=async(filters={})=>{
+  mount.innerHTML=ops.renderSupportSkeleton();
+  let tickets=[];
+  let fetchError=false;
+  try{
+   tickets=await ops.fetchOperatorTickets(session.access_token,SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY,filters);
+  }catch{
+   fetchError=true;
+   tickets=[];
+  }
+  mount.innerHTML=ops.renderOperatorSupportQueue(t,tickets,{safeText,error:fetchError});
+  const reloadFilters=()=>({
+   status:document.getElementById('opsSupportStatus')?.value||'',
+   q:document.getElementById('opsSupportQ')?.value||'',
+  });
+  document.getElementById('opsSupportRefresh')?.addEventListener('click',()=>load(reloadFilters()));
+  document.getElementById('opsSupportRetryBtn')?.addEventListener('click',()=>load(filters));
+  document.getElementById('opsSupportStatus')?.addEventListener('change',(e)=>load({status:e.target.value||'',q:document.getElementById('opsSupportQ')?.value||''}));
+  document.getElementById('opsSupportQ')?.addEventListener('keydown',(e)=>{
+   if(e.key==='Enter') load({status:document.getElementById('opsSupportStatus')?.value||'',q:e.target.value||''});
+  });
+  if(fetchError) return;
+  mount.querySelectorAll('.ops-ticket-open').forEach(btn=>{
+   btn.addEventListener('click',async()=>{
+    const id=Number(btn.dataset.ticketId);
+    const thread=document.getElementById('opsTicketThreadMount');
+    if(!thread) return;
+    mount.classList.add('is-thread-open');
+    try{
+     const ticket=tickets.find(x=>Number(x.id)===id)||{id,ticket_code:String(id),subject:'',status:'open'};
+     const messages=await ops.fetchTicketMessages(session.access_token,SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY,id);
+     const notes=await ops.fetchInternalNotes(session.access_token,SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY,id).catch(()=>[]);
+     thread.innerHTML=ops.renderTicketThread(t,ticket,messages,{safeText,memberUserId:ticket.created_by,isStaff:true,notes});
+     const reload=async()=>{
+      const messages2=await ops.fetchTicketMessages(session.access_token,SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY,id);
+      const notes2=await ops.fetchInternalNotes(session.access_token,SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY,id).catch(()=>[]);
+      thread.innerHTML=ops.renderTicketThread(t,ticket,messages2,{safeText,memberUserId:ticket.created_by,isStaff:true,notes:notes2});
+      wire();
+     };
+     const wire=()=>{
+      document.getElementById('ticketThreadBack')?.addEventListener('click',()=>{
+       mount.classList.remove('is-thread-open');
+       load(filters);
+      });
+      document.getElementById('ticketReplyBtn')?.addEventListener('click',async()=>{
+       try{
+        await ops.replySupportTicket(session.access_token,SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY,id,document.getElementById('ticketReplyBody')?.value||'');
+        await reload();
+       }catch{showToast(t('ticketError'))}
+      });
+      document.getElementById('ticketStatusSelect')?.addEventListener('change',async(e)=>{
+       try{
+        await ops.setSupportTicketStatus(session.access_token,SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY,id,e.target.value);
+        ticket.status=e.target.value;
+        await reload();
+       }catch{showToast(t('ticketError'))}
+      });
+      document.getElementById('ticketNoteBtn')?.addEventListener('click',async()=>{
+       try{
+        await ops.addSupportInternalNote(session.access_token,SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY,id,document.getElementById('ticketNoteBody')?.value||'');
+        await reload();
+       }catch{showToast(t('ticketError'))}
+      });
+     };
+     wire();
+    }catch{ thread.innerHTML=`<p class="acct-tab-note">${t('ticketError')}</p>`; }
+   });
+  });
+ };
+ await load();
 }
 
 function wireAccountTabs(box,profile,session){
  box.querySelectorAll('[data-acct-tab]').forEach(btn=>{
   btn.addEventListener('click',async()=>{
    const tab=btn.dataset.acctTab;
-   box.querySelectorAll('.acct-tab').forEach(el=>{el.classList.toggle('on',el.dataset.acctTab===tab);el.setAttribute('aria-selected',el.dataset.acctTab===tab?'true':'false')});
-   const panel=document.getElementById('acctPanel');
-   if(!panel) return;
-   const dash=await import('./js/mdz-dashboards.mjs');
-   let reviewReason='';
-   if(tab==='request' && session?.access_token){
-    reviewReason=await fetchRegistrationReviewReason(session.access_token,profile.registration_id);
-   }
-   panel.innerHTML=`<div class="member-hero"><span class="member-id-chip" dir="ltr">${safeText(profile.member_id,40)||'—'}</span><h2 class="member-name">${safeText(profile.full_name,180)}</h2><p class="member-role">${t('accountOf')} ${registrationRoleLabel(profile.role)}</p><span class="member-status-pill">${statusLabelArabic(profile.status)}</span></div>${dash.renderAccountPanel(t,profile,tab,accountHelpers({reviewReason}))}`;
-   wireInviteActions(profile);
-   document.getElementById('acctForgotBtn')?.addEventListener('click',()=>document.getElementById('forgotPasswordBtn')?.click());
-   if(tab==='notifications' && session) await mountAccountNotifications(session);
-   if(tab==='support' && session) await mountAccountSupport(session);
+   await renderAccountTab(box,profile,session,tab);
   });
  });
 }
+
+async function renderAccountTab(box,profile,session,tab){
+ box.querySelectorAll('.acct-tab').forEach(el=>{el.classList.toggle('on',el.dataset.acctTab===tab);el.setAttribute('aria-selected',el.dataset.acctTab===tab?'true':'false')});
+ const panel=document.getElementById('acctPanel');
+ if(!panel) return;
+ const dash=await import('./js/mdz-dashboards.mjs');
+ let reviewReason='';
+ if(tab==='request' && session?.access_token){
+  reviewReason=await fetchRegistrationReviewReason(session.access_token,profile.registration_id);
+ }
+ panel.innerHTML=`<div class="member-hero mdz-hero-quiet"><span class="member-id-chip mdz-chip" dir="ltr">${safeText(profile.member_id,40)||'—'}</span><h2 class="member-name">${safeText(profile.full_name,180)}</h2><p class="member-role">${t('accountOf')} ${registrationRoleLabel(profile.role)}</p><span class="member-status-pill mdz-status is-${String(profile.status||'pending').toLowerCase()}">${statusLabelArabic(profile.status)}</span></div>${dash.renderAccountPanel(t,profile,tab,accountHelpers({reviewReason}))}`;
+ wireInviteActions(profile);
+ document.getElementById('acctForgotBtn')?.addEventListener('click',()=>document.getElementById('forgotPasswordBtn')?.click());
+ if(tab==='notifications' && session) await mountAccountNotifications(session);
+ if(tab==='support' && session) await mountAccountSupport(session);
+ mdzAccountDeepTab=tab;
+}
+
+async function openAccountTab(tab){
+ mdzAccountDeepTab=tab;
+ await openAccount();
+}
+window.openAccountTab=openAccountTab;
+
+async function openAccountInbox(){
+ if(!isAuthenticated()){openLogin();return}
+ await openAccountTab('notifications');
+}
+window.openAccountInbox=openAccountInbox;
 
 async function openLoginOrAccount(){
  if(isAuthenticated()) return openAccount();
@@ -2928,12 +3125,24 @@ async function openAccount(){
   wireAccountTabs(box,p,session);
   wireInviteActions(p);
   updateAuthChrome();
+  await refreshNotifBadge(session);
+  const deep=mdzAccountDeepTab || parseAccountDeepTab(location.hash);
+  if(deep && deep!=='profile') await renderAccountTab(box,p,session,deep);
  }catch(e){
-  box.innerHTML=`<div class="notice">${safeText(authErrorArabic(e),500)}</div><button class="btn primary" type="button" id="reloginBtn">${t('btnLogin')}</button>`;
+  box.innerHTML=`<div class="notice">${safeText(authErrorArabic(e),500)}</div><button class="mdz-btn mdz-btn-primary" type="button" id="reloginBtn">${t('btnLogin')}</button>`;
   document.getElementById('reloginBtn')?.addEventListener('click',()=>{closeModal('accountModal');openLogin()});
  }
 }
 window.openAccount=openAccount;
+
+function parseAccountDeepTab(hash){
+ const h=String(hash||'').toLowerCase();
+ if(h==='#account-support'||h.includes('account-support')) return 'support';
+ if(h==='#account-inbox'||h==='#account-notifications'||h.includes('account-inbox')) return 'notifications';
+ if(h==='#account-request'||h.includes('account-request')) return 'request';
+ if(h==='#account-security'||h.includes('account-security')) return 'security';
+ return null;
+}
 
 let mdzDashReviewDisposer=null;
 async function refreshManagerDashboard(session, dash, profile){
@@ -2947,6 +3156,7 @@ async function refreshManagerDashboard(session, dash, profile){
   roles:mdzUserRoles, actorWilaya:profile?.wilaya, asAdmin:false, profileRole:profile?.role,
   onDone:async()=>{await refreshManagerDashboard(session,dash,profile)},
  });
+ await mountOperatorSupport(session,{isAdmin:false});
 }
 async function refreshAdminDashboard(session, dash){
  const box=document.getElementById('adminDashContent');
@@ -2959,6 +3169,7 @@ async function refreshAdminDashboard(session, dash){
   roles:mdzUserRoles, actorWilaya:null, asAdmin:true, profileRole:mdzAccountProfile?.role,
   onDone:async()=>{await refreshAdminDashboard(session,dash)},
  });
+ await mountOperatorSupport(session,{isAdmin:true});
 }
 
 async function openManagerDashboard(){
@@ -3010,7 +3221,8 @@ function updateAuthChrome(){
  const authed=isAuthenticated() && !recovering;
  const map=[
   ['headerLoginBtn',!authed],['headerRegisterBtn',!authed],['headerAccountBtn',authed],['headerLogoutBtn',authed],
-  ['drawerLoginLink',!authed],['drawerRegisterLink',!authed],['drawerAccountLink',authed],['drawerLogoutLink',authed]
+  ['drawerLoginLink',!authed],['drawerRegisterLink',!authed],['drawerAccountLink',authed],['drawerLogoutLink',authed],
+  ['mdzNotifBell',authed]
  ];
  map.forEach(([id,show])=>{const el=document.getElementById(id);if(!el)return;if(show) el.removeAttribute('hidden');else el.setAttribute('hidden','')});
  const showMgr=!recovering && dashRoleFlag('manager');
@@ -3023,6 +3235,12 @@ function updateAuthChrome(){
  if(dockMain){const label=dockMain.querySelector('span');if(authed){dockMain.onclick=()=>openAccount();if(label) label.textContent=t('btnProfile')}else{dockMain.onclick=()=>openRegister();if(label) label.textContent=t('dockRegister')}}
  const dockProfile=document.getElementById('dockProfileBtn');
  if(dockProfile){const label=dockProfile.querySelector('[data-i18n],span');if(label) label.textContent=t(authed?'btnProfile':'btnLogin');dockProfile.setAttribute('aria-label',t(authed?'btnProfile':'btnLogin'))}
+ if(authed){
+  ensureFreshSession().then((s)=>{if(s) refreshNotifBadge(s)}).catch(()=>{});
+ }else{
+  const badge=document.getElementById('mdzNotifBadge');
+  if(badge){badge.hidden=true;badge.textContent=''}
+ }
 }
 function dashRoleFlag(kind){
  if(kind==='admin') return mdzUserRoles.some(r=>['admin','founder','super_admin'].includes(r));
@@ -3687,7 +3905,12 @@ window.addEventListener('DOMContentLoaded',async()=>{
     const session=await ensureFreshSession();
     if(session){
       mdzUserRoles=await fetchMyRoles(session.access_token);
-      if(location.hash==='#account'||location.hash==='#auth-callback') await openAccount();
+      await refreshNotifBadge(session);
+      const deep=parseAccountDeepTab(location.hash);
+      if(deep){mdzAccountDeepTab=deep;await openAccount();}
+      else if(location.hash==='#account'||location.hash==='#auth-callback') await openAccount();
+      else if(location.hash==='#manager-dash') await openManagerDashboard();
+      else if(location.hash==='#admin-dash') await openAdminDashboard();
     }
   }
   loadWeather(false);

@@ -17,5 +17,9 @@
   },
   "compatibility_flags": [
     "nodejs_compat"
-  ]
+  ],
+  // Drain email outbox every 2 minutes (requires SUPABASE_* + optional RESEND_API_KEY secrets)
+  "triggers": {
+    "crons": ["*/2 * * * *"]
+  }
 }

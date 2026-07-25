@@ -13,6 +13,18 @@ export function statusKey(status) {
   return 'pending';
 }
 
+/** Human registration status label — never expose raw enums to operators (MDZ-UI-004). */
+export function registrationStatusLabel(t, status) {
+  const key = statusKey(status);
+  const map = {
+    pending: 'statusPending',
+    approved: 'statusApproved',
+    rejected: 'statusRejected',
+    suspended: 'statusSuspended',
+  };
+  return t(map[key] || 'statusPending');
+}
+
 export function statusProgressStep(status) {
   const map = { pending: 1, approved: 3, active: 3, rejected: 2, suspended: 2 };
   return map[String(status || 'pending').toLowerCase()] || 1;
@@ -50,6 +62,11 @@ export function escapeHtml(text) {
     .replace(/"/g, '&quot;');
 }
 
+export function renderRegistrationStatusChip(t, status) {
+  const key = statusKey(status);
+  return `<span class="dash-status-chip mdz-status is-${key}">${escapeHtml(registrationStatusLabel(t, status))}</span>`;
+}
+
 export function renderStatusProgress(t, status) {
   const step = statusProgressStep(status);
   const labels = [
@@ -66,16 +83,16 @@ export function renderStatusProgress(t, status) {
 }
 
 export function renderAccountTabs(t, active = 'profile') {
+  // Elevated IA: five primary tabs (invites live under profile)
   const tabs = [
     ['profile', t('acctTabProfile')],
     ['request', t('acctTabRequest')],
-    ['notifications', t('acctTabNotifications')],
+    ['notifications', t('acctTabInbox')],
     ['support', t('acctTabSupport')],
-    ['invites', t('acctTabInvites')],
     ['security', t('acctTabSecurity')],
   ];
-  return `<div class="acct-tabs" role="tablist">${tabs.map(([id, label]) =>
-    `<button type="button" class="acct-tab${active === id ? ' on' : ''}" data-acct-tab="${id}" role="tab" aria-selected="${active === id}">${escapeHtml(label)}</button>`
+  return `<div class="acct-tabs mdz-tabs" role="tablist">${tabs.map(([id, label]) =>
+    `<button type="button" class="acct-tab mdz-tab${active === id ? ' on' : ''}" data-acct-tab="${id}" role="tab" aria-selected="${active === id}">${escapeHtml(label)}</button>`
   ).join('')}</div>`;
 }
 
@@ -119,18 +136,13 @@ export function renderAccountPanel(t, profile, tab, helpers) {
     return `<div id="acctSupportMount"><p class="acct-tab-note">${escapeHtml(t('ticketLoading'))}</p></div>`;
   }
 
-  if (tab === 'invites') {
-    return `${renderInvitePanel(t, p.invite_code, safeText)}
-    <p class="acct-tab-note">${escapeHtml(t('acctInvitesNote'))}</p>`;
-  }
-
   if (tab === 'security') {
     return `<div class="member-data-grid">
       <div class="member-data"><small>${escapeHtml(t('email'))}</small><b dir="ltr">${escapeHtml(safeText(p.email, 120) || '—')}</b></div>
       <div class="member-data"><small>${escapeHtml(t('phone'))}</small><b dir="ltr">${escapeHtml(safeText(p.phone, 30) || '—')}</b></div>
     </div>
     <p class="acct-tab-note">${escapeHtml(t('acctSecurityNote'))}</p>
-    <button class="btn ghost" type="button" id="acctForgotBtn">${escapeHtml(t('forgotPassword'))}</button>`;
+    <button class="mdz-btn mdz-btn-ghost" type="button" id="acctForgotBtn">${escapeHtml(t('forgotPassword'))}</button>`;
   }
 
   return `<div class="member-data-grid">
@@ -140,7 +152,9 @@ export function renderAccountPanel(t, profile, tab, helpers) {
     <div class="member-data"><small>${escapeHtml(t('acctStatus'))}</small><b>${escapeHtml(status)}</b></div>
     <div class="member-data"><small>${escapeHtml(t('wilaya'))}</small><b>${escapeHtml(safeText(p.wilaya, 120) || '—')}</b></div>
     <div class="member-data"><small>${escapeHtml(t('phone'))}</small><b dir="ltr">${escapeHtml(safeText(p.phone, 30) || '—')}</b></div>
-  </div>`;
+  </div>
+  ${renderInvitePanel(t, p.invite_code, safeText)}
+  <p class="acct-tab-note">${escapeHtml(t('acctInvitesNote'))}</p>`;
 }
 
 export function renderAccountDashboard(t, profile, helpers) {
@@ -149,19 +163,21 @@ export function renderAccountDashboard(t, profile, helpers) {
   const memberId = p.member_id ? safeText(p.member_id, 40) : '—';
   const fullName = safeText(p.full_name || `${p.first_name || ''} ${p.last_name || ''}`.trim(), 180) || t('acctDefaultName');
 
-  return `${renderAccountTabs(t, 'profile')}
+  return `<div class="mdz-product">
+    ${renderAccountTabs(t, 'profile')}
     <div class="acct-panel" id="acctPanel">
-      <div class="member-hero">
-        <span class="member-id-chip" dir="ltr">${escapeHtml(memberId)}</span>
+      <div class="member-hero mdz-hero-quiet">
+        <span class="member-id-chip mdz-chip" dir="ltr">${escapeHtml(memberId)}</span>
         <h2 class="member-name">${escapeHtml(fullName)}</h2>
         <p class="member-role">${escapeHtml(t('accountOf'))} ${escapeHtml(registrationRoleLabel(p.role))}</p>
-        <span class="member-status-pill">${escapeHtml(statusLabel(p.status))}</span>
+        <span class="member-status-pill mdz-status is-${escapeHtml(statusKey(p.status))}">${escapeHtml(statusLabel(p.status))}</span>
       </div>
       ${renderAccountPanel(t, p, 'profile', helpers)}
     </div>
     <div class="acct-actions">
-      <button class="btn ghost" type="button" id="logoutBtn">${escapeHtml(t('logoutBtn'))}</button>
-    </div>`;
+      <button class="mdz-btn mdz-btn-ghost" type="button" id="logoutBtn">${escapeHtml(t('logoutBtn'))}</button>
+    </div>
+  </div>`;
 }
 
 function truncateLabel(value, max = 42) {
@@ -176,11 +192,11 @@ function rowActionsHtml(t, row) {
   const wilaya = escapeHtml(String(row.wilaya || '').trim());
   if (!regId) return `<span class="dash-muted">—</span>`;
   if (status !== 'pending') {
-    return `<span class="dash-status-chip ${status}">${escapeHtml(String(row.status || status))}</span>`;
+    return renderRegistrationStatusChip(t, row.status);
   }
   return `<div class="dash-row-actions">
-    <button type="button" class="btn primary dash-action" data-review-action="approved" data-registration-id="${regId}" data-wilaya="${wilaya}">${escapeHtml(t('dashApprove'))}</button>
-    <button type="button" class="btn ghost dash-action" data-review-action="rejected" data-registration-id="${regId}" data-wilaya="${wilaya}">${escapeHtml(t('dashReject'))}</button>
+    <button type="button" class="mdz-btn mdz-btn-primary mdz-btn-sm dash-action" data-review-action="approved" data-registration-id="${regId}" data-wilaya="${wilaya}">${escapeHtml(t('dashApprove'))}</button>
+    <button type="button" class="mdz-btn mdz-btn-ghost mdz-btn-sm dash-action" data-review-action="rejected" data-registration-id="${regId}" data-wilaya="${wilaya}">${escapeHtml(t('dashReject'))}</button>
   </div>`;
 }
 
@@ -191,7 +207,7 @@ function renderQueueCards(t, rows, safeText, registrationRoleLabel) {
     return `<article class="dash-card">
       <header>
         <strong title="${escapeHtml(name)}">${escapeHtml(truncateLabel(name, 48))}</strong>
-        <span class="dash-status-chip ${statusKey(row.status)}">${escapeHtml(safeText(row.status || t('accountPending'), 40))}</span>
+        ${renderRegistrationStatusChip(t, row.status)}
       </header>
       <dl>
         <div><dt>${escapeHtml(t('acctRegId'))}</dt><dd dir="ltr" title="${escapeHtml(regId)}">${escapeHtml(truncateLabel(regId, 28))}</dd></div>
@@ -203,28 +219,29 @@ function renderQueueCards(t, rows, safeText, registrationRoleLabel) {
   }).join('')}</div>`;
 }
 
-function renderQueueTable(t, rows, safeText, registrationRoleLabel) {
+/** Exported for unit coverage (MDZ-UI-004). */
+export function renderQueueTable(t, rows, safeText, registrationRoleLabel) {
   if (!rows.length) {
     return `<div class="dash-empty">${escapeHtml(t('dashEmptyQueue'))}</div>`;
   }
   const head = `<thead><tr>
-    <th>${escapeHtml(t('acctRegId'))}</th>
-    <th>${escapeHtml(t('acctFullName'))}</th>
-    <th>${escapeHtml(t('acctRole'))}</th>
-    <th>${escapeHtml(t('wilaya'))}</th>
-    <th>${escapeHtml(t('acctStatus'))}</th>
-    <th>${escapeHtml(t('dashActions'))}</th>
+    <th scope="col">${escapeHtml(t('acctRegId'))}</th>
+    <th scope="col">${escapeHtml(t('acctFullName'))}</th>
+    <th scope="col">${escapeHtml(t('acctRole'))}</th>
+    <th scope="col">${escapeHtml(t('wilaya'))}</th>
+    <th scope="col">${escapeHtml(t('acctStatus'))}</th>
+    <th scope="col">${escapeHtml(t('dashActions'))}</th>
   </tr></thead>`;
   const body = rows.slice(0, 50).map((row) => {
     const name = safeText(row.full_name || row.first_name, 80) || '—';
     const regId = safeText(row.registration_id || row.registrationId || '—', 40);
-    return `<tr data-registration-id="${escapeHtml(String(row.registration_id || '').trim())}">
-    <td dir="ltr" title="${escapeHtml(regId)}">${escapeHtml(truncateLabel(regId, 22))}</td>
-    <td title="${escapeHtml(name)}">${escapeHtml(truncateLabel(name, 28))}</td>
-    <td>${escapeHtml(registrationRoleLabel(row.role || row.user_type))}</td>
-    <td>${escapeHtml(safeText(row.wilaya, 60))}</td>
-    <td><span class="dash-status-chip ${statusKey(row.status)}">${escapeHtml(safeText(row.status || t('accountPending'), 40))}</span></td>
-    <td>${rowActionsHtml(t, row)}</td>
+    return `<tr data-registration-id="${escapeHtml(String(row.registration_id || '').trim())}" class="dash-row">
+    <td class="col-id" dir="ltr" title="${escapeHtml(regId)}">${escapeHtml(truncateLabel(regId, 22))}</td>
+    <td class="col-name" title="${escapeHtml(name)}">${escapeHtml(truncateLabel(name, 28))}</td>
+    <td class="col-meta">${escapeHtml(registrationRoleLabel(row.role || row.user_type))}</td>
+    <td class="col-meta">${escapeHtml(safeText(row.wilaya, 60))}</td>
+    <td class="col-status">${renderRegistrationStatusChip(t, row.status)}</td>
+    <td class="col-actions">${rowActionsHtml(t, row)}</td>
   </tr>`;
   }).join('');
   return `<div class="dash-table-wrap"><table class="dash-table">${head}<tbody>${body}</tbody></table></div>
@@ -233,7 +250,8 @@ function renderQueueTable(t, rows, safeText, registrationRoleLabel) {
 
 export function renderManagerDashboard(t, ctx) {
   const { wilaya, rows, safeText, registrationRoleLabel } = ctx;
-  return `<div class="dash-hero manager">
+  return `<div class="mdz-product">
+  <div class="dash-hero manager mdz-hero-quiet">
     <h3>${escapeHtml(t('mgrDashTitle'))}</h3>
     <p>${escapeHtml(t('mgrDashDesc', { wilaya: wilaya || t('laterValue') }))}</p>
     <span class="dash-source">${escapeHtml(t('dashSourceLive'))}</span>
@@ -243,14 +261,19 @@ export function renderManagerDashboard(t, ctx) {
     <article><strong>${rows.filter((r) => String(r.role) === 'vet').length}</strong><span>${escapeHtml(t('roleVet'))}</span></article>
     <article><strong>${rows.filter((r) => String(r.role) === 'breeder').length}</strong><span>${escapeHtml(t('roleBreeder'))}</span></article>
   </div>
+  <div id="opsSupportMount" class="mdz-ops-mount mdz-ops-command" aria-label="${escapeHtml(t('opsSupportTitle'))}"><div class="mdz-skeleton" style="height:120px"></div></div>
+  <div class="mdz-ops-divider" role="separator"></div>
+  <p class="mdz-eyebrow">${escapeHtml(t('opsReviewsEyebrow') || t('mgrDashPending'))}</p>
   <div id="dashQueueMount">${renderQueueTable(t, rows, safeText, registrationRoleLabel)}</div>
   <p class="dash-note" id="dashActionStatus" aria-live="polite"></p>
-  <p class="dash-note">${escapeHtml(t('mgrDashNote'))}</p>`;
+  <p class="dash-note">${escapeHtml(t('mgrDashNote'))}</p>
+  </div>`;
 }
 
 export function renderAdminDashboard(t, ctx) {
   const { stats, rows, safeText, registrationRoleLabel } = ctx;
-  return `<div class="dash-hero admin">
+  return `<div class="mdz-product">
+  <div class="dash-hero admin mdz-hero-quiet">
     <h3>${escapeHtml(t('adminDashTitle'))}</h3>
     <p>${escapeHtml(t('adminDashDesc'))}</p>
     <span class="dash-source">${escapeHtml(t('dashSourceLive'))}</span>
@@ -261,9 +284,13 @@ export function renderAdminDashboard(t, ctx) {
     <article><strong>${stats.breeders}</strong><span>${escapeHtml(t('roleBreeder'))}</span></article>
     <article><strong>${stats.managers}</strong><span>${escapeHtml(t('roleManager'))}</span></article>
   </div>
+  <div id="opsSupportMount" class="mdz-ops-mount mdz-ops-command" aria-label="${escapeHtml(t('opsSupportTitle'))}"><div class="mdz-skeleton" style="height:120px"></div></div>
+  <div class="mdz-ops-divider" role="separator"></div>
+  <p class="mdz-eyebrow">${escapeHtml(t('opsReviewsEyebrow') || t('adminStatTotal'))}</p>
   <div id="dashQueueMount">${renderQueueTable(t, rows, safeText, registrationRoleLabel)}</div>
   <p class="dash-note" id="dashActionStatus" aria-live="polite"></p>
-  <p class="dash-note">${escapeHtml(t('adminDashNote'))}</p>`;
+  <p class="dash-note">${escapeHtml(t('adminDashNote'))}</p>
+  </div>`;
 }
 
 export async function fetchUserRoles(token, restUrl, apiKey) {
@@ -370,14 +397,38 @@ export function wireDashboardReviewActions(root, {
 
     let reason = null;
     if (action === 'rejected') {
-      const entered = typeof window !== 'undefined'
-        ? window.prompt(t('dashRejectReasonPrompt') || 'سبب الرفض (يظهر للعضو):', '')
-        : '';
-      reason = entered == null ? null : String(entered).trim() || null;
+      let entered = null;
+      try {
+        const ops = await import('./mdz-member-ops.mjs');
+        entered = await ops.openReasonDialog({
+          title: t('dashRejectTitle') || t('dashReject'),
+          body: t('dashRejectReasonHelp') || '',
+          label: t('dashRejectReasonPrompt') || 'Rejection reason',
+          placeholder: t('dashRejectReasonPh') || '',
+          confirmLabel: t('dashReject'),
+          cancelLabel: t('cancel') || 'Cancel',
+          required: true,
+          minLength: 3,
+          tooShortMessage: t('dashRejectReasonShort') || '',
+        });
+      } catch (dialogErr) {
+        console.error('openReasonDialog failed', dialogErr);
+        busy = false;
+        root.querySelectorAll('[data-review-action]').forEach((el) => { el.disabled = false; });
+        if (statusEl) statusEl.textContent = t('dashReviewCancelled') || '';
+        return;
+      }
       if (entered === null) {
         busy = false;
         root.querySelectorAll('[data-review-action]').forEach((el) => { el.disabled = false; });
         if (statusEl) statusEl.textContent = t('dashReviewCancelled') || '';
+        return;
+      }
+      reason = String(entered).trim() || null;
+      if (!reason || reason.length < 3) {
+        busy = false;
+        root.querySelectorAll('[data-review-action]').forEach((el) => { el.disabled = false; });
+        if (statusEl) statusEl.textContent = t('dashRejectReasonShort') || t('dashReviewFailed');
         return;
       }
     }

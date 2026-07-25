@@ -30,3 +30,7 @@ Use before merging any PR that touches Auth, RLS, roles, animals, listings, QR, 
 - [ ] No silent Constitution contradiction?
 
 If any box fails → do not merge.
+
+For deep independent audits (severity, confidence tiers, citation format, stop rules), use  
+[STRICT_EVIDENCE_REVIEW_STANDARD.md](./STRICT_EVIDENCE_REVIEW_STANDARD.md).  
+Static CI green ≠ Verified live RLS / provider / cron.
