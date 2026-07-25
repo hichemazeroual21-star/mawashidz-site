@@ -270,7 +270,8 @@ export function renderManagerDashboard(t, ctx) {
 }
 
 export function renderAdminDashboard(t, ctx) {
-  const { stats, rows, safeText, registrationRoleLabel } = ctx;
+  const { stats, rows, safeText, registrationRoleLabel, inbox } = ctx;
+  const inboxHtml = renderAdminInbox(t, inbox || { contact: [], feedback: [] }, safeText);
   return `<div class="mdz-product">
   <div class="dash-hero admin mdz-hero-quiet">
     <h3>${escapeHtml(t('adminDashTitle'))}</h3>
@@ -285,11 +286,70 @@ export function renderAdminDashboard(t, ctx) {
   </div>
   <div id="opsSupportMount" class="mdz-ops-mount mdz-ops-command" aria-label="${escapeHtml(t('opsSupportTitle'))}"><div class="mdz-skeleton" style="height:120px"></div></div>
   <div class="mdz-ops-divider" role="separator"></div>
+  ${inboxHtml}
+  <div class="mdz-ops-divider" role="separator"></div>
   <p class="mdz-eyebrow">${escapeHtml(t('opsReviewsEyebrow') || t('adminStatTotal'))}</p>
   <div id="dashQueueMount">${renderQueueTable(t, rows, safeText, registrationRoleLabel)}</div>
   <p class="dash-note" id="dashActionStatus" aria-live="polite"></p>
   <p class="dash-note">${escapeHtml(t('adminDashNote'))}</p>
   </div>`;
+}
+
+/** TD-013 — platform-admin inbox (contact + feedback). Empty-safe. */
+export function renderAdminInbox(t, inbox, safeText = (v) => String(v || '')) {
+  const contact = Array.isArray(inbox?.contact) ? inbox.contact : [];
+  const feedback = Array.isArray(inbox?.feedback) ? inbox.feedback : [];
+  const title = t('adminInboxTitle') || 'Inbox';
+  const contactLabel = t('adminInboxContact') || 'Contact';
+  const feedbackLabel = t('adminInboxFeedback') || 'Feedback';
+  const empty = t('adminInboxEmpty') || 'No messages yet';
+  const rows = [
+    ...contact.map((r) => ({
+      kind: contactLabel,
+      who: safeText(r.full_name || r.phone || r.email || '—', 80),
+      body: safeText(r.message || '', 160),
+      when: r.created_at || '',
+    })),
+    ...feedback.map((r) => ({
+      kind: feedbackLabel,
+      who: safeText(r.full_name || r.contact || '—', 80),
+      body: safeText(r.details || '', 160),
+      when: r.created_at || '',
+    })),
+  ].sort((a, b) => String(b.when).localeCompare(String(a.when)));
+
+  if (!rows.length) {
+    return `<section class="mdz-admin-inbox" aria-label="${escapeHtml(title)}">
+      <p class="mdz-eyebrow">${escapeHtml(title)}</p>
+      <div class="dash-empty">${escapeHtml(empty)}</div>
+    </section>`;
+  }
+
+  const list = rows.slice(0, 30).map((r) => `<article class="dash-card mdz-inbox-card">
+    <header><strong>${escapeHtml(truncateLabel(r.who, 40))}</strong><span class="dash-status-chip">${escapeHtml(r.kind)}</span></header>
+    <p class="mdz-inbox-body">${escapeHtml(truncateLabel(r.body, 140) || '—')}</p>
+  </article>`).join('');
+
+  return `<section class="mdz-admin-inbox" aria-label="${escapeHtml(title)}">
+    <p class="mdz-eyebrow">${escapeHtml(title)} <span class="dash-muted">(${rows.length})</span></p>
+    <div class="dash-card-list">${list}</div>
+  </section>`;
+}
+
+export async function fetchAdminInbox(token, restUrl, apiKey) {
+  const headers = { apikey: apiKey, Authorization: `Bearer ${token}` };
+  const [cRes, fRes] = await Promise.all([
+    fetch(`${restUrl}/contact_messages?select=id,full_name,phone,email,message,request_type,status,created_at&order=created_at.desc&limit=40`, { headers }),
+    fetch(`${restUrl}/feedback_tickets?select=id,full_name,contact,details,report_type,status,created_at&order=created_at.desc&limit=40`, { headers }),
+  ]);
+  const contact = cRes.ok ? await cRes.json() : [];
+  const feedback = fRes.ok ? await fRes.json() : [];
+  return {
+    contact: Array.isArray(contact) ? contact : [],
+    feedback: Array.isArray(feedback) ? feedback : [],
+    contactStatus: cRes.status,
+    feedbackStatus: fRes.status,
+  };
 }
 
 export async function fetchUserRoles(token, restUrl, apiKey) {
@@ -322,14 +382,17 @@ export async function loadManagerData(token, restUrl, apiKey, wilaya) {
 }
 
 export async function loadAdminData(token, restUrl, apiKey) {
-  const rows = await fetchRegistrationsLive(token, restUrl, apiKey, null);
+  const [rows, inbox] = await Promise.all([
+    fetchRegistrationsLive(token, restUrl, apiKey, null),
+    fetchAdminInbox(token, restUrl, apiKey),
+  ]);
   const stats = {
     total: rows.length,
     vets: rows.filter((r) => r.role === 'vet').length,
     breeders: rows.filter((r) => r.role === 'breeder').length,
     managers: rows.filter((r) => r.role === 'manager').length,
   };
-  return { rows, stats, source: 'live' };
+  return { rows, stats, inbox, source: 'live' };
 }
 
 /**

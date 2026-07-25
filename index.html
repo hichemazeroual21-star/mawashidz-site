@@ -3162,7 +3162,7 @@ async function refreshAdminDashboard(session, dash){
  const box=document.getElementById('adminDashContent');
  if(!box) return;
  const data=await dash.loadAdminData(session.access_token,SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY);
- box.innerHTML=dash.renderAdminDashboard(t,{stats:data.stats,rows:data.rows,source:data.source,safeText,registrationRoleLabel});
+ box.innerHTML=dash.renderAdminDashboard(t,{stats:data.stats,rows:data.rows,inbox:data.inbox,source:data.source,safeText,registrationRoleLabel});
  if(mdzDashReviewDisposer) mdzDashReviewDisposer();
  mdzDashReviewDisposer=dash.wireDashboardReviewActions(box,{
   t, token:session.access_token, restUrl:SUPABASE_REST, apiKey:SUPABASE_PUBLISHABLE_KEY,

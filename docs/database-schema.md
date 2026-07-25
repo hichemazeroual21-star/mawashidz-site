@@ -69,7 +69,8 @@ Phase 0 stabilizes member identity, profile auto-creation, login resolution, ope
 
 ### `public.contact_messages` / `public.feedback_tickets`
 
-Public insert with length checks. Default `status = 'new'`. No admin read policies yet (Phase 1 messaging).
+Public insert with length checks (migrations `009` / restored by `015`). Default `status = 'new'`.  
+**SELECT:** platform admin only via `mdz_is_platform_admin()` (migration `016` — closes TD-013 blind inbox). No anon SELECT.
 
 ### `public.admin_audit_log`
 
