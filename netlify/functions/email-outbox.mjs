@@ -109,7 +109,12 @@ export async function processEmailOutbox(request, runtimeEnv = {}) {
     if (!Array.isArray(claimed)) claimed = claimed ? [claimed] : [];
   } catch (error) {
     console.error('claim outbox failed (require migration 012+ two-arg claim)', error);
-    return json(503, { error: 'claim-failed-require-012' });
+    // Temporary: surface PostgREST/Supabase payload so operators can see PGRST* / 401 / 404
+    return json(503, {
+      error: 'claim-failed-require-012',
+      detail: String(error?.message || error).slice(0, 500),
+      supabase: error?.payload ?? null,
+    });
   }
 
   const results = [];
