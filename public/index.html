@@ -1123,17 +1123,19 @@ footer .foot a:hover{color:#e2c77e}
 .reset-state{margin-top:10px;font-weight:800;min-height:1.2em}
 .reset-state.is-error{color:#8a1f1f}.reset-state.is-ok{color:#0f5a36}
 /* Temporary auth diagnostic panel (founder or ?debug=1) — remove after prod triage.
-   z-index below .modal (1300) so it never covers login/register inputs. Collapsed by default. */
-#mdzAuthDiagPanel{position:fixed;inset:auto auto 76px 8px;z-index:90;max-width:min(420px,calc(100vw - 16px));font:12px/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;display:none;pointer-events:none}
+   Anchored bottom-RIGHT so it does not sit under .feedback-fab (left).
+   z-index above feedback (95) / dock (110), below .modal (1300). × only collapses — no storage dismiss. */
+#mdzAuthDiagPanel{position:fixed;right:8px;left:auto;bottom:76px;z-index:115;max-width:min(420px,calc(100vw - 16px));font:12px/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;display:none;pointer-events:none}
 #mdzAuthDiagPanel[data-open="1"]{display:block}
 #mdzAuthDiagPanel[data-input-focus="1"]{display:none!important}
-#mdzAuthDiagPanel .mdz-auth-diag-toggle{pointer-events:auto;border:1px solid #2f6b4a;border-radius:999px;background:#0b1f14;color:#9fe0bb;font:700 12px/1 system-ui,sans-serif;padding:8px 12px;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.28)}
+#mdzAuthDiagPanel .mdz-auth-diag-toggle{pointer-events:auto;border:2px solid #3d8f5f;border-radius:999px;background:#0f2a1a;color:#b6f0cb;font:800 13px/1 system-ui,sans-serif;padding:10px 14px;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.35)}
 #mdzAuthDiagPanel .mdz-auth-diag-shell{pointer-events:auto;display:none;margin-top:8px;max-height:36vh;overflow:auto;background:#0b1f14;color:#e8f5ee;border:1px solid #2f6b4a;border-radius:10px;padding:10px 12px;padding-top:28px;position:relative;box-shadow:0 8px 28px rgba(0,0,0,.35)}
 #mdzAuthDiagPanel[data-expanded="1"] .mdz-auth-diag-shell{display:block}
 #mdzAuthDiagPanel[data-expanded="1"] .mdz-auth-diag-toggle{display:none}
 #mdzAuthDiagPanel h3{margin:0 0 8px;font:700 13px/1.2 system-ui,sans-serif;color:#9fe0bb}
 #mdzAuthDiagPanel .mdz-auth-diag-row{margin:0 0 6px;word-break:break-word}
 #mdzAuthDiagPanel .mdz-auth-diag-close{position:absolute;top:6px;inset-inline-end:8px;background:transparent;border:0;color:#9fe0bb;font-size:18px;line-height:1;cursor:pointer}
+body[data-mdz-auth-diag="1"] .feedback-fab{display:none!important}
 @media(max-width:620px){
   .dash-stats,.dash-stats.admin{grid-template-columns:repeat(2,minmax(0,1fr))}
   .dash-table-wrap{display:none}
@@ -2402,8 +2404,11 @@ function renderAuthDiagPanel(){
  const toggle=document.getElementById('mdzAuthDiagToggle');
  if(!panel||!body) return;
  if(!mdzAuthCanShowDiag()){
-  panel.hidden=true;panel.removeAttribute('data-open');return;
+  panel.hidden=true;panel.removeAttribute('data-open');
+  document.body?.removeAttribute('data-mdz-auth-diag');
+  return;
  }
+ document.body?.setAttribute('data-mdz-auth-diag','1');
  const session=(()=>{try{return getSession()}catch(e){mdzAuthDiagRecord('getSession.render',e);return null}})();
  const uid=session?.user?.id||userIdFromAccessToken(session?.access_token||'')||null;
  const hasSession=Boolean(session?.access_token);
@@ -2416,7 +2421,7 @@ function renderAuthDiagPanel(){
   <p class="mdz-auth-diag-row"><strong>fetchMyRoles() raw</strong><br>${rolesRaw.replace(/</g,'&lt;')}</p>
   <p class="mdz-auth-diag-row"><strong>last real error code</strong><br>${String(lastErr).replace(/</g,'&lt;')}</p>
   <p class="mdz-auth-diag-row">roles (memory): ${JSON.stringify(mdzUserRoles)} | debug=${mdzAuthDebugFlag()?'1':'0'}</p>`;
- /* Keep collapsed-by-default; only flip expanded when user taps toggle. */
+ /* Keep collapsed-by-default; × only collapses (no localStorage/sessionStorage dismiss). */
  if(!panel.hasAttribute('data-expanded')) panel.setAttribute('data-expanded','0');
  const expanded=panel.getAttribute('data-expanded')==='1';
  if(toggle){toggle.setAttribute('aria-expanded',expanded?'true':'false');toggle.textContent=expanded?'diag ▾':'diag ▸'}
@@ -3301,9 +3306,14 @@ async function openAccount(){
    if(deep && deep!=='profile') await renderAccountTab(box,p,session,deep);
   }catch(e){
    mdzAuthDiagRecord(step,e,{code:e?.code||'openAccount_inner'});
-   box.innerHTML=`<div class="notice">${safeText(authErrorArabic(e),500)}</div><button class="mdz-btn mdz-btn-primary" type="button" id="reloginBtn">${t('btnLogin')}</button>`;
+   const ar=authErrorArabic(e);
+   const diagLine=mdzAuthDebugFlag()&&mdzAuthLastError
+    ?`<div class="notice" style="margin-top:8px;font-family:ui-monospace,monospace;font-size:.78rem;font-weight:700;word-break:break-word">${safeText(`diag: ${mdzAuthLastError.code||'—'} | status=${mdzAuthLastError.status??'—'} | step=${mdzAuthLastError.step}`,500)}</div>`
+    :'';
+   box.innerHTML=`<div class="notice">${safeText(ar,500)}</div>${diagLine}<button class="mdz-btn mdz-btn-primary" type="button" id="reloginBtn">${t('btnLogin')}</button>`;
    document.getElementById('reloginBtn')?.addEventListener('click',()=>{closeModal('accountModal');openLogin()});
    renderAuthDiagPanel();
+   if(mdzAuthDebugFlag()) mdzAuthDiagSetExpanded(true);
   }
  }catch(e){
   mdzAuthDiagRecord(step,e,{code:e?.code||'openAccount_outer'});

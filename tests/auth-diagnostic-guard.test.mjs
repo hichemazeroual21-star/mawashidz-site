@@ -20,8 +20,11 @@ for (const [label, src] of [
   assert.match(src, /id="mdzAuthDiagPanel"/, `${label}: diag panel`);
   assert.match(src, /id="mdzAuthDiagToggle"/, `${label}: collapsed toggle`);
   assert.match(src, /data-expanded="0"/, `${label}: collapsed by default`);
-  assert.match(src, /#mdzAuthDiagPanel\{[^}]*z-index:90/, `${label}: z-index below modal`);
+  assert.match(src, /#mdzAuthDiagPanel\{[^}]*z-index:115/, `${label}: z-index above feedback fab`);
+  assert.match(src, /right:8px/, `${label}: anchored opposite feedback (right)`);
   assert.match(src, /data-input-focus/, `${label}: auto-hide on input focus`);
+  assert.match(src, /body\[data-mdz-auth-diag="1"\] \.feedback-fab/, `${label}: hide feedback when diag active`);
+  assert.ok(!/localStorage\.[gs]etItem\(['"]mdz_auth_diag/.test(src), `${label}: no diag dismiss persistence`);
   assert.match(src, /mdzAuthDebugFlag\(\)|debug'\)==='1'/, `${label}: ?debug=1 gate`);
   assert.match(src, /r==='founder'/, `${label}: founder gate`);
   assert.match(src, /const step='fetchMyRoles'/, `${label}: fetchMyRoles step`);

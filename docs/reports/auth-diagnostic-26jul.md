@@ -56,7 +56,7 @@ Visible only if `founder` is in in-memory `mdzUserRoles` **or** `?debug=1`:
 2. **fetchMyRoles() raw** — JSON of last fetch (`ok`, `status`, `rows`, `roles`)  
 3. **last real error code** — `code | status=… | step=… | message`
 
-Collapsed by default as a floating **`diag ▸`** toggle (tap to expand). Panel `z-index:90` sits **below** modals (`1300`) and auto-hides while a text input/textarea/select is focused (reappears on blur), so it does not block credential entry on mobile.
+Collapsed by default as a floating **`diag ▸`** toggle on the **bottom-right** (not under the yellow feedback FAB). Panel `z-index:115` sits above feedback/dock and **below** modals (`1300`). While `?debug=1` / founder diag is active, the feedback FAB is hidden. × **only collapses** — there is **no** localStorage/sessionStorage dismiss. Auto-hides while a text input/textarea/select is focused. On account open failure with `?debug=1`, the Arabic notice also shows a `diag: code | status | step` line and the panel auto-expands.
 
 ## How to reproduce on production (after this build is deployed by Founder)
 
