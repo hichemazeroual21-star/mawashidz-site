@@ -1,29 +1,25 @@
 # Migration 014 — registration_id integrity
 
 **Branch:** `cursor/registration-id-integrity-3447`  
-**File:** `supabase/migrations/014_registration_id_integrity.sql`  
+**Mutation:** `supabase/migrations/014_registration_id_integrity.sql`  
+**Dry-run (read-only first):** `docs/reports/sql/014_registration_id_dry_run.sql`  
+**Full plan for reviewers:** `docs/reports/REGISTRATION_ID_INTEGRITY_014_PLAN.md`  
 **Apply:** manual on production Supabase after Founder review — **not** auto-applied by CI/agent.
 
 ## What it does
 
-1. **Backfill from JSON** — `registration_id = message::jsonb ->> 'registration_id'` when column empty and JSON holds a `MDZ-REG-*` value (same idea as migration `004`).
-2. **Generate for remaining real pending rows** — `MDZ-REG-YYYY-NNNNNN` via sequence `mdz_registration_id_seq`. Skips test emails matching `example.com` / `.local` / `probe` / `e2e`.
-3. **BEFORE INSERT trigger** `mdz_registrations_assign_registration_id` — if the client omits `registration_id`, assign from message JSON or generate server-side.
+1. **Backfill from JSON** — restore `registration_id` from `message::jsonb ->> 'registration_id'` when valid `MDZ-REG-*`, row is **real pending**, id missing, and value does not collide.
+2. **Generate** — `MDZ-REG-YYYY-NNNNNN` via sequence for remaining **positively eligible** real pending rows only (not “everything except test”).
+3. **BEFORE INSERT trigger** — assign only when client omits `registration_id` (client value preserved).
+4. **Partial unique index** on non-blank `registration_id` when no duplicates remain.
 
-Does **not** change dashboard logic that hides approve/reject when `registration_id` is blank (that gate stays correct).
+Does **not** change dashboard logic that hides approve/reject when `registration_id` is blank.
 
 ## Operator apply checklist
 
 1. Confirm SQL Editor project = production MawashiDZ (`fpjvjfgwbfehhcvdirpy`).
-2. Optional discovery:
-
-```sql
-select count(*) as missing
-from public.registrations
-where nullif(btrim(coalesce(registration_id,'')),'') is null
-  and lower(coalesce(status,'pending')) in ('pending','new','');
-```
-
-3. Run the full contents of `014_registration_id_integrity.sql`.
-4. Re-check missing count → expect 0 for non-test pending rows.
-5. Smoke: open لوحة الإدارة → pending rows show `MDZ-REG-…` and Approve/Reject.
+2. Run **dry-run** and review bucket counts + samples.
+3. Founder approval.
+4. Run full `014_registration_id_integrity.sql`.
+5. Re-run dry-run → actionable buckets at 0 for real pending.
+6. Smoke: لوحة الإدارة → `MDZ-REG-…` + Approve/Reject.

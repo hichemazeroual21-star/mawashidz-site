@@ -6,10 +6,18 @@
 --
 -- This migration (idempotent, safe to re-run):
 --   1) Backfill from message::jsonb ->> 'registration_id' when valid (004 pattern)
---   2) Generate MDZ-REG-YYYY-NNNNNN for remaining real pending rows
---      (excludes test/probe/e2e/example.com/.local emails)
---   3) BEFORE INSERT trigger assigns registration_id when the client omits it
+--   2) Generate MDZ-REG-YYYY-NNNNNN for remaining REAL PENDING rows only
+--      (positive inclusion — never "all rows except test")
+--   3) BEFORE INSERT trigger assigns registration_id ONLY when client omits it
+--   4) Partial unique index on non-blank registration_id (when no dupes)
 --
+-- Guarantees:
+--   - Every UPDATE requires missing registration_id (NULL or blank)
+--   - Rows that already have a non-blank id are never rewritten
+--   - Generator loops with NOT EXISTS; raises if uniqueness cannot be satisfied
+--   - Trigger preserves client-supplied NEW.registration_id
+--
+-- BEFORE APPLY: run docs/reports/sql/014_registration_id_dry_run.sql (read-only).
 -- Does NOT change review UI hide-when-missing logic.
 -- Does NOT auto-apply on production — Founder runs manually after review.
 -- ============================================================
@@ -60,8 +68,9 @@ end;
 $$;
 
 -- ------------------------------------------------------------
--- Test-row predicate (email-based exclusions from brief)
+-- Predicates (positive inclusion for mutation)
 -- ------------------------------------------------------------
+-- Test email marker (classification / exclusion evidence only)
 create or replace function public.mdz_is_test_registration_email(p_email text)
 returns boolean
 language sql
@@ -76,20 +85,58 @@ $$;
 revoke all on function public.mdz_is_test_registration_email(text) from public;
 grant execute on function public.mdz_is_test_registration_email(text) to service_role;
 
+-- Positive eligibility: real + pending-like + non-blank email + not a test marker
+-- Generation/backfill mutate ONLY rows that match this (not "everything except test").
+create or replace function public.mdz_is_real_pending_registration(p_status text, p_email text)
+returns boolean
+language sql
+immutable
+as $$
+  select
+    lower(coalesce(nullif(btrim(p_status), ''), 'pending')) in ('pending', 'new')
+    and p_email is not null
+    and btrim(p_email) <> ''
+    and not (
+      lower(p_email) ~ '(example\.com|\.local\b|probe|e2e)'
+    );
+$$;
+
+revoke all on function public.mdz_is_real_pending_registration(text, text) from public;
+grant execute on function public.mdz_is_real_pending_registration(text, text) to service_role;
+
+-- Missing id: NULL or blank/whitespace (treat blank as absent)
+create or replace function public.mdz_registration_id_missing(p_id text)
+returns boolean
+language sql
+immutable
+as $$
+  select nullif(btrim(coalesce(p_id, '')), '') is null;
+$$;
+
+revoke all on function public.mdz_registration_id_missing(text) from public;
+grant execute on function public.mdz_registration_id_missing(text) to service_role;
+
 -- ------------------------------------------------------------
--- 1) Backfill from message JSON (same idea as migration 004)
+-- 1) Backfill from message JSON (004 pattern) — real pending + missing only
+--    Skip if recovered value would collide with another row's registration_id.
 -- ------------------------------------------------------------
 update public.registrations r
 set registration_id = nullif(btrim(r.message::jsonb ->> 'registration_id'), '')
-where nullif(btrim(coalesce(r.registration_id, '')), '') is null
+where public.mdz_registration_id_missing(r.registration_id)
+  and public.mdz_is_real_pending_registration(r.status, r.email)
   and r.message is not null
   and r.message ~ '^\s*\{'
   and nullif(btrim(coalesce(r.message::jsonb ->> 'registration_id', '')), '') is not null
   and nullif(btrim(coalesce(r.message::jsonb ->> 'registration_id', '')), '') ~ '^MDZ-REG-'
-  and not public.mdz_is_test_registration_email(r.email);
+  and not exists (
+    select 1
+    from public.registrations x
+    where x.id <> r.id
+      and x.registration_id = nullif(btrim(r.message::jsonb ->> 'registration_id'), '')
+  );
 
 -- ------------------------------------------------------------
--- 2) Generate for remaining real pending rows still missing an id
+-- 2) Generate for remaining REAL PENDING rows still missing an id
 -- ------------------------------------------------------------
 do $$
 declare
@@ -100,12 +147,12 @@ begin
   for rec in
     select r.id, r.created_at
     from public.registrations r
-    where nullif(btrim(coalesce(r.registration_id, '')), '') is null
-      and lower(coalesce(r.status, 'pending')) in ('pending', 'new', '')
-      and not public.mdz_is_test_registration_email(r.email)
+    where public.mdz_registration_id_missing(r.registration_id)
+      and public.mdz_is_real_pending_registration(r.status, r.email)
     order by r.id
   loop
     attempts := 0;
+    candidate := null;
     loop
       attempts := attempts + 1;
       candidate := public.mdz_next_registration_id(rec.created_at);
@@ -113,19 +160,24 @@ begin
         select 1 from public.registrations x
         where x.registration_id = candidate
       );
-      exit when attempts >= 20; -- safety
+      if attempts >= 20 then
+        raise exception
+          'mdz_registration_id_integrity: could not allocate unique registration_id for registrations.id=% after % attempts',
+          rec.id, attempts;
+      end if;
     end loop;
 
     update public.registrations
     set registration_id = candidate
     where id = rec.id
-      and nullif(btrim(coalesce(registration_id, '')), '') is null;
+      and public.mdz_registration_id_missing(registration_id);
   end loop;
 end;
 $$;
 
 -- ------------------------------------------------------------
--- 3) BEFORE INSERT: assign when client omits registration_id
+-- 3) BEFORE INSERT: assign ONLY when client omits registration_id
+--    Client-supplied NEW.registration_id is preserved (never overwritten).
 -- ------------------------------------------------------------
 create or replace function public.mdz_registrations_assign_registration_id()
 returns trigger
@@ -138,18 +190,24 @@ declare
   candidate text;
   attempts int := 0;
 begin
-  if nullif(btrim(coalesce(new.registration_id, '')), '') is not null then
+  -- Preserve interface-supplied value (coalesce semantics: keep NEW when present)
+  if not public.mdz_registration_id_missing(new.registration_id) then
     return new;
   end if;
 
-  -- Prefer client-embedded id in message JSON when present
+  -- Prefer client-embedded id in message JSON when present and free
   if new.message is not null and new.message ~ '^\s*\{' then
     begin
       from_msg := nullif(btrim(coalesce(new.message::jsonb ->> 'registration_id', '')), '');
     exception when others then
       from_msg := null;
     end;
-    if from_msg is not null and from_msg ~ '^MDZ-REG-' then
+    if from_msg is not null
+       and from_msg ~ '^MDZ-REG-'
+       and not exists (
+         select 1 from public.registrations x where x.registration_id = from_msg
+       )
+    then
       new.registration_id := from_msg;
       return new;
     end if;
@@ -161,7 +219,11 @@ begin
     exit when not exists (
       select 1 from public.registrations x where x.registration_id = candidate
     );
-    exit when attempts >= 20;
+    if attempts >= 20 then
+      raise exception
+        'mdz_registration_id_integrity: trigger could not allocate unique registration_id after % attempts',
+        attempts;
+    end if;
   end loop;
 
   new.registration_id := candidate;
@@ -189,6 +251,9 @@ begin
     create unique index if not exists registrations_registration_id_uidx
       on public.registrations (registration_id)
       where registration_id is not null and btrim(registration_id) <> '';
+  else
+    raise notice
+      'mdz_registration_id_integrity: skipped unique index — duplicate registration_id values still present; resolve then re-run';
   end if;
 end;
 $$;
