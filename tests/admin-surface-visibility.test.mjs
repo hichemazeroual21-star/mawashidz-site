@@ -14,6 +14,8 @@ import { chromeExecutablePath, REPO_ROOT } from './helpers/puppeteer-env.mjs';
 import { hasAdminAccess, hasManagerAccess, MANAGER_ROLES } from '../js/mdz-dashboards.mjs';
 
 const PORT = 8793;
+const SHOTS = path.join(REPO_ROOT, 'tests/.artifacts/screenshots/admin-surface');
+fs.mkdirSync(SHOTS, { recursive: true });
 const MIME = {
   '.html': 'text/html; charset=utf-8',
   '.json': 'application/json',
@@ -156,6 +158,13 @@ async function settle(page, ms = 600) {
   await new Promise((r) => setTimeout(r, ms));
 }
 
+/** Header-only capture so reviewers can see the rendered surface per persona. */
+async function shootHeader(page, name) {
+  const header = await page.$('.top');
+  if (!header) return;
+  await header.screenshot({ path: path.join(SHOTS, `${name}.png`) });
+}
+
 async function loadApp(cfg) {
   const { page, state } = await openApp(cfg);
   await page.goto(`http://localhost:${PORT}/`, { waitUntil: 'domcontentloaded', timeout: 30000 });
@@ -186,6 +195,7 @@ const matrix = [];
   await settle(page);
   const s = await surfaces(page);
   matrix.push({ persona: 'member', ...s });
+  await shootHeader(page, 'header-member');
   check('member: account offered', s.account === true);
   check('member: login hidden', s.login === false);
   check('member: manager hidden', s.manager === false && s.drawerManager === false);
@@ -272,6 +282,7 @@ for (const role of ['admin', 'founder']) {
   await settle(page, 900);
   const s = await surfaces(page);
   matrix.push({ persona: 'admin after reload', ...s });
+  await shootHeader(page, 'header-admin-after-reload');
   check('reload: admin still visible after reload', s.admin === true && s.drawerAdmin === true);
   check('reload: roles refetched for the session', state.rolesRequests >= 2, `requests=${state.rolesRequests}`);
   await page.close();
@@ -311,6 +322,7 @@ for (const role of ['admin', 'founder']) {
   await settle(page, 900);
   const s = await surfaces(page);
   matrix.push({ persona: 'after account switch (admin → member)', ...s });
+  await shootHeader(page, 'header-after-account-switch');
   check('switch: admin dashboard refuses to open for new account', s.adminModalOpen === false);
   check('switch: admin surface stays hidden', s.admin === false && s.drawerAdmin === false);
   await page.close();
