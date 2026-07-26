@@ -1520,6 +1520,21 @@ footer .foot{align-items:start}
    Mobile (≤760px): شبكة من صفّين — [قائمة | سجّل الآن | ... | العلامة يمينًا] ثم اللغات وسط الصف الثاني. */
 :root{--mdz-header:#0b1711;--mdz-line:rgba(255,255,255,.12)}
 .top{position:sticky;top:0;z-index:1000;background:var(--mdz-header)!important;border-bottom:1px solid var(--mdz-line)!important;box-shadow:0 8px 24px rgba(0,0,0,.16)!important}
+/* Ghost actions on dark header were ink-on-green (illegible on phone). Force light chrome. */
+.top #headerActions .mdz-btn-ghost,
+.top .actions .mdz-btn-ghost{
+  color:#fff!important;
+  border-color:rgba(255,255,255,.45)!important;
+  background:transparent!important;
+}
+.top #headerActions .mdz-btn-ghost:hover,
+.top .actions .mdz-btn-ghost:hover{
+  color:#fff!important;
+  background:rgba(255,255,255,.12)!important;
+  border-color:rgba(255,255,255,.7)!important;
+}
+.top .desktop a{color:rgba(255,255,255,.92)!important}
+.top .desktop a:hover{color:#fff!important}
 /* تسلسل طبقات واضح: الهيدر 1000 < القائمة الجانبية 1200 < النوافذ 1300 < التنبيهات 1400.
    (كانت القائمة والنوافذ تُفتح خلف الهيدر فيختفي زر الإغلاق على الهاتف) */
 .drawer{z-index:1200}
