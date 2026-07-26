@@ -1,145 +1,213 @@
-# Cloudflare deploy topology audit — 2026-07-26
+# Cloudflare Production Deployment Hygiene — audit 2026-07-26
 
-**Scope:** verify/document only. No Worker deletes. No production migrations.  
-**Agent CF API auth:** none (`wrangler whoami` → not authenticated). Dashboard settings below must be confirmed by Founder in UI.
+**Mode:** read / document only. No Worker deletes, route changes, secret edits, or production migrations.  
+**Account (from CF check-run links):** `64fa014be395ee918de3cf81f13ab654`  
+**Repo:** `hichemazeroual21-star/mawashidz-site`  
+**Agent limits:** no Cloudflare API token (`wrangler whoami` unauthenticated). Dashboard fields marked **FOUNDER UI** are not readable from this environment.
 
 ---
 
-## Executive finding
+## Epistemology (what apex `build-info` proves / does not)
 
-**RC#1 is REOPENED (operational evidence).**
-
-Live production is serving an **unmerged feature-branch commit**, not `main`.
-
-| Probe | Value |
+| Claim | Status |
 |-------|--------|
-| `https://mawashidz.com/build-info.json` | `worker=mawashidz-live`, `commit=c9d4325b90ee23d0dedf412f0cfd269a8753ca85`, `builtAt=2026-07-26T14:43:38.598Z` |
-| `origin/main` tip | `6b5ca834f69d86b265eeb205aed0c0a1fd07b2d8` (2026-07-25) |
-| Is `c9d4325` ancestor of `main`? | **No** |
-| Branch containing `c9d4325` | `cursor/registration-id-integrity-3447` only |
-| Feature commit time | `2026-07-26 14:21:37 UTC` |
-| Live `builtAt` | `2026-07-26T14:43:38Z` (~22 min after push) |
-
-`mawashidz-live.*.workers.dev/build-info.json` matches **byte-for-byte** the apex domain build-info (same commit + same `builtAt`). That is a **full production promotion** (`wrangler deploy` semantics), not a preview-only `versions upload`.
-
-Policy in `DEPLOYMENT.md` (owner-verified 2026-07-22) required:
-
-| Setting | Required |
-|---------|----------|
-| Production branch | `main` |
-| Production deploy command | `npx wrangler deploy` |
-| Non-production / Version command | `npx wrangler versions upload` |
-
-**Current live tip contradicts that split:** a `cursor/*` push replaced production traffic on `mawashidz-live`.
+| Code from commit `c9d4325…` is what apex currently serves | **Proven** (`/build-info.json`) |
+| That commit is on `cursor/registration-id-integrity-3447`, not on `main` | **Proven** (`git merge-base --is-ancestor` → false; `main` tip = `6b5ca83`) |
+| Delivery mechanism for that tip | **Proven Git-triggered Workers Builds** (see §2); not proven whether command was `deploy` vs `versions upload` without dashboard |
+| Apex proves `www` health | **Does not** — `www` is independent (§4) |
+| Apex proves `/api/*` on other hostnames | **Does not** — probe separately |
+| Apex proves routes/cron on `mawashidz-site` / `plain-hat-3f18` | **Does not** |
 
 ---
 
-## 1) Production Git → Cloudflare Builds binding
+## Live tip (apex)
 
-### Evidence available without dashboard
+```json
+{
+  "version": "1.10.0",
+  "commit": "c9d4325b90ee23d0dedf412f0cfd269a8753ca85",
+  "builtAt": "2026-07-26T14:43:38.598Z",
+  "worker": "mawashidz-live"
+}
+```
 
-| Check | Result |
-|-------|--------|
-| Intended config (docs) | Production branch = `main` |
-| Live artifact vs `main` | **Mismatch** — live ≠ `main` |
-| Timing | Feature push → build ~22m later → live tip = feature SHA |
-| Preview alias for same branch | `https://cursor-registration-id-integrity-3447-mawashidz-live.hichemazeroual21.workers.dev/build-info.json` identical to production tip |
-
-### Owner must confirm in Cloudflare UI (cannot be read from agent)
-
-Open **Workers & Pages → `mawashidz-live` → Settings → Builds** (or connected Git build config) and screenshot/record:
-
-1. **Production branch** = `main` (if anything else → fix immediately).
-2. **Deploy command** (production) = `npx wrangler deploy`.
-3. **Non-production / Version command** = `npx wrangler versions upload` (**not** `deploy`).
-4. **Build command** = `npm ci && npm run build`.
-5. Whether “builds for non-production branches” is enabled (OK only if Version command is `versions upload`).
-
-**Correction if Version command is `deploy`:** set it back to `npx wrangler versions upload`, then redeploy **from `main`** so live tip returns to `6b5ca83` (or newer `main`) until the registration PR is intentionally merged.
+| Ref | SHA |
+|-----|-----|
+| Live | `c9d4325b90ee23d0dedf412f0cfd269a8753ca85` |
+| `origin/main` | `6b5ca834f69d86b265eeb205aed0c0a1fd07b2d8` |
+| Feature branch tip (same SHA) | `cursor/registration-id-integrity-3447` |
 
 ---
 
-## 2) Workers inventory (public probes)
+## 1) Workers Builds / Git integration (`mawashidz-live`)
 
-Account subdomain observed: `*.hichemazeroual21.workers.dev`.
+### Proven from GitHub Check Runs (app `cloudflare-workers-and-pages`)
 
-### A) `mawashidz-live` — **production**
+Every sampled push on the feature branch triggered:
+
+- `Workers Builds: mawashidz-live`
+- `Workers Builds: mawashidz-site`
+
+| Commit | Branch (inferred) | live build started (UTC) | Notes |
+|--------|-------------------|--------------------------|--------|
+| `152244a` | registration-id-integrity | 2026-07-26T13:22:25Z | |
+| `ec62650` | same | 13:26:10Z | |
+| `53b9516` | same | 13:57:18Z | |
+| `c7a8a7d` | same | 14:07:13Z | |
+| **`c9d4325`** | same | **14:43:45Z** | matches live `builtAt` ~14:43:38Z |
+| `60e0507` | header-link-contrast | 13:23:28Z | Preview Alias present |
+| `6b5ca83` | **main** | 2026-07-25T20:11:33Z | **no** Preview URL in summary |
+
+### `c9d4325` — `mawashidz-live` check-run summary (verbatim fields)
+
+- **Name:** Workers Builds: mawashidz-live  
+- **Conclusion:** success  
+- **Build ID:** `8facec96-b93b-4cf0-b436-a0dae9cc8e8b`  
+- **Dashboard:** https://dash.cloudflare.com/64fa014be395ee918de3cf81f13ab654/workers/services/view/mawashidz-live/production/builds/8facec96-b93b-4cf0-b436-a0dae9cc8e8b  
+- **Version ID:** `7a2d3ce2-aa37-4588-930c-69391a0144dc`  
+- **Preview URL:** `https://7a2d3ce2-mawashidz-live.hichemazeroual21.workers.dev`  
+- **Preview Alias URL:** `https://cursor-registration-id-integrity-3447-mawashidz-live.hichemazeroual21.workers.dev`  
+
+Branch name is **not** in the Check Runs API `head_branch` field (`null`), but the **Preview Alias** encodes `cursor-registration-id-integrity-3447`.
+
+### Production branch / Preview vs Production — what we can and cannot say
+
+| Question | Answer from evidence |
+|----------|----------------------|
+| Does Git integration fire on `cursor/*`? | **Yes** (repeated successful builds) |
+| Does CF emit Preview Alias for those builds? | **Yes** (feature commits list Preview URL + Alias; `main` tip build summary does **not**) |
+| Did that feature version become what apex serves? | **Yes** — apex, `mawashidz-live.*.workers.dev`, preview URL, and preview alias all return the **same** `build-info` for `c9d4325` / `14:43:38Z` |
+| Is Production branch setting = `main` only? | **FOUNDER UI** — cannot read Build settings without CF login |
+| Is non-prod command `versions upload` or `deploy`? | **FOUNDER UI** — operational outcome (apex tip = feature SHA) means **production traffic was updated** by/after the feature-branch build; that violates the intended hygiene in `DEPLOYMENT.md` whether by wrong Version command or later promotion |
+
+**Policy target (docs, not re-verified in UI):** Production branch `main` + prod `npx wrangler deploy` + non-prod `npx wrangler versions upload`.
+
+---
+
+## 2) Deployment history for `c9d4325`
+
+| Question | Evidence |
+|----------|----------|
+| Git-triggered or manual Wrangler from agent? | **Git-triggered Cloudflare Workers Builds** — Check Run at 14:43:45Z on SHA `c9d4325`; agent has no CF/Wrangler auth |
+| Manual laptop deploy? | **Not required to explain tip** — CF build timestamp aligns with `builtAt`; cannot exclude an additional manual promote without dashboard Deployments log |
+| Branch recorded | Preview Alias → `cursor-registration-id-integrity-3447` |
+| Also built | `Workers Builds: mawashidz-site` on same SHA (14:43:17Z), Build `91e50564-031b-4950-8c5f-f43d0b3dfc01`, Version `1f5b664b-3a4e-44fa-abfe-9ad5714f3566` (**no** Preview URL in that summary) |
+
+---
+
+## 3) Workers inventory — Domains / Routes / Triggers / Bindings
+
+### Legend
+
+- **Probed:** public HTTP/DNS/GitHub Check Runs  
+- **FOUNDER UI:** must confirm in Cloudflare dashboard (Domains & Routes, Triggers, Bindings, Builds)
+
+### A) `mawashidz-live`
+
+| Surface | Probed evidence | FOUNDER UI still needed |
+|---------|-----------------|-------------------------|
+| Apex `mawashidz.com` | Serves this Worker (`build-info.worker`) | Confirm Custom Domain / route row |
+| `mawashidz.com/api/*` | GET outbox → `405 method-not-allowed` (Worker script alive) | Confirm no conflicting Route |
+| `www.mawashidz.com` | **522** (not served successfully — §4) | Confirm whether www Custom Domain exists |
+| `*.workers.dev` | `mawashidz-live.hichemazeroual21.workers.dev` = same tip as apex | |
+| Cron | Repo `wrangler.jsonc`: `*/2 * * * *` | Confirm Triggers → Cron in UI (schedule may differ if dashboard overridden) |
+| Queues | None in `wrangler.jsonc` | Confirm no Queue consumers/producers added in UI |
+| Service bindings | None in `wrangler.jsonc` | Confirm Bindings tab |
+| Assets binding | `ASSETS` → `./public` in `wrangler.jsonc` | |
+| Git Builds | Connected (Check Runs on main + feature) | Production branch + deploy/version commands |
+
+### B) `mawashidz-site`
+
+| Surface | Probed evidence | FOUNDER UI still needed |
+|---------|-----------------|-------------------------|
+| Apex / www | No evidence it serves them (apex names `mawashidz-live`) | Confirm **zero** custom domains/routes for production hosts |
+| `mawashidz-site.hichemazeroual21.workers.dev` | HTTP 200 HTML; `/build-info.json` **404** | |
+| `/api/process-email-outbox` | `503 {"error":"email-outbox-secret-required"}` — different secret posture / older gate than live’s `401 unauthorized` | |
+| Cron | Unknown | **Must confirm empty before any delete** |
+| Queues / service bindings | Unknown | Confirm empty |
+| Git Builds | **Connected** — builds on `main` and on every sampled `cursor/*` push | Consider disabling Builds or pinning to unused branch after hygiene fix |
+
+### C) `plain-hat-3f18`
+
+| Surface | Probed evidence | FOUNDER UI still needed |
+|---------|-----------------|-------------------------|
+| Apex / www | No evidence | Confirm no domains/routes |
+| `plain-hat-3f18.hichemazeroual21.workers.dev` | HTTP 200 large HTML (~693KB); `/build-info.json` 404; outbox API **404** | |
+| Git Builds for this repo | **No** `Workers Builds: plain-hat-*` check runs on sampled commits | Likely not linked to this Git repo (or different project name) |
+| Cron / queues / bindings | Unknown | **Must confirm empty before any delete** |
+
+### Deletion rule
+
+**Do not delete** `mawashidz-site` or `plain-hat-3f18` until Domains & Routes + Triggers (cron) + Queue consumers + Service bindings are confirmed empty in UI.
+
+---
+
+## 4) `www.mawashidz.com` → HTTP 522
+
+### Probes
+
+| URL | Result |
+|-----|--------|
+| `https://www.mawashidz.com/` | **522** `error code: 522` |
+| `https://www.mawashidz.com/build-info.json` | **522** |
+| `https://www.mawashidz.com/api/process-email-outbox` | **522** |
+| `http://www.mawashidz.com/` | **522** |
+| `https://mawashidz.com/…` | **200** / Worker responses |
+
+### DNS / TLS
 
 | Item | Evidence |
 |------|----------|
-| Apex `mawashidz.com` | `build-info.worker = mawashidz-live` |
-| `mawashidz-live.hichemazeroual21.workers.dev` | Same build-info as apex |
-| `/api/process-email-outbox` POST | `401 {"error":"unauthorized"}` (secret configured; bearer required) |
-| Cron (repo config) | `wrangler.jsonc` → `*/2 * * * *` (live schedule must be confirmed in Worker Triggers UI) |
-| Custom domain route | **Must be this Worker only** for `mawashidz.com/*` |
+| Apex A | `104.21.77.95`, `172.67.206.117` (Cloudflare proxy) |
+| www A | **Same** Cloudflare anycast addresses (proxied) |
+| Zone NS | `aiden.ns.cloudflare.com`, `harlee.ns.cloudflare.com` |
+| Certificate SAN | `mawashidz.com` + `*.mawashidz.com` (covers www) on both hostnames |
 
-### B) `mawashidz-site` — legacy / non-apex
+### Interpretation (documented, not a config change)
 
-| Item | Evidence |
-|------|----------|
-| `mawashidz-site.hichemazeroual21.workers.dev/` | HTTP 200, HTML site shell (version markers include `v1.10.0`) |
-| `/build-info.json` | **404** (no current build-info artifact) |
-| `/api/process-email-outbox` POST | `503 {"error":"email-outbox-secret-required"}` — different code/secret posture than live |
-| Serves `mawashidz.com`? | **No evidence** — apex build-info names `mawashidz-live` only |
-| Cron | **Unknown without dashboard** — do not delete until Triggers + Domains & Routes show empty |
-| Cleanup posture | Safe to disable Builds / leave idle **after** confirming no custom domains, no routes, no crons |
+Cloudflare edge **terminates TLS** for `www` (cert OK) and is **proxying** the hostname, but returns **522** (connection to origin failed / no workable origin). For a Worker-only site this usually means:
 
-### C) `plain-hat-3f18` — unrelated / stale scaffold?
+- DNS `www` is orange-clouded, **but**
+- **no Worker Custom Domain / Route** is attached for `www.mawashidz.com` (or it points at a dead origin),
 
-| Item | Evidence |
-|------|----------|
-| `plain-hat-3f18.hichemazeroual21.workers.dev/` | HTTP 200, large HTML (~693 KB), not the current modular build-info worker |
-| `/build-info.json` | **404** |
-| `/api/process-email-outbox` | **404** (no outbox route) |
-| Serves `mawashidz.com`? | **No evidence** |
-| Cron / routes | **Unknown without dashboard** — do not delete until confirmed empty |
+while apex **is** attached to `mawashidz-live`.
 
-### Preview versions (same Worker name, not separate Workers)
+**FOUNDER UI checklist for www:**
 
-| Preview URL | build-info |
-|-------------|------------|
-| `cursor-registration-id-integrity-3447-mawashidz-live…` | Same as prod tip `c9d4325` / `14:43Z` (because prod was overwritten) |
-| `cursor-auth-flow-diagnostic-3447-mawashidz-live…` | Older preview: `commit=fbec1f9`, `builtAt=2026-07-26T11:32:25Z` |
+1. DNS → `www` record type (CNAME/`A` flattened) + proxy status.  
+2. `mawashidz-live` → Domains & Routes → is `www.mawashidz.com` listed?  
+3. If missing: add www as Custom Domain on `mawashidz-live` (or redirect www→apex at DNS/Rules).  
+4. Confirm no accidental www route on `mawashidz-site` / external origin.
 
 ---
 
-## 3) Deletion rule (unchanged)
+## 5) Constraints honored
 
-**Do not delete** `mawashidz-site` or `plain-hat-3f18` until Founder confirms in Cloudflare for each:
-
-- [ ] Domains & Routes: no `mawashidz.com` / no other production hostnames  
-- [ ] Triggers: no cron  
-- [ ] No active consumers / no linked Builds promoting traffic  
-
-Document screenshots, then disable Builds → idle observation → delete only with Founder approval.
+- No Worker deleted or modified  
+- No route/DNS/trigger changes applied by agent  
+- No production migration  
+- No merge/deploy from this audit  
 
 ---
 
-## 4) Immediate recommended actions (Founder — config only)
+## Founder actions (config only — after UI confirm)
 
-1. **Re-verify RC#1** Build settings on `mawashidz-live` (table above).  
-2. If non-prod command is `wrangler deploy` → change to `versions upload`.  
-3. Trigger a **production deploy from `main`** so apex returns to `main` tip (today `6b5ca83`) unless Founder explicitly wants the feature branch live.  
-4. Keep `mawashidz.com` route **only** on `mawashidz-live`.  
-5. Inventory cron/routes on `mawashidz-site` + `plain-hat-3f18` before any delete.
-
----
-
-## 5) What this agent could not verify
-
-- Cloudflare dashboard Build branch dropdown / Version command (no API token).  
-- Exact Domains & Routes rows for each Worker.  
-- Cron schedules currently attached in the CF UI (repo declares cron only for `mawashidz-live`).  
-- Whether overwrite was Workers Builds vs manual `wrangler deploy` from a laptop (timing fits Builds after feature push).
+1. Open Builds for `mawashidz-live` + `mawashidz-site`; record Production branch + Deploy vs Version commands (screenshot).  
+2. If non-prod uses `wrangler deploy` → set `npx wrangler versions upload`.  
+3. Redeploy from **`main`** if production must not stay on `c9d4325`.  
+4. Fix **www** (Custom Domain on `mawashidz-live` or redirect).  
+5. Inventory cron/routes on `mawashidz-site` + `plain-hat-3f18` before cleanup.  
 
 ---
 
-## Probe commands (re-run anytime)
+## Re-probe commands
 
 ```bash
 curl -sS https://mawashidz.com/build-info.json
-curl -sS https://mawashidz-live.hichemazeroual21.workers.dev/build-info.json
-git fetch origin main && git rev-parse origin/main
+curl -sS -o /dev/null -w '%{http_code}\n' https://www.mawashidz.com/build-info.json
+git fetch origin main
 git merge-base --is-ancestor "$(curl -sS https://mawashidz.com/build-info.json | jq -r .commit)" origin/main \
-  && echo 'LIVE_ON_MAIN' || echo 'LIVE_NOT_ON_MAIN'
+  && echo LIVE_ON_MAIN || echo LIVE_NOT_ON_MAIN
+gh api repos/hichemazeroual21-star/mawashidz-site/commits/$(curl -sS https://mawashidz.com/build-info.json | jq -r .commit)/check-runs \
+  --jq '.check_runs[] | select(.app.slug=="cloudflare-workers-and-pages") | {name,started_at,summary:.output.summary}'
 ```
