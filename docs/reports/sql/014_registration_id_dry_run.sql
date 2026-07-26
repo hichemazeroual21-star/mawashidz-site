@@ -52,12 +52,12 @@ with classified as (
       lower(coalesce(nullif(btrim(r.status), ''), 'pending')) in ('pending', 'new')
       and r.email is not null
       and btrim(r.email) <> ''
-      and not (lower(r.email) ~ '(example\.com|\.local\b|probe|e2e)')
+      and not (lower(r.email) ~ '(example\.com|\.local\y|probe|e2e)')
     ) as is_real_pending,
     (
       r.email is not null
       and btrim(r.email) <> ''
-      and lower(r.email) ~ '(example\.com|\.local\b|probe|e2e)'
+      and lower(r.email) ~ '(example\.com|\.local\y|probe|e2e)'
     ) as is_test_email
   from public.registrations r
 ),

@@ -108,7 +108,7 @@ as $$
   select
     p_email is not null
     and btrim(p_email) <> ''
-    and lower(p_email) ~ '(example\.com|\.local\b|probe|e2e)';
+    and lower(p_email) ~ '(example\.com|\.local\y|probe|e2e)';
 $$;
 
 revoke all on function public.mdz_is_test_registration_email(text) from public;
@@ -126,7 +126,7 @@ as $$
     and p_email is not null
     and btrim(p_email) <> ''
     and not (
-      lower(p_email) ~ '(example\.com|\.local\b|probe|e2e)'
+      lower(p_email) ~ '(example\.com|\.local\y|probe|e2e)'
     );
 $$;
 
