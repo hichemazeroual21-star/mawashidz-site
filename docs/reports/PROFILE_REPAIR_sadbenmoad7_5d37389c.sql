@@ -96,6 +96,8 @@ declare
   v_registration_id text;
   v_full_name text;
   v_phone text;
+  v_phone_raw text;
+  v_digits text;
   v_wilaya text;
   v_daira text;
   v_commune text;
@@ -169,10 +171,26 @@ begin
   v_first_name := nullif(trim(coalesce(u.raw_user_meta_data ->> 'first_name', '')), '');
   v_last_name := nullif(trim(coalesce(u.raw_user_meta_data ->> 'last_name', '')), '');
 
-  v_phone := public.normalize_algerian_phone(coalesce(
+  v_phone_raw := nullif(trim(coalesce(
     reg.phone,
-    u.raw_user_meta_data ->> 'phone'
-  ));
+    u.raw_user_meta_data ->> 'phone',
+    ''
+  )), '');
+  /* Inline normalize — prod may lack public.normalize_algerian_phone(text). */
+  if v_phone_raw is not null then
+    v_digits := regexp_replace(v_phone_raw, '[^0-9]', '', 'g');
+    if v_digits ~ '^213[567]\d{8}$' then
+      v_phone := '+' || v_digits;
+    elsif v_digits ~ '^0[567]\d{8}$' then
+      v_phone := '+213' || substring(v_digits from 2);
+    elsif v_digits ~ '^[567]\d{8}$' then
+      v_phone := '+213' || v_digits;
+    else
+      v_phone := null;
+    end if;
+  else
+    v_phone := null;
+  end if;
 
   v_wilaya := nullif(trim(coalesce(reg.wilaya, u.raw_user_meta_data ->> 'wilaya', '')), '');
   v_daira := nullif(trim(coalesce(reg.daira, u.raw_user_meta_data ->> 'daira', '')), '');
