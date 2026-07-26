@@ -2344,7 +2344,15 @@ const SUPABASE_REST = `${SUPABASE_URL}/rest/v1`;
 const SUPABASE_AUTH = `${SUPABASE_URL}/auth/v1`;
 const MDZ_SESSION_KEY='mdz_auth_session';
 const MDZ_SITE_URL=()=>`${location.origin}${location.pathname}`;
+const MDZ_ADMIN_ROLES=['admin','founder','super_admin'];
+const MDZ_MANAGER_ROLES=['wilaya_manager','manager','wilaya_mgr'];
+/* Access context belongs to exactly one auth user. Roles/profile from a previous session must
+   never reach admin surfaces, and state stays non-ready while loading or after failure so the
+   chrome fails closed instead of flashing privileged controls. */
 let mdzUserRoles=[];
+let mdzAccountProfile=null;
+let mdzAccessUserId=null;
+let mdzAccessState='idle';
 const ROLE_PREFIX={breeder:'F',vet:'V',feed:'S',buyer:'U',manager:'W',ambassador:'B',partner:'P'};
 function generateMemberId(role){
  const d=new Date(), date=String(d.getFullYear()).slice(-2)+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0');
@@ -2367,7 +2375,12 @@ function saveSession(session){
    user:session.user||null
   };
   localStorage.setItem(MDZ_SESSION_KEY,JSON.stringify(packed));
- }else localStorage.removeItem(MDZ_SESSION_KEY);
+  const nextUserId=session.user?.id||userIdFromAccessToken(session.access_token)||null;
+  if(!nextUserId||(mdzAccessUserId&&mdzAccessUserId!==nextUserId)) clearAccessContext();
+ }else{
+  localStorage.removeItem(MDZ_SESSION_KEY);
+  clearAccessContext();
+ }
  updateAuthChrome();
 }
 function getSession(){try{return JSON.parse(localStorage.getItem(MDZ_SESSION_KEY)||'null')}catch{return null}}
@@ -2442,12 +2455,13 @@ async function fetchMyProfile(token, userId){
  if(!r.ok) throw new Error(t('authErrProfile'));
  const rows=await r.json();return rows[0]||null;
 }
-async function fetchMyRoles(token){
+/* Separates "no roles" from "roles unavailable" so a failed lookup can never be cached as ready. */
+async function fetchMyRolesResult(token){
  try{
   const r=await fetch(`${SUPABASE_REST}/user_roles?select=role`,{headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:`Bearer ${token}`}});
-  if(!r.ok) return [];
-  return (await r.json()).map(x=>String(x.role||'').toLowerCase()).filter(Boolean);
- }catch{return []}
+  if(!r.ok) return {ok:false,roles:[]};
+  return {ok:true,roles:(await r.json()).map(x=>String(x.role||'').toLowerCase()).filter(Boolean)};
+ }catch{return {ok:false,roles:[]}}
 }
 function statusLabelArabic(status){
  const key=({pending:'statusPending',approved:'statusApproved',active:'statusApproved',rejected:'statusRejected',suspended:'statusSuspended'})[String(status||'').toLowerCase()]||'statusPending';
@@ -2818,7 +2832,6 @@ document.getElementById('forgotPasswordBtn')?.addEventListener('click',()=>{
  })();
 });
 
-let mdzAccountProfile=null;
 const accountHelpers=(extra={})=>({safeText,registrationRoleLabel,statusLabel:statusLabelArabic,...extra});
 
 function wireInviteActions(profile){
@@ -3115,10 +3128,9 @@ async function openAccount(){
  const box=document.getElementById('accountContent');
  box.innerHTML=`<div class="notice">${t('accountLoading')}</div>`;
  try{
-  const p=await fetchMyProfile(session.access_token,session.user?.id);
+  await syncAccessContext(session,{force:true});
+  const p=await ensureAccountProfile(session,{force:true});
   if(!p) throw new Error(t('authErrProfileMissing'));
-  mdzAccountProfile=p;
-  mdzUserRoles=await fetchMyRoles(session.access_token);
   const dash=await import('./js/mdz-dashboards.mjs');
   box.innerHTML=dash.renderAccountDashboard(t,p,accountHelpers());
   document.getElementById('logoutBtn').onclick=()=>logoutAccount();
@@ -3172,20 +3184,64 @@ async function refreshAdminDashboard(session, dash){
  await mountOperatorSupport(session,{isAdmin:true});
 }
 
+function sessionUserId(session){
+ return session?.user?.id||userIdFromAccessToken(session?.access_token)||null;
+}
+function clearAccessContext(){
+ mdzUserRoles=[];
+ mdzAccountProfile=null;
+ mdzAccessUserId=null;
+ mdzAccessState='idle';
+}
+function accessContextMatches(session){
+ const uid=sessionUserId(session);
+ return Boolean(uid)&&mdzAccessUserId===uid;
+}
+/* Re-resolves roles for the signed-in user. Any cached roles from another user are dropped first,
+   and a late response from a replaced session is discarded. */
+async function syncAccessContext(session,{force=false}={}){
+ const uid=sessionUserId(session);
+ if(!uid||!session?.access_token){clearAccessContext();updateAuthChrome();return{roles:[],state:'idle'}}
+ if(mdzAccessUserId!==uid) clearAccessContext();
+ if(!force&&mdzAccessState==='ready'&&mdzAccessUserId===uid) return{roles:mdzUserRoles,state:mdzAccessState};
+ mdzAccessUserId=uid;
+ mdzAccessState='loading';
+ mdzUserRoles=[];
+ updateAuthChrome();
+ const result=await fetchMyRolesResult(session.access_token);
+ if(mdzAccessUserId!==uid) return{roles:mdzUserRoles,state:mdzAccessState};
+ mdzUserRoles=result.ok?result.roles:[];
+ mdzAccessState=result.ok?'ready':'failed';
+ updateAuthChrome();
+ return{roles:mdzUserRoles,state:mdzAccessState};
+}
+async function ensureAccountProfile(session,{force=false}={}){
+ const uid=sessionUserId(session);
+ if(!uid||!session?.access_token) return null;
+ if(!force&&mdzAccountProfile&&mdzAccessUserId===uid) return mdzAccountProfile;
+ const profile=await fetchMyProfile(session.access_token,uid);
+ if(mdzAccessUserId&&mdzAccessUserId!==uid) return profile;
+ mdzAccessUserId=uid;
+ mdzAccountProfile=profile;
+ updateAuthChrome();
+ return profile;
+}
+
 async function openManagerDashboard(){
  const recovery=await import('./js/password-recovery.mjs');
  if(recovery.isRecoveryActive()){openResetPasswordModal();return}
  const session=await ensureFreshSession();
  if(!session?.access_token){openLogin();return}
- mdzUserRoles=await fetchMyRoles(session.access_token);
+ await syncAccessContext(session,{force:true});
  const dash=await import('./js/mdz-dashboards.mjs');
- if(!dash.hasManagerAccess(mdzUserRoles, mdzAccountProfile?.role)){showToast(t('dashNoAccess'));return}
+ const boundProfile=await ensureAccountProfile(session,{force:true}).catch(()=>null);
+ if(!dash.hasManagerAccess(mdzUserRoles, boundProfile?.role)){showToast(t('dashNoAccess'));return}
  closeAll();
  document.getElementById('managerDashModal').classList.add('open');
  const box=document.getElementById('managerDashContent');
  box.innerHTML=`<div class="notice">${t('accountLoading')}</div>`;
  try{
-  const profile=mdzAccountProfile||await fetchMyProfile(session.access_token,session.user?.id);
+  const profile=boundProfile||await ensureAccountProfile(session,{force:true});
   await refreshManagerDashboard(session,dash,profile);
  }catch(e){
   console.error('Manager dashboard load failed',e);
@@ -3198,8 +3254,8 @@ async function openAdminDashboard(){
  if(recovery.isRecoveryActive()){openResetPasswordModal();return}
  const session=await ensureFreshSession();
  if(!session?.access_token){openLogin();return}
+ await syncAccessContext(session,{force:true});
  const dash=await import('./js/mdz-dashboards.mjs');
- mdzUserRoles=mdzUserRoles.length?mdzUserRoles:await fetchMyRoles(session.access_token);
  if(!dash.hasAdminAccess(mdzUserRoles)){showToast(t('dashNoAccess'));return}
  closeAll();
  document.getElementById('adminDashModal').classList.add('open');
@@ -3243,11 +3299,18 @@ function updateAuthChrome(){
  }
 }
 function dashRoleFlag(kind){
- if(kind==='admin') return mdzUserRoles.some(r=>['admin','founder','super_admin'].includes(r));
- return mdzUserRoles.some(r=>['wilaya_manager','manager','wilaya_mgr','admin','founder','super_admin'].includes(r))||String(mdzAccountProfile?.role||'').toLowerCase()==='manager';
+ /* Fail closed while roles are pending/failed, or when they belong to another user id. */
+ if(mdzAccessState!=='ready') return false;
+ if(!accessContextMatches(getSession())) return false;
+ const roles=mdzUserRoles||[];
+ if(roles.some(r=>MDZ_ADMIN_ROLES.includes(r))) return true;
+ if(kind==='admin') return false;
+ if(roles.some(r=>MDZ_MANAGER_ROLES.includes(r))) return true;
+ return MDZ_MANAGER_ROLES.includes(String(mdzAccountProfile?.role||'').toLowerCase());
 }
 function logoutAccount(){
- saveSession(null);mdzAccountProfile=null;mdzUserRoles=[];
+ clearAccessContext();
+ saveSession(null);
  try{sessionStorage.removeItem('mdz_password_recovery');localStorage.removeItem('mdz_password_recovery');sessionStorage.removeItem('mdz_expect_recovery');localStorage.removeItem('mdz_expect_recovery')}catch{}
  closeAll();showToast(t('toastLogout'));
  if(location.hash==='#account'||location.hash==='#auth-callback'||location.hash==='#reset-password') history.replaceState(null,'',location.pathname+location.search);
@@ -3904,7 +3967,7 @@ window.addEventListener('DOMContentLoaded',async()=>{
   }else{
     const session=await ensureFreshSession();
     if(session){
-      mdzUserRoles=await fetchMyRoles(session.access_token);
+      await syncAccessContext(session,{force:true});
       await refreshNotifBadge(session);
       const deep=parseAccountDeepTab(location.hash);
       if(deep){mdzAccountDeepTab=deep;await openAccount();}

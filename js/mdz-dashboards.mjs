@@ -35,13 +35,14 @@ export function parseRoles(rows) {
 }
 
 export function hasAdminAccess(roles) {
-  return roles.some((r) => ADMIN_ROLES.has(r));
+  return (roles || []).some((r) => ADMIN_ROLES.has(String(r || '').toLowerCase()));
 }
 
+/** profiles.role accepts every manager spelling used by the backend role vocabulary. */
 export function hasManagerAccess(roles, profileRole) {
   if (hasAdminAccess(roles)) return true;
-  if (roles.some((r) => MANAGER_ROLES.has(r))) return true;
-  return String(profileRole || '').toLowerCase() === 'manager';
+  if ((roles || []).some((r) => MANAGER_ROLES.has(String(r || '').toLowerCase()))) return true;
+  return MANAGER_ROLES.has(String(profileRole || '').toLowerCase());
 }
 
 /** Client-side gate before RPC — server RLS/RPC remains source of truth. */
