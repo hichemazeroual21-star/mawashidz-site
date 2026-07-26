@@ -18,6 +18,10 @@ for (const [label, src] of [
   assert.match(src, /function mdzAuthDiagRecord\(/, `${label}: mdzAuthDiagRecord`);
   assert.match(src, /\[mdz-auth-diag\]/, `${label}: console tag`);
   assert.match(src, /id="mdzAuthDiagPanel"/, `${label}: diag panel`);
+  assert.match(src, /id="mdzAuthDiagToggle"/, `${label}: collapsed toggle`);
+  assert.match(src, /data-expanded="0"/, `${label}: collapsed by default`);
+  assert.match(src, /#mdzAuthDiagPanel\{[^}]*z-index:90/, `${label}: z-index below modal`);
+  assert.match(src, /data-input-focus/, `${label}: auto-hide on input focus`);
   assert.match(src, /mdzAuthDebugFlag\(\)|debug'\)==='1'/, `${label}: ?debug=1 gate`);
   assert.match(src, /r==='founder'/, `${label}: founder gate`);
   assert.match(src, /const step='fetchMyRoles'/, `${label}: fetchMyRoles step`);

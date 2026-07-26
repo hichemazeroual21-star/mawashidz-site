@@ -1122,9 +1122,15 @@ footer .foot a:hover{color:#e2c77e}
 #resetPasswordModal .modal-box{width:min(480px,96vw)}
 .reset-state{margin-top:10px;font-weight:800;min-height:1.2em}
 .reset-state.is-error{color:#8a1f1f}.reset-state.is-ok{color:#0f5a36}
-/* Temporary auth diagnostic panel (founder or ?debug=1) — remove after prod triage */
-#mdzAuthDiagPanel{position:fixed;inset:auto 8px 72px 8px;z-index:99999;max-height:42vh;overflow:auto;background:#0b1f14;color:#e8f5ee;border:1px solid #2f6b4a;border-radius:10px;padding:10px 12px;font:12px/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;box-shadow:0 8px 28px rgba(0,0,0,.35);display:none}
+/* Temporary auth diagnostic panel (founder or ?debug=1) — remove after prod triage.
+   z-index below .modal (1300) so it never covers login/register inputs. Collapsed by default. */
+#mdzAuthDiagPanel{position:fixed;inset:auto auto 76px 8px;z-index:90;max-width:min(420px,calc(100vw - 16px));font:12px/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;display:none;pointer-events:none}
 #mdzAuthDiagPanel[data-open="1"]{display:block}
+#mdzAuthDiagPanel[data-input-focus="1"]{display:none!important}
+#mdzAuthDiagPanel .mdz-auth-diag-toggle{pointer-events:auto;border:1px solid #2f6b4a;border-radius:999px;background:#0b1f14;color:#9fe0bb;font:700 12px/1 system-ui,sans-serif;padding:8px 12px;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.28)}
+#mdzAuthDiagPanel .mdz-auth-diag-shell{pointer-events:auto;display:none;margin-top:8px;max-height:36vh;overflow:auto;background:#0b1f14;color:#e8f5ee;border:1px solid #2f6b4a;border-radius:10px;padding:10px 12px;padding-top:28px;position:relative;box-shadow:0 8px 28px rgba(0,0,0,.35)}
+#mdzAuthDiagPanel[data-expanded="1"] .mdz-auth-diag-shell{display:block}
+#mdzAuthDiagPanel[data-expanded="1"] .mdz-auth-diag-toggle{display:none}
 #mdzAuthDiagPanel h3{margin:0 0 8px;font:700 13px/1.2 system-ui,sans-serif;color:#9fe0bb}
 #mdzAuthDiagPanel .mdz-auth-diag-row{margin:0 0 6px;word-break:break-word}
 #mdzAuthDiagPanel .mdz-auth-diag-close{position:absolute;top:6px;inset-inline-end:8px;background:transparent;border:0;color:#9fe0bb;font-size:18px;line-height:1;cursor:pointer}
@@ -2299,10 +2305,13 @@ body[data-lang]:not([data-lang="ar"]) .hero-title-sub{white-space:normal!importa
  </div>
 </div>
 <div class="toast" id="toast"></div>
-<aside id="mdzAuthDiagPanel" hidden aria-live="polite" data-mdz-auth-diag="1">
-  <button type="button" class="mdz-auth-diag-close" id="mdzAuthDiagClose" aria-label="Close">×</button>
-  <h3>Auth diagnostic (temp)</h3>
-  <div id="mdzAuthDiagBody"></div>
+<aside id="mdzAuthDiagPanel" hidden aria-live="polite" data-mdz-auth-diag="1" data-expanded="0">
+  <button type="button" class="mdz-auth-diag-toggle" id="mdzAuthDiagToggle" aria-expanded="false">diag ▸</button>
+  <div class="mdz-auth-diag-shell" id="mdzAuthDiagShell">
+    <button type="button" class="mdz-auth-diag-close" id="mdzAuthDiagClose" aria-label="Collapse">×</button>
+    <h3>Auth diagnostic (temp)</h3>
+    <div id="mdzAuthDiagBody"></div>
+  </div>
 </aside>
 
 <script>
@@ -2390,6 +2399,7 @@ function mdzAuthDiagRecord(step, error, extra={}){
 function renderAuthDiagPanel(){
  const panel=document.getElementById('mdzAuthDiagPanel');
  const body=document.getElementById('mdzAuthDiagBody');
+ const toggle=document.getElementById('mdzAuthDiagToggle');
  if(!panel||!body) return;
  if(!mdzAuthCanShowDiag()){
   panel.hidden=true;panel.removeAttribute('data-open');return;
@@ -2406,11 +2416,39 @@ function renderAuthDiagPanel(){
   <p class="mdz-auth-diag-row"><strong>fetchMyRoles() raw</strong><br>${rolesRaw.replace(/</g,'&lt;')}</p>
   <p class="mdz-auth-diag-row"><strong>last real error code</strong><br>${String(lastErr).replace(/</g,'&lt;')}</p>
   <p class="mdz-auth-diag-row">roles (memory): ${JSON.stringify(mdzUserRoles)} | debug=${mdzAuthDebugFlag()?'1':'0'}</p>`;
+ /* Keep collapsed-by-default; only flip expanded when user taps toggle. */
+ if(!panel.hasAttribute('data-expanded')) panel.setAttribute('data-expanded','0');
+ const expanded=panel.getAttribute('data-expanded')==='1';
+ if(toggle){toggle.setAttribute('aria-expanded',expanded?'true':'false');toggle.textContent=expanded?'diag ▾':'diag ▸'}
  panel.hidden=false;panel.setAttribute('data-open','1');
 }
-document.getElementById('mdzAuthDiagClose')?.addEventListener('click',()=>{
+function mdzAuthDiagSetExpanded(on){
  const panel=document.getElementById('mdzAuthDiagPanel');
- if(panel){panel.hidden=true;panel.removeAttribute('data-open')}
+ const toggle=document.getElementById('mdzAuthDiagToggle');
+ if(!panel) return;
+ panel.setAttribute('data-expanded',on?'1':'0');
+ if(toggle){toggle.setAttribute('aria-expanded',on?'true':'false');toggle.textContent=on?'diag ▾':'diag ▸'}
+}
+document.getElementById('mdzAuthDiagToggle')?.addEventListener('click',()=>{
+ const panel=document.getElementById('mdzAuthDiagPanel');
+ const next=panel?.getAttribute('data-expanded')!=='1';
+ mdzAuthDiagSetExpanded(next);
+});
+document.getElementById('mdzAuthDiagClose')?.addEventListener('click',()=>{
+ mdzAuthDiagSetExpanded(false);
+});
+/* Auto-hide while typing in form fields so the chip never blocks credentials. */
+document.addEventListener('focusin',(e)=>{
+ const t=e.target;
+ if(!t||!(t.matches?.('input,textarea,select,[contenteditable="true"]'))) return;
+ const panel=document.getElementById('mdzAuthDiagPanel');
+ if(panel) panel.setAttribute('data-input-focus','1');
+});
+document.addEventListener('focusout',(e)=>{
+ const next=e.relatedTarget;
+ if(next&&next.matches?.('input,textarea,select,[contenteditable="true"]')) return;
+ const panel=document.getElementById('mdzAuthDiagPanel');
+ if(panel) panel.removeAttribute('data-input-focus');
 });
 const ROLE_PREFIX={breeder:'F',vet:'V',feed:'S',buyer:'U',manager:'W',ambassador:'B',partner:'P'};
 function generateMemberId(role){

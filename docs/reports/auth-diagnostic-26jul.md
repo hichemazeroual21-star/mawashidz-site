@@ -56,7 +56,7 @@ Visible only if `founder` is in in-memory `mdzUserRoles` **or** `?debug=1`:
 2. **fetchMyRoles() raw** — JSON of last fetch (`ok`, `status`, `rows`, `roles`)  
 3. **last real error code** — `code | status=… | step=… | message`
 
-Close with ×. Cleared on logout (`mdzAuthLastError` / `mdzAuthLastRolesRaw` reset).
+Collapsed by default as a floating **`diag ▸`** toggle (tap to expand). Panel `z-index:90` sits **below** modals (`1300`) and auto-hides while a text input/textarea/select is focused (reappears on blur), so it does not block credential entry on mobile.
 
 ## How to reproduce on production (after this build is deployed by Founder)
 
