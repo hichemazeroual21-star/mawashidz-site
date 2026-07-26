@@ -1,8 +1,35 @@
 -- ============================================================
--- READ-ONLY dry-run for migration 014 (registration_id integrity)
+-- Dry-run for migration 014 (registration_id integrity)
 -- Run in Supabase SQL Editor BEFORE applying 014_*.sql.
--- Preview counts + sample rows only (select statements; no data mutation).
+--
+-- Installs safe JSON helper (idempotent DDL) then classifies rows.
+-- No row mutation on public.registrations.
 -- ============================================================
+
+-- Safe extract (same contract as migration 014) so malformed message never aborts classify.
+create or replace function public.mdz_msg_registration_id(p_message text)
+returns text
+language plpgsql
+immutable
+as $$
+declare
+  extracted text;
+begin
+  if p_message is null or btrim(p_message) = '' then
+    return null;
+  end if;
+  begin
+    extracted := nullif(btrim(coalesce(p_message::jsonb ->> 'registration_id', '')), '');
+  exception when others then
+    return null;
+  end;
+  return extracted;
+end;
+$$;
+
+revoke all on function public.mdz_msg_registration_id(text) from public;
+revoke all on function public.mdz_msg_registration_id(text) from anon, authenticated;
+grant execute on function public.mdz_msg_registration_id(text) to service_role;
 
 -- Classification of every registrations row relative to 014:
 --   already_has_id              → untouched (has non-blank registration_id)
@@ -20,11 +47,7 @@ with classified as (
     r.registration_id,
     r.created_at,
     nullif(btrim(coalesce(r.registration_id, '')), '') is null as missing_id,
-    case
-      when r.message is not null and r.message ~ '^\s*\{' then
-        nullif(btrim(coalesce(r.message::jsonb ->> 'registration_id', '')), '')
-      else null
-    end as msg_registration_id,
+    public.mdz_msg_registration_id(r.message) as msg_registration_id,
     (
       lower(coalesce(nullif(btrim(r.status), ''), 'pending')) in ('pending', 'new')
       and r.email is not null

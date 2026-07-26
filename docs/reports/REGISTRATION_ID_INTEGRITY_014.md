@@ -18,8 +18,11 @@ Does **not** change dashboard logic that hides approve/reject when `registration
 ## Operator apply checklist
 
 1. Confirm SQL Editor project = production MawashiDZ (`fpjvjfgwbfehhcvdirpy`).
-2. Run **dry-run** and review bucket counts + samples.
-3. Founder approval.
-4. Run full `014_registration_id_integrity.sql`.
-5. Re-run dry-run → actionable buckets at 0 for real pending.
-6. Smoke: لوحة الإدارة → `MDZ-REG-…` + Approve/Reject.
+2. Run **backup** `docs/reports/sql/014_pre_apply_backup.sql` (never overwrites existing snapshot).
+3. Run **dry-run** and review bucket counts + samples.
+4. Founder approval.
+5. Run full `014_registration_id_integrity.sql`.
+6. Re-run dry-run → actionable buckets at 0 for real pending.
+7. Smoke: لوحة الإدارة → `MDZ-REG-…` + Approve/Reject.
+
+Rollback (operator only): `docs/reports/sql/014_rollback.sql` — see plan.
