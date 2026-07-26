@@ -123,19 +123,22 @@ assert.match(dry, /already_has_id/);
 assert.match(backup, /create table if not exists public\.registrations_regid_backup_014/i);
 assert.match(backup, /previous_registration_id/);
 assert.match(plan, /014_pre_apply_backup\.sql/);
-assert.match(plan, /Step\s*\*\*0|^\| \*\*0b\*\*/m);
+assert.match(plan, /\|\s*\*\*0\*\*\s*\|\s*Run \*\*backup\*\*/);
 
 // Rollback restores only when safe, then drops objects
 assert.match(rollback, /registrations_regid_backup_014/);
 assert.match(rollback, /profiles/);
 assert.match(rollback, /support_tickets/);
 assert.match(rollback, /reviewed_at/);
+assert.match(rollback, /notifications/);
+assert.match(rollback, /email_outbox/);
 assert.match(rollback, /admin_audit_log/);
 assert.match(rollback, /drop trigger if exists mdz_registrations_assign_registration_id/i);
 assert.match(rollback, /drop function if exists public\.mdz_msg_registration_id/i);
 assert.match(rollback, /drop index if exists public\.registrations_registration_id_uidx/i);
 assert.match(rollback, /drop sequence if exists public\.mdz_registration_id_seq/i);
 assert.match(plan, /Rollback procedure/i);
+assert.match(plan, /\|\s*\*\*0\*\*\s*\|\s*Run \*\*backup\*\*/);
 
 // --- Contract: mdz_msg_registration_id (mirrors SQL helper semantics) ---
 function mdzMsgRegistrationId(pMessage) {

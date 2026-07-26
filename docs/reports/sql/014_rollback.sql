@@ -6,7 +6,8 @@
 --   - row is in backup with previous_registration_id NULL/blank
 --   - status still pending/new (blank treated as pending)
 --   - current registration_id is not referenced by profiles /
---     support tickets / review fields / admin audit payload
+--     support tickets / review fields / notifications /
+--     email_outbox / admin audit / downstream process
 -- Then removes 014 trigger, helpers, unique index, sequence.
 -- Does NOT drop the backup table (kept for audit).
 -- Requires baseline tables from migrations 008/010/012.
@@ -32,6 +33,16 @@ where r.id = b.id
   )
   and r.reviewed_at is null
   and r.reviewed_by is null
+  and not exists (
+    select 1
+    from public.notifications n
+    where n.payload::text like '%' || r.registration_id || '%'
+  )
+  and not exists (
+    select 1
+    from public.email_outbox e
+    where e.payload::text like '%' || r.registration_id || '%'
+  )
   and not exists (
     select 1
     from public.admin_audit_log a

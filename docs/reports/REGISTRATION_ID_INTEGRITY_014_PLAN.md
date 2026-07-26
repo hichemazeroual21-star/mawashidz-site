@@ -47,8 +47,8 @@ Anything else with a missing id is **left untouched** (including unknown future 
 
 | Step | Action | Writes? |
 |------|--------|---------|
-| **0** | Confirm SQL Editor project = production MawashiDZ (`fpjvjfgwbfehhcvdirpy`) | no |
-| **0b** | Run **backup** `014_pre_apply_backup.sql` (creates `registrations_regid_backup_014` if absent; never overwrites) | yes (snapshot table only) |
+| — | Confirm SQL Editor project = production MawashiDZ (`fpjvjfgwbfehhcvdirpy`) | no |
+| **0** | Run **backup** `014_pre_apply_backup.sql` (creates `registrations_regid_backup_014` if absent; never overwrites) | yes (snapshot table only) |
 | 1 | Run **dry-run** `014_registration_id_dry_run.sql` | helper DDL + selects |
 | 2 | Review summary buckets + sample rows + duplicate list | no |
 | 3 | Founder approval | no |
@@ -63,7 +63,7 @@ Anything else with a missing id is **left untouched** (including unknown future 
 3. It restores `registration_id` to NULL **only** when:
    - row is in `registrations_regid_backup_014` with previous id NULL/blank
    - status is still `pending` / `new`
-   - current id is not referenced by `profiles`, `support_tickets`, review columns (`reviewed_at` / `reviewed_by`), or `admin_audit_log`
+   - current id is not referenced by `profiles`, `support_tickets`, review columns (`reviewed_at` / `reviewed_by`), `notifications.payload`, `email_outbox.payload`, or `admin_audit_log`
 4. Then drops trigger, helpers, unique index, and sequence.
 5. Backup table is **kept** for audit.
 6. Re-run dry-run and inspect leftover `backup_rows_still_with_id` (rows skipped as unsafe).
