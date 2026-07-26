@@ -110,14 +110,57 @@ assert.ok(/pending/i.test(sql), 'must target pending/real rows');
 assert.ok(!/drop table/i.test(sql), '014 must not drop tables');
 assert.ok(!/delete from public\.registrations/i.test(sql), '014 must not delete registration rows');
 
-// Dry-run uses helper in CTE; no row DML
-assert.match(dry, /public\.mdz_msg_registration_id\(r\.message\)/);
+// Dry-run is self-contained (no public.mdz_msg_registration_id) + no row DML
+assert.ok(
+  !/public\.mdz_msg_registration_id/i.test(dry),
+  'dry-run must not depend on public.mdz_msg_registration_id before migration apply',
+);
+assert.match(dry, /pg_temp\.mdz_dry_msg_registration_id/i);
+assert.match(dry, /exception when others then\s*return null/is);
 assert.ok(!/^\s*(insert|update|delete|truncate)\b/im.test(dry), 'dry-run must not contain row DML');
-assert.ok(!/\br\.message\s*::jsonb\s*->>\s*'registration_id'/i.test(dry));
 assert.match(dry, /recover_from_message/);
 assert.match(dry, /will_generate/);
 assert.match(dry, /excluded_as_test/);
 assert.match(dry, /already_has_id/);
+
+// CTE scope fix: A/B must not select from bare "enriched" without a statement-local WITH.
+// Preferred pattern: temp view shared by A/B.
+assert.match(dry, /create temporary view mdz_014_dry_run_enriched/i);
+assert.match(dry, /from mdz_014_dry_run_enriched/i);
+{
+  // Strip line comments for statement splitting
+  const dryNoLineComments = dry.replace(/--[^\n]*/g, '');
+  const statements = dryNoLineComments
+    .split(';')
+    .map((s) => s.trim())
+    .filter(Boolean);
+  // Bare SELECT from enriched without a statement-local WITH is the original 42P01 bug.
+  const bareSelectsFromEnriched = statements.filter(
+    (s) => /^\s*select\b/i.test(s) && /\bfrom\s+enriched\b/i.test(s),
+  );
+  for (const stmt of bareSelectsFromEnriched) {
+    assert.match(
+      stmt,
+      /^\s*with\b/i,
+      'SELECT from enriched must include its own WITH (Postgres CTE scope ends at statement)',
+    );
+  }
+  // CREATE VIEW ... AS WITH ... SELECT * FROM enriched is OK (WITH is inside the view body).
+  const viewDefiningEnriched = statements.filter(
+    (s) =>
+      /create\s+temporary\s+view\s+mdz_014_dry_run_enriched/i.test(s) &&
+      /\bwith\b[\s\S]*\benriched\s+as\b/i.test(s) &&
+      /\bfrom\s+enriched\b/i.test(s),
+  );
+  assert.equal(viewDefiningEnriched.length, 1, 'temp view must define enriched CTE once');
+  const selectsFromTempView = statements.filter(
+    (s) => /^\s*select\b/i.test(s) && /\bfrom\s+mdz_014_dry_run_enriched\b/i.test(s),
+  );
+  assert.ok(
+    selectsFromTempView.length >= 2,
+    'queries A and B must both read mdz_014_dry_run_enriched',
+  );
+}
 
 // Backup never overwrites
 assert.match(backup, /create table if not exists public\.registrations_regid_backup_014/i);

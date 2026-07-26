@@ -2,15 +2,16 @@
 -- Dry-run for migration 014 (registration_id integrity)
 -- Run in Supabase SQL Editor BEFORE applying 014_*.sql.
 --
--- Installs safe JSON helper (idempotent DDL) then classifies rows.
+-- Self-contained preview:
+--   - session-local JSON helper (pg_temp) — does NOT require migration 014
+--   - temp view so queries A/B share classification without CTE scope bugs
 -- No row mutation on public.registrations.
 -- ============================================================
 
--- Safe extract (same contract as migration 014) so malformed message never aborts classify.
-create or replace function public.mdz_msg_registration_id(p_message text)
+-- Session-local safe extract (malformed JSON → NULL). Not public schema.
+create or replace function pg_temp.mdz_dry_msg_registration_id(p_message text)
 returns text
 language plpgsql
-immutable
 as $$
 declare
   extracted text;
@@ -27,10 +28,6 @@ begin
 end;
 $$;
 
-revoke all on function public.mdz_msg_registration_id(text) from public;
-revoke all on function public.mdz_msg_registration_id(text) from anon, authenticated;
-grant execute on function public.mdz_msg_registration_id(text) to service_role;
-
 -- Classification of every registrations row relative to 014:
 --   already_has_id              → untouched (has non-blank registration_id)
 --   recover_from_message        → real pending, missing id, valid MDZ-REG-* in message, free
@@ -38,7 +35,10 @@ grant execute on function public.mdz_msg_registration_id(text) to service_role;
 --   excluded_as_test            → missing id + test email markers
 --   missing_not_eligible        → missing id but NOT real-pending (wrong status / blank email)
 --   recover_blocked_collision   → would recover from message but value already used elsewhere
-
+--
+-- Temp view keeps A/B in the same classification scope (WITH alone ends at statement A).
+drop view if exists mdz_014_dry_run_enriched;
+create temporary view mdz_014_dry_run_enriched as
 with classified as (
   select
     r.id,
@@ -47,7 +47,7 @@ with classified as (
     r.registration_id,
     r.created_at,
     nullif(btrim(coalesce(r.registration_id, '')), '') is null as missing_id,
-    public.mdz_msg_registration_id(r.message) as msg_registration_id,
+    pg_temp.mdz_dry_msg_registration_id(r.message) as msg_registration_id,
     (
       lower(coalesce(nullif(btrim(r.status), ''), 'pending')) in ('pending', 'new')
       and r.email is not null
@@ -104,6 +104,7 @@ enriched as (
     end as bucket
   from classified c
 )
+select * from enriched;
 
 -- A) Summary counts (review these before any UPDATE)
 select
@@ -114,9 +115,9 @@ select
   count(*) filter (where bucket = 'missing_not_eligible') as missing_not_eligible_untouched,
   count(*) filter (where bucket = 'already_has_id') as already_has_id_untouched,
   count(*) as total_rows
-from enriched;
+from mdz_014_dry_run_enriched;
 
--- B) Sample rows per actionable / excluded bucket (max 20 each)
+-- B) Sample rows per actionable / excluded bucket
 select
   bucket,
   id,
@@ -125,7 +126,7 @@ select
   registration_id as current_registration_id,
   msg_registration_id,
   created_at
-from enriched
+from mdz_014_dry_run_enriched
 where bucket in (
   'recover_from_message',
   'will_generate',

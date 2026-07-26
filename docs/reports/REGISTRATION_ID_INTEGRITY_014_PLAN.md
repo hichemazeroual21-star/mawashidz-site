@@ -49,7 +49,7 @@ Anything else with a missing id is **left untouched** (including unknown future 
 |------|--------|---------|
 | — | Confirm SQL Editor project = production MawashiDZ (`fpjvjfgwbfehhcvdirpy`) | no |
 | **0** | Run **backup** `014_pre_apply_backup.sql` (creates `registrations_regid_backup_014` if absent; never overwrites) | yes (snapshot table only) |
-| 1 | Run **dry-run** `014_registration_id_dry_run.sql` | helper DDL + selects |
+| 1 | Run **dry-run** `014_registration_id_dry_run.sql` | session temp helper/view + selects (no public DDL) |
 | 2 | Review summary buckets + sample rows + duplicate list | no |
 | 3 | Founder approval | no |
 | 4 | Run full `014_registration_id_integrity.sql` | yes |
