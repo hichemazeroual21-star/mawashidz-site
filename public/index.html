@@ -3158,31 +3158,70 @@ function parseAccountDeepTab(hash){
 }
 
 let mdzDashReviewDisposer=null;
-async function refreshManagerDashboard(session, dash, profile){
- const box=document.getElementById('managerDashContent');
- if(!box) return;
- const data=await dash.loadManagerData(session.access_token,SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY,profile?.wilaya);
- box.innerHTML=dash.renderManagerDashboard(t,{wilaya:profile?.wilaya,rows:data.rows,source:data.source,safeText,registrationRoleLabel});
- if(mdzDashReviewDisposer) mdzDashReviewDisposer();
- mdzDashReviewDisposer=dash.wireDashboardReviewActions(box,{
-  t, token:session.access_token, restUrl:SUPABASE_REST, apiKey:SUPABASE_PUBLISHABLE_KEY,
-  roles:mdzUserRoles, actorWilaya:profile?.wilaya, asAdmin:false, profileRole:profile?.role,
-  onDone:async()=>{await refreshManagerDashboard(session,dash,profile)},
+function invalidatePrivilegedSurfaces(){
+ if(mdzDashReviewDisposer){try{mdzDashReviewDisposer()}catch{}mdzDashReviewDisposer=null}
+ ['managerDashModal','adminDashModal'].forEach(id=>document.getElementById(id)?.classList.remove('open'));
+ ['managerDashContent','adminDashContent'].forEach(id=>{
+  const box=document.getElementById(id);if(box) box.replaceChildren();
  });
- await mountOperatorSupport(session,{isAdmin:false});
 }
-async function refreshAdminDashboard(session, dash){
- const box=document.getElementById('adminDashContent');
- if(!box) return;
- const data=await dash.loadAdminData(session.access_token,SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY);
- box.innerHTML=dash.renderAdminDashboard(t,{stats:data.stats,rows:data.rows,source:data.source,safeText,registrationRoleLabel});
+function privilegedAccessSnapshot(session,access){
+ return {
+  session,
+  userId:access?.userId||sessionUserId(session),
+  epoch:access?.epoch??mdzAccessEpoch,
+  roles:Array.isArray(access?.roles)?access.roles.slice():[],
+ };
+}
+function privilegedAccessCurrent(snapshot){
+ return Boolean(snapshot)&&mdzAccessState==='ready'
+  && accessContextCurrent(snapshot.session,snapshot.userId,snapshot.epoch);
+}
+async function refreshManagerDashboard(session, dash, profile, access){
+ const snapshot=privilegedAccessSnapshot(session,access);
+ if(!privilegedAccessCurrent(snapshot)) return false;
+ const box=document.getElementById('managerDashContent');
+ if(!box) return false;
+ const data=await dash.loadManagerData(session.access_token,SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY,profile?.wilaya);
+ if(!privilegedAccessCurrent(snapshot)) return false;
+ box.innerHTML=dash.renderManagerDashboard(t,{wilaya:profile?.wilaya,rows:data.rows,source:data.source,safeText,registrationRoleLabel});
+ if(!privilegedAccessCurrent(snapshot)){box.replaceChildren();return false}
  if(mdzDashReviewDisposer) mdzDashReviewDisposer();
  mdzDashReviewDisposer=dash.wireDashboardReviewActions(box,{
   t, token:session.access_token, restUrl:SUPABASE_REST, apiKey:SUPABASE_PUBLISHABLE_KEY,
-  roles:mdzUserRoles, actorWilaya:null, asAdmin:true, profileRole:mdzAccountProfile?.role,
-  onDone:async()=>{await refreshAdminDashboard(session,dash)},
+  roles:snapshot.roles, actorWilaya:profile?.wilaya, asAdmin:false, profileRole:profile?.role,
+  isAccessCurrent:()=>privilegedAccessCurrent(snapshot),
+  onDone:async()=>{
+   if(!privilegedAccessCurrent(snapshot)) return;
+   await refreshManagerDashboard(session,dash,profile,snapshot);
+  },
  });
+ if(!privilegedAccessCurrent(snapshot)){invalidatePrivilegedSurfaces();return false}
+ await mountOperatorSupport(session,{isAdmin:false});
+ return privilegedAccessCurrent(snapshot);
+}
+async function refreshAdminDashboard(session, dash, access){
+ const snapshot=privilegedAccessSnapshot(session,access);
+ if(!privilegedAccessCurrent(snapshot)) return false;
+ const box=document.getElementById('adminDashContent');
+ if(!box) return false;
+ const data=await dash.loadAdminData(session.access_token,SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY);
+ if(!privilegedAccessCurrent(snapshot)) return false;
+ box.innerHTML=dash.renderAdminDashboard(t,{stats:data.stats,rows:data.rows,source:data.source,safeText,registrationRoleLabel});
+ if(!privilegedAccessCurrent(snapshot)){box.replaceChildren();return false}
+ if(mdzDashReviewDisposer) mdzDashReviewDisposer();
+ mdzDashReviewDisposer=dash.wireDashboardReviewActions(box,{
+  t, token:session.access_token, restUrl:SUPABASE_REST, apiKey:SUPABASE_PUBLISHABLE_KEY,
+  roles:snapshot.roles, actorWilaya:null, asAdmin:true, profileRole:null,
+  isAccessCurrent:()=>privilegedAccessCurrent(snapshot),
+  onDone:async()=>{
+   if(!privilegedAccessCurrent(snapshot)) return;
+   await refreshAdminDashboard(session,dash,snapshot);
+  },
+ });
+ if(!privilegedAccessCurrent(snapshot)){invalidatePrivilegedSurfaces();return false}
  await mountOperatorSupport(session,{isAdmin:true});
+ return privilegedAccessCurrent(snapshot);
 }
 
 function sessionUserId(session){
@@ -3191,6 +3230,7 @@ function sessionUserId(session){
 function clearAccessContext(){
  /* Bumping the epoch invalidates every in-flight roles/profile response. */
  mdzAccessEpoch+=1;
+ invalidatePrivilegedSurfaces();
  mdzUserRoles=[];
  mdzAccountProfile=null;
  mdzAccessUserId=null;
@@ -3215,6 +3255,9 @@ async function syncAccessContext(session,{force=false}={}){
  if(!uid||!session?.access_token){clearAccessContext();updateAuthChrome();return{roles:[],state:'idle',userId:null,epoch:mdzAccessEpoch}}
  if(mdzAccessUserId!==uid) clearAccessContext();
  if(!force&&mdzAccessState==='ready'&&mdzAccessUserId===uid) return{roles:mdzUserRoles.slice(),state:'ready',userId:uid,epoch:mdzAccessEpoch};
+ /* A forced revalidation revokes the currently rendered privileged surface until roles
+    resolve again, even when the user id did not change. */
+ invalidatePrivilegedSurfaces();
  mdzAccessUserId=uid;
  mdzAccessState='loading';
  mdzUserRoles=[];
@@ -3261,8 +3304,9 @@ async function openManagerDashboard(){
  try{
   const profile=boundProfile||await ensureAccountProfile(session,{force:true});
   if(!accessContextCurrent(session,access.userId,access.epoch)){closeModal('managerDashModal');showToast(t('dashNoAccess'));return}
-  await refreshManagerDashboard(session,dash,profile);
+  await refreshManagerDashboard(session,dash,profile,access);
  }catch(e){
+  if(!accessContextCurrent(session,access.userId,access.epoch)) return;
   console.error('Manager dashboard load failed',e);
   box.innerHTML=`<div class="dash-hero manager"><h3>${t('mgrDashTitle')}</h3><div class="notice is-error" style="margin-top:12px">${t('dashLoadFailed')}</div></div>`;
  }
@@ -3283,8 +3327,9 @@ async function openAdminDashboard(){
  const box=document.getElementById('adminDashContent');
  box.innerHTML=`<div class="notice">${t('accountLoading')}</div>`;
  try{
-  await refreshAdminDashboard(session,dash);
+  await refreshAdminDashboard(session,dash,access);
  }catch(e){
+  if(!accessContextCurrent(session,access.userId,access.epoch)) return;
   console.error('Admin dashboard load failed',e);
   box.innerHTML=`<div class="dash-hero admin"><h3>${t('adminDashTitle')}</h3><div class="notice is-error" style="margin-top:12px">${t('dashLoadFailed')}</div></div>`;
  }
@@ -3337,6 +3382,11 @@ function logoutAccount(){
  if(location.hash==='#account'||location.hash==='#auth-callback'||location.hash==='#reset-password') history.replaceState(null,'',location.pathname+location.search);
 }
 window.logoutAccount=logoutAccount;
+window.addEventListener('storage',(event)=>{
+ if(event.key!==MDZ_SESSION_KEY) return;
+ clearAccessContext();
+ updateAuthChrome();
+});
 
 function parseAuthRedirect(){
  const hash=location.hash.startsWith('#')?location.hash.slice(1):'';

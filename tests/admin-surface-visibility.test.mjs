@@ -78,6 +78,8 @@ function sessionFor(userId) {
  * @param {number}      cfg.rolesDelayMs artificial latency for user_roles
  * @param {object|null} cfg.profile      profiles row
  * @param {number}      cfg.profileDelayMs artificial latency for profiles
+ * @param {object[]}    cfg.registrationsRows rows returned to dashboard loaders
+ * @param {number}      cfg.registrationsDelayMs artificial latency for registrations
  */
 async function openApp(cfg) {
   const state = {
@@ -86,8 +88,11 @@ async function openApp(cfg) {
     rolesDelayMs: cfg.rolesDelayMs ?? 0,
     profile: cfg.profile ?? null,
     profileDelayMs: cfg.profileDelayMs ?? 0,
+    registrationsRows: cfg.registrationsRows || [],
+    registrationsDelayMs: cfg.registrationsDelayMs ?? 0,
     rolesRequests: 0,
     profileRequests: 0,
+    registrationsRequests: 0,
   };
   const page = await browser.newPage();
   page.on('pageerror', (e) => console.log(`PAGEERROR: ${e.message}`));
@@ -112,7 +117,11 @@ async function openApp(cfg) {
         if (state.profileDelayMs) await new Promise((r) => setTimeout(r, state.profileDelayMs));
         return json(state.profile ? [state.profile] : []);
       }
-      if (url.includes('/rest/v1/registrations')) return json([]);
+      if (url.includes('/rest/v1/registrations')) {
+        state.registrationsRequests += 1;
+        if (state.registrationsDelayMs) await new Promise((r) => setTimeout(r, state.registrationsDelayMs));
+        return json(state.registrationsRows);
+      }
       if (url.includes('/auth/v1/token')) return json({ ...sessionFor(cfg.userId || 'u'), token_type: 'bearer' });
       return json([]);
     }
@@ -429,6 +438,106 @@ for (const role of ['admin', 'founder', 'super_admin']) {
   await page.close();
 }
 
+// 12) already-rendered privileged surface is invalidated immediately on account switch
+{
+  const row = {
+    registration_id: 'MDZ-REG-2026-000777',
+    full_name: 'Rendered Admin Row',
+    role: 'breeder',
+    user_type: 'breeder',
+    wilaya: 'الجزائر',
+    status: 'pending',
+    created_at: '2026-07-26T00:00:00Z',
+  };
+  const { page, state } = await loadApp({
+    userId: 'admin-rendered',
+    roles: ['admin'],
+    profile: { id: 'admin-rendered', role: 'buyer' },
+    registrationsRows: [row],
+  });
+  await settle(page, 700);
+  await page.evaluate(() => {
+    const original = EventTarget.prototype.removeEventListener;
+    window.__adminReviewRemovals = 0;
+    EventTarget.prototype.removeEventListener = function patchedRemove(type, handler, options) {
+      if (this.id === 'adminDashContent' && type === 'click') window.__adminReviewRemovals += 1;
+      return original.call(this, type, handler, options);
+    };
+    window.openAdminDashboard();
+  });
+  await page.waitForSelector('#adminDashContent [data-review-action]', { timeout: 5000 });
+  const opened = await surfaces(page);
+  check('rendered-switch: admin modal opened and data rendered', opened.adminModalOpen === true);
+  state.roles = [];
+  state.profile = { id: 'member-rendered', role: 'breeder' };
+  await page.evaluate((s) => window.saveSession(s), sessionFor('member-rendered'));
+  const invalidated = await page.evaluate(() => ({
+    open: document.getElementById('adminDashModal').classList.contains('open'),
+    children: document.getElementById('adminDashContent').childElementCount,
+    text: document.getElementById('adminDashContent').textContent,
+    removals: window.__adminReviewRemovals,
+  }));
+  check('rendered-switch: modal closes immediately', invalidated.open === false);
+  check('rendered-switch: content clears immediately', invalidated.children === 0 && invalidated.text === '');
+  check('rendered-switch: review handler disposed', invalidated.removals >= 1, `removals=${invalidated.removals}`);
+  await page.close();
+}
+
+// 13) delayed registrations response cannot repaint after a manager → member switch
+{
+  const delayedRow = {
+    registration_id: 'MDZ-REG-2026-000888',
+    full_name: 'Stale Delayed Row',
+    role: 'breeder',
+    user_type: 'breeder',
+    wilaya: 'عنابة',
+    status: 'pending',
+    created_at: '2026-07-26T00:00:00Z',
+  };
+  const { page, state } = await loadApp({
+    userId: 'mgr-delayed-data',
+    roles: ['wilaya_manager'],
+    profile: { id: 'mgr-delayed-data', role: 'manager', wilaya: 'عنابة' },
+    registrationsRows: [delayedRow],
+    registrationsDelayMs: 1600,
+  });
+  await settle(page, 700);
+  await page.evaluate(() => {
+    const original = EventTarget.prototype.addEventListener;
+    window.__managerReviewAdds = 0;
+    EventTarget.prototype.addEventListener = function patchedAdd(type, handler, options) {
+      if (this.id === 'managerDashContent' && type === 'click') window.__managerReviewAdds += 1;
+      return original.call(this, type, handler, options);
+    };
+    window.openManagerDashboard();
+  });
+  for (let i = 0; i < 30 && state.registrationsRequests < 1; i += 1) await settle(page, 50);
+  const loading = await surfaces(page);
+  check('delayed-data-switch: modal opens while registrations are pending', loading.managerModalOpen === true);
+  check('delayed-data-switch: registrations request is in flight', state.registrationsRequests === 1);
+  state.roles = [];
+  state.profile = { id: 'member-after-delay', role: 'breeder', wilaya: 'سطيف' };
+  state.registrationsDelayMs = 0;
+  await page.evaluate((s) => window.saveSession(s), sessionFor('member-after-delay'));
+  const immediate = await page.evaluate(() => ({
+    open: document.getElementById('managerDashModal').classList.contains('open'),
+    children: document.getElementById('managerDashContent').childElementCount,
+  }));
+  check('delayed-data-switch: modal closes immediately', immediate.open === false);
+  check('delayed-data-switch: loading content clears immediately', immediate.children === 0);
+  await settle(page, 2100);
+  const after = await page.evaluate(() => ({
+    open: document.getElementById('managerDashModal').classList.contains('open'),
+    children: document.getElementById('managerDashContent').childElementCount,
+    text: document.getElementById('managerDashContent').textContent,
+    reviewAdds: window.__managerReviewAdds,
+  }));
+  check('delayed-data-switch: stale response cannot reopen modal', after.open === false);
+  check('delayed-data-switch: stale response renders nothing', after.children === 0 && !after.text.includes('Stale Delayed Row'));
+  check('delayed-data-switch: stale response wires no review handler', after.reviewAdds === 0, `adds=${after.reviewAdds}`);
+  await page.close();
+}
+
 // ---------------------------------------------------------------------------
 // Shared role vocabulary (frontend ↔ backend helper module)
 // ---------------------------------------------------------------------------
@@ -449,6 +558,27 @@ assert.match(html, /await syncAccessContext\(session,\{force:true\}\);\s*\n\s*aw
 assert.ok(!/mdzUserRoles=mdzUserRoles\.length\?mdzUserRoles:/.test(html), 'admin dashboard must not reuse non-empty role cache');
 assert.match(html, /function accessContextCurrent\(session,uid,epoch\)/, 'epoch-guarded context check required');
 assert.match(html, /mdzAccessEpoch\+=1;/, 'clearing the context must invalidate in-flight responses');
+assert.match(html, /function invalidatePrivilegedSurfaces\(\)/, 'privileged surface invalidator required');
+assert.match(
+  html,
+  /function clearAccessContext\(\)\{[\s\S]*?invalidatePrivilegedSurfaces\(\);/,
+  'every access-context clear must invalidate rendered privileged surfaces',
+);
+assert.match(
+  html,
+  /const data=await dash\.loadAdminData[\s\S]*?if\(!privilegedAccessCurrent\(snapshot\)\) return false;[\s\S]*?box\.innerHTML=/,
+  'admin refresh must revalidate after data and before render',
+);
+assert.match(
+  html,
+  /const data=await dash\.loadManagerData[\s\S]*?if\(!privilegedAccessCurrent\(snapshot\)\) return false;[\s\S]*?box\.innerHTML=/,
+  'manager refresh must revalidate after data and before render',
+);
+assert.match(
+  html,
+  /isAccessCurrent:\(\)=>privilegedAccessCurrent\(snapshot\)/,
+  'review handlers must retain the access snapshot guard',
+);
 for (const fn of ['openManagerDashboard', 'openAdminDashboard']) {
   const body = html.match(new RegExp(`async function ${fn}\\(\\)\\{[\\s\\S]*?\\n\\}`))?.[0] || '';
   assert.match(body, /const access=await syncAccessContext/, `${fn} must capture the access result locally`);
