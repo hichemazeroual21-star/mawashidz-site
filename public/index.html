@@ -3297,7 +3297,19 @@ async function openManagerDashboard(){
  /* profiles.role may only extend access once the role lookup itself succeeded. */
  if(access.state!=='ready'||!accessContextCurrent(session,access.userId,access.epoch)){showToast(t('dashNoAccess'));return}
  const dash=await import('./js/mdz-dashboards.mjs');
- const boundProfile=await ensureAccountProfile(session,{force:true}).catch(()=>null);
+ let boundProfile=null;
+ try{
+  boundProfile=await ensureAccountProfile(session,{force:true});
+ }catch(err){
+  console.error('ensureAccountProfile failed for manager dashboard',err);
+  boundProfile=null;
+ }
+ /* Prefer a freshly resolved profile; if the lookup threw or returned null while the
+    session is still bound to this user, reuse the in-memory profile instead of swallowing
+    the failure into a silent null that would skip wilaya fail-closed incorrectly. */
+ if(!boundProfile && accessContextMatches(session) && mdzAccountProfile){
+  boundProfile=mdzAccountProfile;
+ }
  if(!accessContextCurrent(session,access.userId,access.epoch)){showToast(t('dashNoAccess'));return}
  if(!dash.hasManagerAccess(access.roles, boundProfile?.role)){showToast(t('dashNoAccess'));return}
  /* Fail closed before open/fetch: manager surfaces require a resolved wilaya on the bound profile. */

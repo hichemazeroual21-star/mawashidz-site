@@ -88,6 +88,7 @@ async function openApp(cfg) {
     rolesDelayMs: cfg.rolesDelayMs ?? 0,
     profile: cfg.profile ?? null,
     profileDelayMs: cfg.profileDelayMs ?? 0,
+    profileStatus: cfg.profileStatus ?? 200,
     registrationsRows: cfg.registrationsRows || [],
     registrationsDelayMs: cfg.registrationsDelayMs ?? 0,
     rolesRequests: 0,
@@ -116,6 +117,7 @@ async function openApp(cfg) {
       if (url.includes('/rest/v1/profiles')) {
         state.profileRequests += 1;
         if (state.profileDelayMs) await new Promise((r) => setTimeout(r, state.profileDelayMs));
+        if (state.profileStatus !== 200) return json({ message: 'profile unavailable' }, state.profileStatus);
         return json(state.profile ? [state.profile] : []);
       }
       if (url.includes('/rest/v1/registrations')) {
@@ -763,6 +765,50 @@ function anyUnscopedRegistrations(urls) {
   await page.close();
 }
 
+// 16) profile lookup throw falls back to in-memory profile (no silent .catch(()=>null))
+{
+  const wilaya = 'بسكرة';
+  const userId = 'mgr-profile-fallback';
+  const { page, state } = await loadApp({
+    userId,
+    roles: ['wilaya_manager'],
+    profile: { id: userId, role: 'manager', wilaya, member_id: 'MDZ-W-000099', status: 'approved' },
+    registrationsRows: [{
+      registration_id: 'MDZ-REG-2026-FALLBACK',
+      full_name: 'Fallback Row',
+      role: 'breeder',
+      user_type: 'breeder',
+      wilaya,
+      status: 'pending',
+      created_at: '2026-07-27T00:00:00Z',
+    }],
+  });
+  await settle(page, 700);
+  await page.evaluate(async () => { await window.openAccount(); });
+  await settle(page, 900);
+  // Next ensureAccountProfile force-refetch will throw; in-memory profile must remain usable.
+  state.profileStatus = 500;
+  state.registrationsRequests = 0;
+  state.registrationsUrls = [];
+  await page.evaluate(async () => { await window.openManagerDashboard(); });
+  await settle(page, 1200);
+  const after = await page.evaluate(() => ({
+    open: document.getElementById('managerDashModal').classList.contains('open'),
+    text: document.getElementById('managerDashContent')?.textContent || '',
+  }));
+  check(
+    'profile-fallback: manager opens using in-memory wilaya after profile fetch error',
+    after.open === true && after.text.includes(wilaya) && !after.text.includes('يُحدد لاحقًا'),
+    `open=${after.open} text=${JSON.stringify(after.text.slice(0, 180))}`,
+  );
+  check(
+    'profile-fallback: registrations URL stays wilaya-scoped',
+    allRegistrationsScopedByWilaya(state.registrationsUrls),
+    `requests=${state.registrationsRequests} urls=${JSON.stringify(state.registrationsUrls)}`,
+  );
+  await page.close();
+}
+
 // ---------------------------------------------------------------------------
 // Shared role vocabulary (frontend ↔ backend helper module)
 // ---------------------------------------------------------------------------
@@ -811,6 +857,15 @@ for (const fn of ['openManagerDashboard', 'openAdminDashboard']) {
   assert.match(body, /accessContextCurrent\(session,access\.userId,access\.epoch\)/, `${fn} must revalidate the context`);
   assert.ok(!/\bmdzUserRoles\b/.test(body), `${fn} must gate on local access.roles, not the global cache`);
 }
+assert.ok(
+  !/ensureAccountProfile\(session,\{force:true\}\)\.catch\(\(\)=>null\)/.test(html),
+  'manager profile bind must not use silent .catch(()=>null)',
+);
+assert.match(
+  html,
+  /reuse the in-memory profile instead of swallowing/,
+  'manager profile bind must document in-memory fallback',
+);
 assert.match(
   html,
   /Fail closed before open\/fetch: manager surfaces require a resolved wilaya/,
