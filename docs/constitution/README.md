@@ -29,6 +29,7 @@
 
 | Document | Role |
 |----------|------|
+| [../product-roadmap/README.md](../product-roadmap/README.md) | Arabic-first guided reading path — summarizes and cross-links; **not authoritative** |
 | [../product/PRODUCT_CONSTITUTION.md](../product/PRODUCT_CONSTITUTION.md) | Smart Workspace / Hub mechanics detail |
 | [../product/ROADMAP.md](../product/ROADMAP.md) | Phase 1 track detail — sequencing yields to constitution ROADMAP |
 | [archive/](./archive/) | Historical reviews — **not authoritative** |

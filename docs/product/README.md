@@ -1,6 +1,6 @@
 # MawashiDZ — Product documentation library
 
-**Last updated:** 2026-07-23
+**Last updated:** 2026-07-27
 
 This folder is the **official product reference** for MawashiDZ: member operations, constitution, decisions, roadmap, and shared vocabulary. Engineering ADRs (e.g. member ID allocation) live under `docs/adr/`; **product direction and workspace philosophy** live here.
 
@@ -41,8 +41,9 @@ Constitution-only versions: see [PRODUCT_CONSTITUTION.md#version-history](./PROD
 | **[MEMBER_OPERATIONS_AND_COMMUNICATION.md](./MEMBER_OPERATIONS_AND_COMMUNICATION.md)** | **Phase 1 umbrella** — sections & delivery tracks (not one mega-PR) |
 | **[MEMBER_OPERATIONS.md](./MEMBER_OPERATIONS.md)** | Sections 1–5: review, **admin operations**, recovery, email, notifications |
 | **[SUPPORT_AND_MESSAGES_CENTER.md](./SUPPORT_AND_MESSAGES_CENTER.md)** | Section 6 / track **E** — tickets & messaging |
-| **[PRODUCT_CONSTITUTION.md](./PRODUCT_CONSTITUTION.md)** | **Highest vision** — Smart Workspace & Hub (**Phase 2** on roadmap) |
-| **[ROADMAP.md](./ROADMAP.md)** | Phase 1 (Member Ops & Communication) → Phase 2 (Hub) |
+| **[PRODUCT_CONSTITUTION.md](./PRODUCT_CONSTITUTION.md)** | Smart Workspace & Hub mechanics — subordinate; canonical **Phase 4** |
+| **[ROADMAP.md](./ROADMAP.md)** | Phase 1 delivery detail — sequencing yields to the constitution roadmap |
+| **[../product-roadmap/README.md](../product-roadmap/README.md)** | Arabic-first guided roadmap book — explanatory, not an SSOT |
 | **[PRODUCT_DECISIONS/](./PRODUCT_DECISIONS/)** | Product Decision Records (PDR) |
 | **[GLOSSARY.md](./GLOSSARY.md)** | Terms (Admin Operations, Support & Messages Center, …) |
 
@@ -66,9 +67,10 @@ When in doubt: ask *which workspace benefits?* (constitution design gate) and ch
 ## Recommended reading order
 
 1. **This README** — scope and ownership  
-2. **[MEMBER_OPERATIONS_AND_COMMUNICATION.md](./MEMBER_OPERATIONS_AND_COMMUNICATION.md)** — Phase 1 umbrella  
-3. **[MEMBER_OPERATIONS.md](./MEMBER_OPERATIONS.md)** + **[SUPPORT_AND_MESSAGES_CENTER.md](./SUPPORT_AND_MESSAGES_CENTER.md)** — section detail  
-4. **[PRODUCT_CONSTITUTION.md](./PRODUCT_CONSTITUTION.md)** — Hub (roadmap Phase 2)  
+2. **[../product-roadmap/README.md](../product-roadmap/README.md)** — guided overview and QR/offline proposal boundaries
+3. **[MEMBER_OPERATIONS_AND_COMMUNICATION.md](./MEMBER_OPERATIONS_AND_COMMUNICATION.md)** — Phase 1 umbrella
+4. **[MEMBER_OPERATIONS.md](./MEMBER_OPERATIONS.md)** + **[SUPPORT_AND_MESSAGES_CENTER.md](./SUPPORT_AND_MESSAGES_CENTER.md)** — section detail
+5. **[PRODUCT_CONSTITUTION.md](./PRODUCT_CONSTITUTION.md)** — Hub mechanics (canonical roadmap Phase 4)
 
 For registration, Auth, and production recovery, also read `docs/REGISTRATION_FLOW_AUDIT.md`, `docs/PRODUCTION_RECOVERY_MANIFEST.md`, and applicable `docs/adr/` entries.
 
@@ -90,4 +92,5 @@ For registration, Auth, and production recovery, also read `docs/REGISTRATION_FL
 - Constitution: [PRODUCT_CONSTITUTION.md](./PRODUCT_CONSTITUTION.md)  
 - PDR index: [PRODUCT_DECISIONS/PDR-001.md](./PRODUCT_DECISIONS/PDR-001.md) … [PDR-005](./PRODUCT_DECISIONS/PDR-005.md)  
 - Roadmap: [ROADMAP.md](./ROADMAP.md)  
+- Guided roadmap book: [../product-roadmap/README.md](../product-roadmap/README.md)
 - Glossary: [GLOSSARY.md](./GLOSSARY.md)
