@@ -2344,7 +2344,16 @@ const SUPABASE_REST = `${SUPABASE_URL}/rest/v1`;
 const SUPABASE_AUTH = `${SUPABASE_URL}/auth/v1`;
 const MDZ_SESSION_KEY='mdz_auth_session';
 const MDZ_SITE_URL=()=>`${location.origin}${location.pathname}`;
+const MDZ_ADMIN_ROLES=['admin','founder','super_admin'];
+const MDZ_MANAGER_ROLES=['wilaya_manager','manager','wilaya_mgr'];
+/* Access context belongs to exactly one auth user. Roles/profile from a previous session must
+   never reach admin surfaces, and state stays non-ready while loading or after failure so the
+   chrome fails closed instead of flashing privileged controls. */
 let mdzUserRoles=[];
+let mdzAccountProfile=null;
+let mdzAccessUserId=null;
+let mdzAccessState='idle';
+let mdzAccessEpoch=0;
 const ROLE_PREFIX={breeder:'F',vet:'V',feed:'S',buyer:'U',manager:'W',ambassador:'B',partner:'P'};
 function generateMemberId(role){
  const d=new Date(), date=String(d.getFullYear()).slice(-2)+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0');
@@ -2367,7 +2376,12 @@ function saveSession(session){
    user:session.user||null
   };
   localStorage.setItem(MDZ_SESSION_KEY,JSON.stringify(packed));
- }else localStorage.removeItem(MDZ_SESSION_KEY);
+  const nextUserId=session.user?.id||userIdFromAccessToken(session.access_token)||null;
+  if(!nextUserId||(mdzAccessUserId&&mdzAccessUserId!==nextUserId)) clearAccessContext();
+ }else{
+  localStorage.removeItem(MDZ_SESSION_KEY);
+  clearAccessContext();
+ }
  updateAuthChrome();
 }
 function getSession(){try{return JSON.parse(localStorage.getItem(MDZ_SESSION_KEY)||'null')}catch{return null}}
@@ -2442,12 +2456,13 @@ async function fetchMyProfile(token, userId){
  if(!r.ok) throw new Error(t('authErrProfile'));
  const rows=await r.json();return rows[0]||null;
 }
-async function fetchMyRoles(token){
+/* Separates "no roles" from "roles unavailable" so a failed lookup can never be cached as ready. */
+async function fetchMyRolesResult(token){
  try{
   const r=await fetch(`${SUPABASE_REST}/user_roles?select=role`,{headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:`Bearer ${token}`}});
-  if(!r.ok) return [];
-  return (await r.json()).map(x=>String(x.role||'').toLowerCase()).filter(Boolean);
- }catch{return []}
+  if(!r.ok) return {ok:false,roles:[]};
+  return {ok:true,roles:(await r.json()).map(x=>String(x.role||'').toLowerCase()).filter(Boolean)};
+ }catch{return {ok:false,roles:[]}}
 }
 function statusLabelArabic(status){
  const key=({pending:'statusPending',approved:'statusApproved',active:'statusApproved',rejected:'statusRejected',suspended:'statusSuspended'})[String(status||'').toLowerCase()]||'statusPending';
@@ -2818,7 +2833,6 @@ document.getElementById('forgotPasswordBtn')?.addEventListener('click',()=>{
  })();
 });
 
-let mdzAccountProfile=null;
 const accountHelpers=(extra={})=>({safeText,registrationRoleLabel,statusLabel:statusLabelArabic,...extra});
 
 function wireInviteActions(profile){
@@ -3115,10 +3129,9 @@ async function openAccount(){
  const box=document.getElementById('accountContent');
  box.innerHTML=`<div class="notice">${t('accountLoading')}</div>`;
  try{
-  const p=await fetchMyProfile(session.access_token,session.user?.id);
+  await syncAccessContext(session,{force:true});
+  const p=await ensureAccountProfile(session,{force:true});
   if(!p) throw new Error(t('authErrProfileMissing'));
-  mdzAccountProfile=p;
-  mdzUserRoles=await fetchMyRoles(session.access_token);
   const dash=await import('./js/mdz-dashboards.mjs');
   box.innerHTML=dash.renderAccountDashboard(t,p,accountHelpers());
   document.getElementById('logoutBtn').onclick=()=>logoutAccount();
@@ -3145,31 +3158,131 @@ function parseAccountDeepTab(hash){
 }
 
 let mdzDashReviewDisposer=null;
-async function refreshManagerDashboard(session, dash, profile){
- const box=document.getElementById('managerDashContent');
- if(!box) return;
- const data=await dash.loadManagerData(session.access_token,SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY,profile?.wilaya);
- box.innerHTML=dash.renderManagerDashboard(t,{wilaya:profile?.wilaya,rows:data.rows,source:data.source,safeText,registrationRoleLabel});
- if(mdzDashReviewDisposer) mdzDashReviewDisposer();
- mdzDashReviewDisposer=dash.wireDashboardReviewActions(box,{
-  t, token:session.access_token, restUrl:SUPABASE_REST, apiKey:SUPABASE_PUBLISHABLE_KEY,
-  roles:mdzUserRoles, actorWilaya:profile?.wilaya, asAdmin:false, profileRole:profile?.role,
-  onDone:async()=>{await refreshManagerDashboard(session,dash,profile)},
+function invalidatePrivilegedSurfaces(){
+ if(mdzDashReviewDisposer){try{mdzDashReviewDisposer()}catch{}mdzDashReviewDisposer=null}
+ ['managerDashModal','adminDashModal'].forEach(id=>document.getElementById(id)?.classList.remove('open'));
+ ['managerDashContent','adminDashContent'].forEach(id=>{
+  const box=document.getElementById(id);if(box) box.replaceChildren();
  });
- await mountOperatorSupport(session,{isAdmin:false});
 }
-async function refreshAdminDashboard(session, dash){
- const box=document.getElementById('adminDashContent');
- if(!box) return;
- const data=await dash.loadAdminData(session.access_token,SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY);
- box.innerHTML=dash.renderAdminDashboard(t,{stats:data.stats,rows:data.rows,source:data.source,safeText,registrationRoleLabel});
+function privilegedAccessSnapshot(session,access){
+ return {
+  session,
+  userId:access?.userId||sessionUserId(session),
+  epoch:access?.epoch??mdzAccessEpoch,
+  roles:Array.isArray(access?.roles)?access.roles.slice():[],
+ };
+}
+function privilegedAccessCurrent(snapshot){
+ return Boolean(snapshot)&&mdzAccessState==='ready'
+  && accessContextCurrent(snapshot.session,snapshot.userId,snapshot.epoch);
+}
+async function refreshManagerDashboard(session, dash, profile, access){
+ const snapshot=privilegedAccessSnapshot(session,access);
+ if(!privilegedAccessCurrent(snapshot)) return false;
+ const box=document.getElementById('managerDashContent');
+ if(!box) return false;
+ const data=await dash.loadManagerData(session.access_token,SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY,profile?.wilaya);
+ if(!privilegedAccessCurrent(snapshot)) return false;
+ box.innerHTML=dash.renderManagerDashboard(t,{wilaya:profile?.wilaya,rows:data.rows,source:data.source,safeText,registrationRoleLabel});
+ if(!privilegedAccessCurrent(snapshot)){box.replaceChildren();return false}
  if(mdzDashReviewDisposer) mdzDashReviewDisposer();
  mdzDashReviewDisposer=dash.wireDashboardReviewActions(box,{
   t, token:session.access_token, restUrl:SUPABASE_REST, apiKey:SUPABASE_PUBLISHABLE_KEY,
-  roles:mdzUserRoles, actorWilaya:null, asAdmin:true, profileRole:mdzAccountProfile?.role,
-  onDone:async()=>{await refreshAdminDashboard(session,dash)},
+  roles:snapshot.roles, actorWilaya:profile?.wilaya, asAdmin:false, profileRole:profile?.role,
+  isAccessCurrent:()=>privilegedAccessCurrent(snapshot),
+  onDone:async()=>{
+   if(!privilegedAccessCurrent(snapshot)) return;
+   await refreshManagerDashboard(session,dash,profile,snapshot);
+  },
  });
+ if(!privilegedAccessCurrent(snapshot)){invalidatePrivilegedSurfaces();return false}
+ await mountOperatorSupport(session,{isAdmin:false});
+ return privilegedAccessCurrent(snapshot);
+}
+async function refreshAdminDashboard(session, dash, access){
+ const snapshot=privilegedAccessSnapshot(session,access);
+ if(!privilegedAccessCurrent(snapshot)) return false;
+ const box=document.getElementById('adminDashContent');
+ if(!box) return false;
+ const data=await dash.loadAdminData(session.access_token,SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY);
+ if(!privilegedAccessCurrent(snapshot)) return false;
+ box.innerHTML=dash.renderAdminDashboard(t,{stats:data.stats,rows:data.rows,source:data.source,safeText,registrationRoleLabel});
+ if(!privilegedAccessCurrent(snapshot)){box.replaceChildren();return false}
+ if(mdzDashReviewDisposer) mdzDashReviewDisposer();
+ mdzDashReviewDisposer=dash.wireDashboardReviewActions(box,{
+  t, token:session.access_token, restUrl:SUPABASE_REST, apiKey:SUPABASE_PUBLISHABLE_KEY,
+  roles:snapshot.roles, actorWilaya:null, asAdmin:true, profileRole:null,
+  isAccessCurrent:()=>privilegedAccessCurrent(snapshot),
+  onDone:async()=>{
+   if(!privilegedAccessCurrent(snapshot)) return;
+   await refreshAdminDashboard(session,dash,snapshot);
+  },
+ });
+ if(!privilegedAccessCurrent(snapshot)){invalidatePrivilegedSurfaces();return false}
  await mountOperatorSupport(session,{isAdmin:true});
+ return privilegedAccessCurrent(snapshot);
+}
+
+function sessionUserId(session){
+ return session?.user?.id||userIdFromAccessToken(session?.access_token)||null;
+}
+function clearAccessContext(){
+ /* Bumping the epoch invalidates every in-flight roles/profile response. */
+ mdzAccessEpoch+=1;
+ invalidatePrivilegedSurfaces();
+ mdzUserRoles=[];
+ mdzAccountProfile=null;
+ mdzAccessUserId=null;
+ mdzAccessState='idle';
+}
+function accessContextMatches(session){
+ const uid=sessionUserId(session);
+ return Boolean(uid)&&mdzAccessUserId===uid;
+}
+/* A response may only be applied while its epoch, the bound context, and the stored session
+   all still point at the same user. */
+function accessContextCurrent(session,uid,epoch){
+ if(typeof epoch==='number'&&mdzAccessEpoch!==epoch) return false;
+ if(!uid||mdzAccessUserId!==uid) return false;
+ if(!accessContextMatches(session)) return false;
+ return sessionUserId(getSession())===uid;
+}
+/* Re-resolves roles for the signed-in user. Any cached roles from another user are dropped first,
+   and a late response from a replaced session is discarded. */
+async function syncAccessContext(session,{force=false}={}){
+ const uid=sessionUserId(session);
+ if(!uid||!session?.access_token){clearAccessContext();updateAuthChrome();return{roles:[],state:'idle',userId:null,epoch:mdzAccessEpoch}}
+ if(mdzAccessUserId!==uid) clearAccessContext();
+ if(!force&&mdzAccessState==='ready'&&mdzAccessUserId===uid) return{roles:mdzUserRoles.slice(),state:'ready',userId:uid,epoch:mdzAccessEpoch};
+ /* A forced revalidation revokes the currently rendered privileged surface until roles
+    resolve again, even when the user id did not change. */
+ invalidatePrivilegedSurfaces();
+ mdzAccessUserId=uid;
+ mdzAccessState='loading';
+ mdzUserRoles=[];
+ const epoch=++mdzAccessEpoch;
+ updateAuthChrome();
+ const result=await fetchMyRolesResult(session.access_token);
+ if(!accessContextCurrent(session,uid,epoch)) return{roles:[],state:'stale',userId:uid,epoch};
+ mdzUserRoles=result.ok?result.roles:[];
+ mdzAccessState=result.ok?'ready':'failed';
+ updateAuthChrome();
+ return{roles:mdzUserRoles.slice(),state:mdzAccessState,userId:uid,epoch};
+}
+/* Returns null instead of a foreign profile when the account switches mid-flight; the bound
+   user id is never resurrected for the previous account. */
+async function ensureAccountProfile(session,{force=false}={}){
+ const uid=sessionUserId(session);
+ if(!uid||!session?.access_token) return null;
+ if(!accessContextMatches(session)) return null;
+ if(!force&&mdzAccountProfile&&mdzAccessUserId===uid) return mdzAccountProfile;
+ const epoch=mdzAccessEpoch;
+ const profile=await fetchMyProfile(session.access_token,uid);
+ if(!accessContextCurrent(session,uid,epoch)) return null;
+ mdzAccountProfile=profile;
+ updateAuthChrome();
+ return profile;
 }
 
 async function openManagerDashboard(){
@@ -3177,17 +3290,23 @@ async function openManagerDashboard(){
  if(recovery.isRecoveryActive()){openResetPasswordModal();return}
  const session=await ensureFreshSession();
  if(!session?.access_token){openLogin();return}
- mdzUserRoles=await fetchMyRoles(session.access_token);
+ const access=await syncAccessContext(session,{force:true});
+ /* profiles.role may only extend access once the role lookup itself succeeded. */
+ if(access.state!=='ready'||!accessContextCurrent(session,access.userId,access.epoch)){showToast(t('dashNoAccess'));return}
  const dash=await import('./js/mdz-dashboards.mjs');
- if(!dash.hasManagerAccess(mdzUserRoles, mdzAccountProfile?.role)){showToast(t('dashNoAccess'));return}
+ const boundProfile=await ensureAccountProfile(session,{force:true}).catch(()=>null);
+ if(!accessContextCurrent(session,access.userId,access.epoch)){showToast(t('dashNoAccess'));return}
+ if(!dash.hasManagerAccess(access.roles, boundProfile?.role)){showToast(t('dashNoAccess'));return}
  closeAll();
  document.getElementById('managerDashModal').classList.add('open');
  const box=document.getElementById('managerDashContent');
  box.innerHTML=`<div class="notice">${t('accountLoading')}</div>`;
  try{
-  const profile=mdzAccountProfile||await fetchMyProfile(session.access_token,session.user?.id);
-  await refreshManagerDashboard(session,dash,profile);
+  const profile=boundProfile||await ensureAccountProfile(session,{force:true});
+  if(!accessContextCurrent(session,access.userId,access.epoch)){closeModal('managerDashModal');showToast(t('dashNoAccess'));return}
+  await refreshManagerDashboard(session,dash,profile,access);
  }catch(e){
+  if(!accessContextCurrent(session,access.userId,access.epoch)) return;
   console.error('Manager dashboard load failed',e);
   box.innerHTML=`<div class="dash-hero manager"><h3>${t('mgrDashTitle')}</h3><div class="notice is-error" style="margin-top:12px">${t('dashLoadFailed')}</div></div>`;
  }
@@ -3198,16 +3317,19 @@ async function openAdminDashboard(){
  if(recovery.isRecoveryActive()){openResetPasswordModal();return}
  const session=await ensureFreshSession();
  if(!session?.access_token){openLogin();return}
+ const access=await syncAccessContext(session,{force:true});
+ if(access.state!=='ready'||!accessContextCurrent(session,access.userId,access.epoch)){showToast(t('dashNoAccess'));return}
  const dash=await import('./js/mdz-dashboards.mjs');
- mdzUserRoles=mdzUserRoles.length?mdzUserRoles:await fetchMyRoles(session.access_token);
- if(!dash.hasAdminAccess(mdzUserRoles)){showToast(t('dashNoAccess'));return}
+ if(!dash.hasAdminAccess(access.roles)){showToast(t('dashNoAccess'));return}
+ if(!accessContextCurrent(session,access.userId,access.epoch)){showToast(t('dashNoAccess'));return}
  closeAll();
  document.getElementById('adminDashModal').classList.add('open');
  const box=document.getElementById('adminDashContent');
  box.innerHTML=`<div class="notice">${t('accountLoading')}</div>`;
  try{
-  await refreshAdminDashboard(session,dash);
+  await refreshAdminDashboard(session,dash,access);
  }catch(e){
+  if(!accessContextCurrent(session,access.userId,access.epoch)) return;
   console.error('Admin dashboard load failed',e);
   box.innerHTML=`<div class="dash-hero admin"><h3>${t('adminDashTitle')}</h3><div class="notice is-error" style="margin-top:12px">${t('dashLoadFailed')}</div></div>`;
  }
@@ -3243,16 +3365,28 @@ function updateAuthChrome(){
  }
 }
 function dashRoleFlag(kind){
- if(kind==='admin') return mdzUserRoles.some(r=>['admin','founder','super_admin'].includes(r));
- return mdzUserRoles.some(r=>['wilaya_manager','manager','wilaya_mgr','admin','founder','super_admin'].includes(r))||String(mdzAccountProfile?.role||'').toLowerCase()==='manager';
+ /* Fail closed while roles are pending/failed, or when they belong to another user id. */
+ if(mdzAccessState!=='ready') return false;
+ if(!accessContextMatches(getSession())) return false;
+ const roles=mdzUserRoles||[];
+ if(roles.some(r=>MDZ_ADMIN_ROLES.includes(r))) return true;
+ if(kind==='admin') return false;
+ if(roles.some(r=>MDZ_MANAGER_ROLES.includes(r))) return true;
+ return MDZ_MANAGER_ROLES.includes(String(mdzAccountProfile?.role||'').toLowerCase());
 }
 function logoutAccount(){
- saveSession(null);mdzAccountProfile=null;mdzUserRoles=[];
+ clearAccessContext();
+ saveSession(null);
  try{sessionStorage.removeItem('mdz_password_recovery');localStorage.removeItem('mdz_password_recovery');sessionStorage.removeItem('mdz_expect_recovery');localStorage.removeItem('mdz_expect_recovery')}catch{}
  closeAll();showToast(t('toastLogout'));
  if(location.hash==='#account'||location.hash==='#auth-callback'||location.hash==='#reset-password') history.replaceState(null,'',location.pathname+location.search);
 }
 window.logoutAccount=logoutAccount;
+window.addEventListener('storage',(event)=>{
+ if(event.key!==MDZ_SESSION_KEY) return;
+ clearAccessContext();
+ updateAuthChrome();
+});
 
 function parseAuthRedirect(){
  const hash=location.hash.startsWith('#')?location.hash.slice(1):'';
@@ -3904,7 +4038,7 @@ window.addEventListener('DOMContentLoaded',async()=>{
   }else{
     const session=await ensureFreshSession();
     if(session){
-      mdzUserRoles=await fetchMyRoles(session.access_token);
+      await syncAccessContext(session,{force:true});
       await refreshNotifBadge(session);
       const deep=parseAccountDeepTab(location.hash);
       if(deep){mdzAccountDeepTab=deep;await openAccount();}

@@ -35,13 +35,14 @@ export function parseRoles(rows) {
 }
 
 export function hasAdminAccess(roles) {
-  return roles.some((r) => ADMIN_ROLES.has(r));
+  return (roles || []).some((r) => ADMIN_ROLES.has(String(r || '').toLowerCase()));
 }
 
+/** profiles.role accepts every manager spelling used by the backend role vocabulary. */
 export function hasManagerAccess(roles, profileRole) {
   if (hasAdminAccess(roles)) return true;
-  if (roles.some((r) => MANAGER_ROLES.has(r))) return true;
-  return String(profileRole || '').toLowerCase() === 'manager';
+  if ((roles || []).some((r) => MANAGER_ROLES.has(String(r || '').toLowerCase()))) return true;
+  return MANAGER_ROLES.has(String(profileRole || '').toLowerCase());
 }
 
 /** Client-side gate before RPC — server RLS/RPC remains source of truth. */
@@ -374,12 +375,19 @@ export function wireDashboardReviewActions(root, {
   asAdmin,
   profileRole,
   onDone,
+  isAccessCurrent,
 }) {
   if (!root) return () => {};
   let busy = false;
+  let alive = true;
   const statusEl = root.querySelector('#dashActionStatus');
+  const accessStillValid = () => (
+    alive
+    && (typeof isAccessCurrent !== 'function' || isAccessCurrent())
+  );
 
   const handler = async (event) => {
+    if (!accessStillValid()) return;
     const btn = event.target.closest('[data-review-action]');
     if (!btn || !root.contains(btn)) return;
     const action = btn.getAttribute('data-review-action');
@@ -433,11 +441,16 @@ export function wireDashboardReviewActions(root, {
       }
     }
 
+    if (!accessStillValid()) {
+      busy = false;
+      return;
+    }
     root.querySelectorAll('[data-review-action]').forEach((el) => { el.disabled = true; });
     if (statusEl) statusEl.textContent = t('dashReviewWorking');
 
     try {
       await reviewRegistrationStatus(token, restUrl, apiKey, registrationId, action, reason);
+      if (!accessStillValid()) return;
       if (statusEl) statusEl.textContent = action === 'approved' ? t('dashReviewApproved') : t('dashReviewRejected');
       if (typeof onDone === 'function') await onDone({ registrationId, action, reason });
     } catch (error) {
@@ -450,5 +463,8 @@ export function wireDashboardReviewActions(root, {
   };
 
   root.addEventListener('click', handler);
-  return () => root.removeEventListener('click', handler);
+  return () => {
+    alive = false;
+    root.removeEventListener('click', handler);
+  };
 }
