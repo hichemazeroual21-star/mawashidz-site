@@ -2353,6 +2353,7 @@ let mdzUserRoles=[];
 let mdzAccountProfile=null;
 let mdzAccessUserId=null;
 let mdzAccessState='idle';
+let mdzAccessEpoch=0;
 const ROLE_PREFIX={breeder:'F',vet:'V',feed:'S',buyer:'U',manager:'W',ambassador:'B',partner:'P'};
 function generateMemberId(role){
  const d=new Date(), date=String(d.getFullYear()).slice(-2)+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0');
@@ -3188,6 +3189,8 @@ function sessionUserId(session){
  return session?.user?.id||userIdFromAccessToken(session?.access_token)||null;
 }
 function clearAccessContext(){
+ /* Bumping the epoch invalidates every in-flight roles/profile response. */
+ mdzAccessEpoch+=1;
  mdzUserRoles=[];
  mdzAccountProfile=null;
  mdzAccessUserId=null;
@@ -3197,31 +3200,43 @@ function accessContextMatches(session){
  const uid=sessionUserId(session);
  return Boolean(uid)&&mdzAccessUserId===uid;
 }
+/* A response may only be applied while its epoch, the bound context, and the stored session
+   all still point at the same user. */
+function accessContextCurrent(session,uid,epoch){
+ if(typeof epoch==='number'&&mdzAccessEpoch!==epoch) return false;
+ if(!uid||mdzAccessUserId!==uid) return false;
+ if(!accessContextMatches(session)) return false;
+ return sessionUserId(getSession())===uid;
+}
 /* Re-resolves roles for the signed-in user. Any cached roles from another user are dropped first,
    and a late response from a replaced session is discarded. */
 async function syncAccessContext(session,{force=false}={}){
  const uid=sessionUserId(session);
- if(!uid||!session?.access_token){clearAccessContext();updateAuthChrome();return{roles:[],state:'idle'}}
+ if(!uid||!session?.access_token){clearAccessContext();updateAuthChrome();return{roles:[],state:'idle',userId:null,epoch:mdzAccessEpoch}}
  if(mdzAccessUserId!==uid) clearAccessContext();
- if(!force&&mdzAccessState==='ready'&&mdzAccessUserId===uid) return{roles:mdzUserRoles,state:mdzAccessState};
+ if(!force&&mdzAccessState==='ready'&&mdzAccessUserId===uid) return{roles:mdzUserRoles.slice(),state:'ready',userId:uid,epoch:mdzAccessEpoch};
  mdzAccessUserId=uid;
  mdzAccessState='loading';
  mdzUserRoles=[];
+ const epoch=++mdzAccessEpoch;
  updateAuthChrome();
  const result=await fetchMyRolesResult(session.access_token);
- if(mdzAccessUserId!==uid) return{roles:mdzUserRoles,state:mdzAccessState};
+ if(!accessContextCurrent(session,uid,epoch)) return{roles:[],state:'stale',userId:uid,epoch};
  mdzUserRoles=result.ok?result.roles:[];
  mdzAccessState=result.ok?'ready':'failed';
  updateAuthChrome();
- return{roles:mdzUserRoles,state:mdzAccessState};
+ return{roles:mdzUserRoles.slice(),state:mdzAccessState,userId:uid,epoch};
 }
+/* Returns null instead of a foreign profile when the account switches mid-flight; the bound
+   user id is never resurrected for the previous account. */
 async function ensureAccountProfile(session,{force=false}={}){
  const uid=sessionUserId(session);
  if(!uid||!session?.access_token) return null;
+ if(!accessContextMatches(session)) return null;
  if(!force&&mdzAccountProfile&&mdzAccessUserId===uid) return mdzAccountProfile;
+ const epoch=mdzAccessEpoch;
  const profile=await fetchMyProfile(session.access_token,uid);
- if(mdzAccessUserId&&mdzAccessUserId!==uid) return profile;
- mdzAccessUserId=uid;
+ if(!accessContextCurrent(session,uid,epoch)) return null;
  mdzAccountProfile=profile;
  updateAuthChrome();
  return profile;
@@ -3232,16 +3247,20 @@ async function openManagerDashboard(){
  if(recovery.isRecoveryActive()){openResetPasswordModal();return}
  const session=await ensureFreshSession();
  if(!session?.access_token){openLogin();return}
- await syncAccessContext(session,{force:true});
+ const access=await syncAccessContext(session,{force:true});
+ /* profiles.role may only extend access once the role lookup itself succeeded. */
+ if(access.state!=='ready'||!accessContextCurrent(session,access.userId,access.epoch)){showToast(t('dashNoAccess'));return}
  const dash=await import('./js/mdz-dashboards.mjs');
  const boundProfile=await ensureAccountProfile(session,{force:true}).catch(()=>null);
- if(!dash.hasManagerAccess(mdzUserRoles, boundProfile?.role)){showToast(t('dashNoAccess'));return}
+ if(!accessContextCurrent(session,access.userId,access.epoch)){showToast(t('dashNoAccess'));return}
+ if(!dash.hasManagerAccess(access.roles, boundProfile?.role)){showToast(t('dashNoAccess'));return}
  closeAll();
  document.getElementById('managerDashModal').classList.add('open');
  const box=document.getElementById('managerDashContent');
  box.innerHTML=`<div class="notice">${t('accountLoading')}</div>`;
  try{
   const profile=boundProfile||await ensureAccountProfile(session,{force:true});
+  if(!accessContextCurrent(session,access.userId,access.epoch)){closeModal('managerDashModal');showToast(t('dashNoAccess'));return}
   await refreshManagerDashboard(session,dash,profile);
  }catch(e){
   console.error('Manager dashboard load failed',e);
@@ -3254,9 +3273,11 @@ async function openAdminDashboard(){
  if(recovery.isRecoveryActive()){openResetPasswordModal();return}
  const session=await ensureFreshSession();
  if(!session?.access_token){openLogin();return}
- await syncAccessContext(session,{force:true});
+ const access=await syncAccessContext(session,{force:true});
+ if(access.state!=='ready'||!accessContextCurrent(session,access.userId,access.epoch)){showToast(t('dashNoAccess'));return}
  const dash=await import('./js/mdz-dashboards.mjs');
- if(!dash.hasAdminAccess(mdzUserRoles)){showToast(t('dashNoAccess'));return}
+ if(!dash.hasAdminAccess(access.roles)){showToast(t('dashNoAccess'));return}
+ if(!accessContextCurrent(session,access.userId,access.epoch)){showToast(t('dashNoAccess'));return}
  closeAll();
  document.getElementById('adminDashModal').classList.add('open');
  const box=document.getElementById('adminDashContent');

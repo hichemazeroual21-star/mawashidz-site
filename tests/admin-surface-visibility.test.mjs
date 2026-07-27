@@ -77,6 +77,7 @@ function sessionFor(userId) {
  * @param {number}      cfg.rolesStatus  HTTP status for user_roles
  * @param {number}      cfg.rolesDelayMs artificial latency for user_roles
  * @param {object|null} cfg.profile      profiles row
+ * @param {number}      cfg.profileDelayMs artificial latency for profiles
  */
 async function openApp(cfg) {
   const state = {
@@ -84,6 +85,7 @@ async function openApp(cfg) {
     rolesStatus: cfg.rolesStatus ?? 200,
     rolesDelayMs: cfg.rolesDelayMs ?? 0,
     profile: cfg.profile ?? null,
+    profileDelayMs: cfg.profileDelayMs ?? 0,
     rolesRequests: 0,
     profileRequests: 0,
   };
@@ -107,6 +109,7 @@ async function openApp(cfg) {
       }
       if (url.includes('/rest/v1/profiles')) {
         state.profileRequests += 1;
+        if (state.profileDelayMs) await new Promise((r) => setTimeout(r, state.profileDelayMs));
         return json(state.profile ? [state.profile] : []);
       }
       if (url.includes('/rest/v1/registrations')) return json([]);
@@ -165,9 +168,9 @@ async function shootHeader(page, name) {
   await header.screenshot({ path: path.join(SHOTS, `${name}.png`) });
 }
 
-async function loadApp(cfg) {
+async function loadApp(cfg, hash = '') {
   const { page, state } = await openApp(cfg);
-  await page.goto(`http://localhost:${PORT}/`, { waitUntil: 'domcontentloaded', timeout: 30000 });
+  await page.goto(`http://localhost:${PORT}/${hash}`, { waitUntil: 'domcontentloaded', timeout: 30000 });
   return { page, state };
 }
 
@@ -229,8 +232,8 @@ const matrix = [];
   await page.close();
 }
 
-// 4) admin / founder
-for (const role of ['admin', 'founder']) {
+// 4) admin / founder / super_admin
+for (const role of ['admin', 'founder', 'super_admin']) {
   const { page } = await loadApp({ userId: `${role}-1`, roles: [role], profile: { id: `${role}-1`, role: 'buyer', wilaya: 'الجزائر' } });
   await settle(page);
   const s = await surfaces(page);
@@ -328,6 +331,104 @@ for (const role of ['admin', 'founder']) {
   await page.close();
 }
 
+// 9) roles failure must veto the profiles.role=manager fallback
+{
+  const { page } = await loadApp({ userId: 'mgr-3', roles: ['wilaya_manager'], rolesStatus: 503, profile: { id: 'mgr-3', role: 'manager', wilaya: 'قسنطينة' } });
+  await settle(page);
+  const s = await surfaces(page);
+  matrix.push({ persona: 'manager + roles failure', ...s });
+  check('roles failure + profile manager: manager surface hidden', s.manager === false && s.drawerManager === false);
+  await page.evaluate(() => window.openManagerDashboard());
+  await settle(page, 800);
+  const after = await surfaces(page);
+  check('roles failure + profile manager: manager dashboard refuses to open', after.managerModalOpen === false);
+  check('roles failure + profile manager: still hidden after attempt', after.manager === false);
+  await page.close();
+}
+
+// 10) account switch during an in-flight profile fetch
+{
+  const { page, state } = await loadApp({
+    userId: 'mgr-4',
+    roles: ['wilaya_manager'],
+    profile: { id: 'mgr-4', role: 'manager', wilaya: 'تلمسان' },
+    profileDelayMs: 1500,
+  });
+  await settle(page, 700);
+  check('switch-during-profile: manager visible before switch', (await surfaces(page)).manager === true);
+  await page.evaluate(() => {
+    window.__mgrModalEverOpen = false;
+    const modal = document.getElementById('managerDashModal');
+    new MutationObserver(() => {
+      if (modal.classList.contains('open')) window.__mgrModalEverOpen = true;
+    }).observe(modal, { attributes: true, attributeFilter: ['class'] });
+    window.openManagerDashboard();
+  });
+  await settle(page, 250);
+  state.roles = [];
+  state.profile = { id: 'member-77', role: 'breeder', wilaya: 'باتنة' };
+  state.profileDelayMs = 0;
+  await page.evaluate((s) => window.saveSession(s), sessionFor('member-77'));
+  await settle(page, 2200);
+  const s = await surfaces(page);
+  matrix.push({ persona: 'switch during profile fetch (manager → member)', ...s });
+  check('switch-during-profile: no manager modal', s.managerModalOpen === false);
+  check('switch-during-profile: manager surface hidden', s.manager === false && s.drawerManager === false);
+  const leak = await page.evaluate(() => {
+    const box = document.getElementById('managerDashContent');
+    return {
+      dashText: box?.textContent || '',
+      rendered: Boolean(box?.querySelector('.dash-hero, .dash-table, table')),
+      everOpen: window.__mgrModalEverOpen === true,
+    };
+  });
+  check('switch-during-profile: manager modal never opened', leak.everOpen === false);
+  check('switch-during-profile: dashboard never rendered', leak.rendered === false);
+  check(
+    'switch-during-profile: no stale wilaya leaked into the dashboard',
+    leak.dashText.includes('تلمسان') === false,
+    leak.dashText.slice(0, 60),
+  );
+  const restored = await page.evaluate(() => {
+    const el = document.getElementById('headerMgrDashBtn');
+    return el.hasAttribute('hidden');
+  });
+  check('switch-during-profile: previous context not restored', restored === true);
+  await page.close();
+}
+
+// 11) direct hash entry points
+{
+  const { page } = await loadApp({ userId: 'admin-7', roles: ['admin'], profile: { id: 'admin-7', role: 'buyer' } }, '#admin-dash');
+  await settle(page, 1200);
+  const s = await surfaces(page);
+  check('#admin-dash: opens for admin', s.adminModalOpen === true);
+  await page.close();
+}
+{
+  const { page } = await loadApp({ userId: 'member-8', roles: [], profile: { id: 'member-8', role: 'breeder' } }, '#admin-dash');
+  await settle(page, 1200);
+  const s = await surfaces(page);
+  matrix.push({ persona: 'member via #admin-dash', ...s });
+  check('#admin-dash: refused for member', s.adminModalOpen === false);
+  await page.close();
+}
+{
+  const { page } = await loadApp({ userId: 'mgr-5', roles: ['wilaya_manager'], profile: { id: 'mgr-5', role: 'manager', wilaya: 'الجزائر' } }, '#manager-dash');
+  await settle(page, 1200);
+  const s = await surfaces(page);
+  check('#manager-dash: opens for manager', s.managerModalOpen === true);
+  await page.close();
+}
+{
+  const { page } = await loadApp({ userId: 'mgr-6', roles: ['wilaya_manager'], rolesStatus: 500, profile: { id: 'mgr-6', role: 'manager', wilaya: 'الجزائر' } }, '#manager-dash');
+  await settle(page, 1200);
+  const s = await surfaces(page);
+  matrix.push({ persona: 'manager via #manager-dash + roles failure', ...s });
+  check('#manager-dash: refused when roles lookup failed', s.managerModalOpen === false);
+  await page.close();
+}
+
 // ---------------------------------------------------------------------------
 // Shared role vocabulary (frontend ↔ backend helper module)
 // ---------------------------------------------------------------------------
@@ -346,7 +447,16 @@ const html = fs.readFileSync(path.join(REPO_ROOT, 'index.html'), 'utf8');
 assert.ok(!/operator/i.test(html.match(/const MDZ_MANAGER_ROLES=\[[^\]]*\]/)?.[0] || ''), 'operator is not a role');
 assert.match(html, /await syncAccessContext\(session,\{force:true\}\);\s*\n\s*await refreshNotifBadge/, 'reload path must sync access context (and repaint chrome)');
 assert.ok(!/mdzUserRoles=mdzUserRoles\.length\?mdzUserRoles:/.test(html), 'admin dashboard must not reuse non-empty role cache');
-check('static guards: reload sync + no stale role cache', true);
+assert.match(html, /function accessContextCurrent\(session,uid,epoch\)/, 'epoch-guarded context check required');
+assert.match(html, /mdzAccessEpoch\+=1;/, 'clearing the context must invalidate in-flight responses');
+for (const fn of ['openManagerDashboard', 'openAdminDashboard']) {
+  const body = html.match(new RegExp(`async function ${fn}\\(\\)\\{[\\s\\S]*?\\n\\}`))?.[0] || '';
+  assert.match(body, /const access=await syncAccessContext/, `${fn} must capture the access result locally`);
+  assert.match(body, /access\.state!=='ready'/, `${fn} must require a resolved role lookup`);
+  assert.match(body, /accessContextCurrent\(session,access\.userId,access\.epoch\)/, `${fn} must revalidate the context`);
+  assert.ok(!/\bmdzUserRoles\b/.test(body), `${fn} must gate on local access.roles, not the global cache`);
+}
+check('static guards: epoch invalidation + local access gating', true);
 
 // ---------------------------------------------------------------------------
 await browser.close();

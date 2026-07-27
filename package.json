@@ -12,7 +12,7 @@
     "test:security": "node tests/security-allocate-member-id.test.mjs",
     "test:ui-layout": "node tests/ui-layout.test.mjs",
     "test:i18n-layout": "node tests/i18n-layout.test.mjs",
-    "test:layout": "node tests/ui-layout.test.mjs && node tests/i18n-layout.test.mjs && node tests/admin-surface-visibility.test.mjs",
+    "test:layout": "node tests/admin-surface-visibility.test.mjs && node tests/ui-layout.test.mjs && node tests/i18n-layout.test.mjs",
     "test:api": "node tests/api-routes.test.mjs",
     "test:auth-surface": "node tests/auth-surface-guard.test.mjs",
     "test:admin-surface": "node tests/admin-surface-visibility.test.mjs",
