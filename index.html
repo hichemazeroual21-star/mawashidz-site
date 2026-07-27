@@ -3182,14 +3182,17 @@ async function refreshManagerDashboard(session, dash, profile, access){
  if(!privilegedAccessCurrent(snapshot)) return false;
  const box=document.getElementById('managerDashContent');
  if(!box) return false;
- const data=await dash.loadManagerData(session.access_token,SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY,profile?.wilaya);
+ /* Fail closed: never fetch or paint manager registrations without a concrete wilaya. */
+ const wilaya=String(profile?.wilaya||'').trim();
+ if(!wilaya){box.replaceChildren();return false}
+ const data=await dash.loadManagerData(session.access_token,SUPABASE_REST,SUPABASE_PUBLISHABLE_KEY,wilaya);
  if(!privilegedAccessCurrent(snapshot)) return false;
- box.innerHTML=dash.renderManagerDashboard(t,{wilaya:profile?.wilaya,rows:data.rows,source:data.source,safeText,registrationRoleLabel});
+ box.innerHTML=dash.renderManagerDashboard(t,{wilaya,rows:data.rows,source:data.source,safeText,registrationRoleLabel});
  if(!privilegedAccessCurrent(snapshot)){box.replaceChildren();return false}
  if(mdzDashReviewDisposer) mdzDashReviewDisposer();
  mdzDashReviewDisposer=dash.wireDashboardReviewActions(box,{
   t, token:session.access_token, restUrl:SUPABASE_REST, apiKey:SUPABASE_PUBLISHABLE_KEY,
-  roles:snapshot.roles, actorWilaya:profile?.wilaya, asAdmin:false, profileRole:profile?.role,
+  roles:snapshot.roles, actorWilaya:wilaya, asAdmin:false, profileRole:profile?.role,
   isAccessCurrent:()=>privilegedAccessCurrent(snapshot),
   onDone:async()=>{
    if(!privilegedAccessCurrent(snapshot)) return;
@@ -3297,6 +3300,9 @@ async function openManagerDashboard(){
  const boundProfile=await ensureAccountProfile(session,{force:true}).catch(()=>null);
  if(!accessContextCurrent(session,access.userId,access.epoch)){showToast(t('dashNoAccess'));return}
  if(!dash.hasManagerAccess(access.roles, boundProfile?.role)){showToast(t('dashNoAccess'));return}
+ /* Fail closed before open/fetch: manager surfaces require a resolved wilaya on the bound profile. */
+ const resolvedWilaya=String(boundProfile?.wilaya||'').trim();
+ if(!resolvedWilaya){showToast(t('dashNoAccess'));return}
  closeAll();
  document.getElementById('managerDashModal').classList.add('open');
  const box=document.getElementById('managerDashContent');
@@ -3304,6 +3310,7 @@ async function openManagerDashboard(){
  try{
   const profile=boundProfile||await ensureAccountProfile(session,{force:true});
   if(!accessContextCurrent(session,access.userId,access.epoch)){closeModal('managerDashModal');showToast(t('dashNoAccess'));return}
+  if(!String(profile?.wilaya||'').trim()){closeModal('managerDashModal');showToast(t('dashNoAccess'));return}
   await refreshManagerDashboard(session,dash,profile,access);
  }catch(e){
   if(!accessContextCurrent(session,access.userId,access.epoch)) return;

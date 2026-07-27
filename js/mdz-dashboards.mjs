@@ -319,7 +319,13 @@ export async function fetchRegistrationsLive(token, restUrl, apiKey, wilayaFilte
 }
 
 export async function loadManagerData(token, restUrl, apiKey, wilaya) {
-  const rows = await fetchRegistrationsLive(token, restUrl, apiKey, wilaya);
+  const scoped = String(wilaya || '').trim();
+  if (!scoped) {
+    const err = new Error('manager_wilaya_required');
+    err.code = 'manager_wilaya_required';
+    throw err;
+  }
+  const rows = await fetchRegistrationsLive(token, restUrl, apiKey, scoped);
   return { rows, source: 'live' };
 }
 

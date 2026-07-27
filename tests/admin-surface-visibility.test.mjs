@@ -583,9 +583,14 @@ function anyUnscopedRegistrations(urls) {
     text: document.getElementById('managerDashContent')?.textContent || '',
   }));
   check(
-    'null-profile manager: registrations URL must include wilaya=eq.',
-    allRegistrationsScopedByWilaya(state.registrationsUrls),
-    `requests=${state.registrationsRequests} urls=${JSON.stringify(state.registrationsUrls)} open=${after.open}`,
+    'null-profile manager: manager modal refused (fail-closed without wilaya)',
+    after.open === false,
+    `open=${after.open} text=${JSON.stringify(after.text.slice(0, 120))}`,
+  );
+  check(
+    'null-profile manager: no registrations fetch without resolved wilaya',
+    state.registrationsRequests === 0,
+    `requests=${state.registrationsRequests} urls=${JSON.stringify(state.registrationsUrls)}`,
   );
   check(
     'null-profile manager: must not issue unscoped registrations fetch',
@@ -630,9 +635,14 @@ function anyUnscopedRegistrations(urls) {
     text: document.getElementById('managerDashContent')?.textContent || '',
   }));
   check(
-    'logout→login manager: registrations URL must include wilaya=eq.',
-    allRegistrationsScopedByWilaya(state.registrationsUrls),
-    `requests=${state.registrationsRequests} urls=${JSON.stringify(state.registrationsUrls)} open=${after.open} text=${JSON.stringify(after.text.slice(0, 120))}`,
+    'logout→login manager: manager modal refused when profile bind has no wilaya',
+    after.open === false,
+    `open=${after.open} text=${JSON.stringify(after.text.slice(0, 120))}`,
+  );
+  check(
+    'logout→login manager: no registrations fetch without resolved wilaya',
+    state.registrationsRequests === 0,
+    `requests=${state.registrationsRequests} urls=${JSON.stringify(state.registrationsUrls)}`,
   );
   check(
     'logout→login manager: must not issue unscoped registrations fetch',
@@ -801,6 +811,18 @@ for (const fn of ['openManagerDashboard', 'openAdminDashboard']) {
   assert.match(body, /accessContextCurrent\(session,access\.userId,access\.epoch\)/, `${fn} must revalidate the context`);
   assert.ok(!/\bmdzUserRoles\b/.test(body), `${fn} must gate on local access.roles, not the global cache`);
 }
+assert.match(
+  html,
+  /Fail closed before open\/fetch: manager surfaces require a resolved wilaya/,
+  'manager open path must fail closed without wilaya',
+);
+assert.match(
+  html,
+  /const wilaya=String\(profile\?\.wilaya\|\|''\)\.trim\(\);\s*\n\s*if\(!wilaya\)\{box\.replaceChildren\(\);return false\}/,
+  'manager refresh must refuse load without wilaya',
+);
+const dashSrc = fs.readFileSync(path.join(REPO_ROOT, 'js/mdz-dashboards.mjs'), 'utf8');
+assert.match(dashSrc, /manager_wilaya_required/, 'loadManagerData must reject missing wilaya');
 check('static guards: epoch invalidation + local access gating', true);
 
 // ---------------------------------------------------------------------------
