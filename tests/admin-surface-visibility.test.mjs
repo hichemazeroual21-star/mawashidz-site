@@ -93,6 +93,7 @@ async function openApp(cfg) {
     rolesRequests: 0,
     profileRequests: 0,
     registrationsRequests: 0,
+    registrationsUrls: [],
   };
   const page = await browser.newPage();
   page.on('pageerror', (e) => console.log(`PAGEERROR: ${e.message}`));
@@ -119,6 +120,7 @@ async function openApp(cfg) {
       }
       if (url.includes('/rest/v1/registrations')) {
         state.registrationsRequests += 1;
+        state.registrationsUrls.push(url);
         if (state.registrationsDelayMs) await new Promise((r) => setTimeout(r, state.registrationsDelayMs));
         return json(state.registrationsRows);
       }
@@ -535,6 +537,108 @@ for (const role of ['admin', 'founder', 'super_admin']) {
   check('delayed-data-switch: stale response cannot reopen modal', after.open === false);
   check('delayed-data-switch: stale response renders nothing', after.children === 0 && !after.text.includes('Stale Delayed Row'));
   check('delayed-data-switch: stale response wires no review handler', after.reviewAdds === 0, `adds=${after.reviewAdds}`);
+  await page.close();
+}
+
+// ---------------------------------------------------------------------------
+// Wilaya scoping — failing contracts (hotfix evidence; no product fix in this commit)
+// ---------------------------------------------------------------------------
+
+function registrationsUrlsScoped(urls) {
+  return urls.filter((u) => u.includes('/rest/v1/registrations'));
+}
+
+function allRegistrationsScopedByWilaya(urls) {
+  const regs = registrationsUrlsScoped(urls);
+  return regs.length > 0 && regs.every((u) => u.includes('wilaya=eq.'));
+}
+
+function anyUnscopedRegistrations(urls) {
+  return registrationsUrlsScoped(urls).some((u) => !u.includes('wilaya=eq.'));
+}
+
+// 14) manager role with profile=null must not load an unscoped registrations list
+{
+  const { page, state } = await loadApp({
+    userId: 'mgr-null-profile',
+    roles: ['wilaya_manager'],
+    profile: null,
+    registrationsRows: [{
+      registration_id: 'MDZ-REG-2026-UNSCOPED',
+      full_name: 'Should Not Render Unscoped',
+      role: 'breeder',
+      user_type: 'breeder',
+      wilaya: 'وهران',
+      status: 'pending',
+      created_at: '2026-07-27T00:00:00Z',
+    }],
+  });
+  await settle(page, 700);
+  state.registrationsRequests = 0;
+  state.registrationsUrls = [];
+  await page.evaluate(() => window.openManagerDashboard());
+  await settle(page, 1200);
+  const after = await page.evaluate(() => ({
+    open: document.getElementById('managerDashModal').classList.contains('open'),
+    text: document.getElementById('managerDashContent')?.textContent || '',
+  }));
+  check(
+    'null-profile manager: registrations URL must include wilaya=eq.',
+    allRegistrationsScopedByWilaya(state.registrationsUrls),
+    `requests=${state.registrationsRequests} urls=${JSON.stringify(state.registrationsUrls)} open=${after.open}`,
+  );
+  check(
+    'null-profile manager: must not issue unscoped registrations fetch',
+    !anyUnscopedRegistrations(state.registrationsUrls),
+    `urls=${JSON.stringify(state.registrationsUrls)}`,
+  );
+  await page.close();
+}
+
+// 15) logout → login → open manager dash: registrations must stay wilaya-scoped
+{
+  const wilaya = 'بسكرة';
+  const { page, state } = await loadApp({
+    userId: 'mgr-relogin',
+    roles: ['wilaya_manager'],
+    profile: { id: 'mgr-relogin', role: 'manager', wilaya },
+    registrationsRows: [{
+      registration_id: 'MDZ-REG-2026-BISKRA',
+      full_name: 'Biskra Row',
+      role: 'breeder',
+      user_type: 'breeder',
+      wilaya,
+      status: 'pending',
+      created_at: '2026-07-27T00:00:00Z',
+    }],
+  });
+  await settle(page, 700);
+  await page.evaluate(() => window.logoutAccount());
+  await settle(page, 200);
+  // Re-login same manager, but profile bind returns null (roles still grant manager chrome).
+  state.profile = null;
+  state.registrationsRequests = 0;
+  state.registrationsUrls = [];
+  await page.evaluate((s) => window.saveSession(s), sessionFor('mgr-relogin'));
+  await settle(page, 400);
+  await page.evaluate(async () => {
+    if (typeof window.openManagerDashboard === 'function') await window.openManagerDashboard();
+  });
+  await settle(page, 1200);
+  const after = await page.evaluate(() => ({
+    open: document.getElementById('managerDashModal').classList.contains('open'),
+    text: document.getElementById('managerDashContent')?.textContent || '',
+  }));
+  check(
+    'logout→login manager: registrations URL must include wilaya=eq.',
+    allRegistrationsScopedByWilaya(state.registrationsUrls),
+    `requests=${state.registrationsRequests} urls=${JSON.stringify(state.registrationsUrls)} open=${after.open} text=${JSON.stringify(after.text.slice(0, 120))}`,
+  );
+  check(
+    'logout→login manager: must not issue unscoped registrations fetch',
+    !anyUnscopedRegistrations(state.registrationsUrls),
+    `urls=${JSON.stringify(state.registrationsUrls)}`,
+  );
   await page.close();
 }
 
