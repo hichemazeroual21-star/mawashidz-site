@@ -4,14 +4,19 @@
 import defaultNewsHandler from './netlify/functions/news.mjs';
 import defaultPricesHandler from './netlify/functions/prices.mjs';
 import { processEmailOutbox } from './netlify/functions/email-outbox.mjs';
+import { handleLogin, handleRecover } from './netlify/functions/auth-login.mjs';
 
 const JSON_HEADERS = {
   'Content-Type': 'application/json; charset=utf-8',
   'Cache-Control': 'no-store',
 };
 
+function json(status, body) {
+  return new Response(JSON.stringify(body), { status, headers: JSON_HEADERS });
+}
+
 function jsonError(status, code) {
-  return new Response(JSON.stringify({ error: code }), { status, headers: JSON_HEADERS });
+  return json(status, { error: code });
 }
 
 function normalizeApiPath(pathname) {
@@ -48,10 +53,30 @@ export function createWorker(deps = {}) {
   const newsHandler = deps.newsHandler || defaultNewsHandler;
   const pricesHandler = deps.pricesHandler || defaultPricesHandler;
   const emailOutboxHandler = deps.emailOutboxHandler || ((req, env) => processEmailOutbox(req, env));
+  const loginHandler = deps.loginHandler || ((req, env) => handleLogin(req, env));
+  const recoverHandler = deps.recoverHandler || ((req, env) => handleRecover(req, env));
 
   return {
     async fetch(request, env) {
       const pathname = normalizeApiPath(new URL(request.url).pathname);
+
+      if (pathname === '/api/login') {
+        try {
+          return await loginHandler(request, env);
+        } catch {
+          console.error('login handler failed');
+          return jsonError(503, 'login-unavailable');
+        }
+      }
+
+      if (pathname === '/api/recover') {
+        try {
+          return await recoverHandler(request, env);
+        } catch {
+          console.error('recover handler failed');
+          return json(200, { ok: true });
+        }
+      }
 
       if (pathname === '/api/process-email-outbox') {
         try {

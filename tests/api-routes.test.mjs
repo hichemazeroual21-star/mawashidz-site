@@ -95,6 +95,13 @@ async function call(path, init = {}) {
   assert.match(await res.text(), /^static:/);
 }
 
+// unknown /api/* still falls through to static assets
+{
+  const res = await call('/api/not-a-real-route');
+  assert.equal(res.status, 200);
+  assert.equal(await res.text(), 'static:/api/not-a-real-route');
+}
+
 // missing ASSETS binding
 {
   const res = await worker.fetch(new Request('https://mawashidz.com/no-such-page'), {});
@@ -117,5 +124,40 @@ async function call(path, init = {}) {
   assert.equal(get.status, 405);
 }
 
-console.log('  ✓ Worker API routes: prices, news mock, methods, HEAD status, ASSETS guard');
+// login/recover routes are Worker-owned, POST-only, and dependency-injectable
+{
+  let loginCalls = 0;
+  let recoverCalls = 0;
+  const authWorker = createWorker({
+    loginHandler: async () => {
+      loginCalls++;
+      return new Response(JSON.stringify({ access_token: 'test-token' }), {
+        status: 200,
+      });
+    },
+    recoverHandler: async () => {
+      recoverCalls++;
+      return new Response(JSON.stringify({ ok: true }), { status: 200 });
+    },
+  });
+
+  const login = await authWorker.fetch(
+    new Request('https://mawashidz.com/api/login/', { method: 'POST' }),
+    env,
+  );
+  assert.equal(login.status, 200);
+  assert.equal(loginCalls, 1);
+
+  const recover = await authWorker.fetch(
+    new Request('https://mawashidz.com/api/recover', { method: 'POST' }),
+    env,
+  );
+  assert.equal(recover.status, 200);
+  assert.equal(recoverCalls, 1);
+
+  assert.equal((await call('/api/login', { method: 'GET' })).status, 405);
+  assert.equal((await call('/api/recover', { method: 'GET' })).status, 405);
+}
+
+console.log('  ✓ Worker API routes: auth, prices, news, methods, HEAD, ASSETS guard');
 
