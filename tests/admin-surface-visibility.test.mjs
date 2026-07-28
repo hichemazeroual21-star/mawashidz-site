@@ -583,11 +583,18 @@ function anyUnscopedRegistrations(urls) {
   const after = await page.evaluate(() => ({
     open: document.getElementById('managerDashModal').classList.contains('open'),
     text: document.getElementById('managerDashContent')?.textContent || '',
+    toast: document.getElementById('toast')?.textContent || '',
+    toastShown: document.getElementById('toast')?.classList.contains('show') || false,
   }));
   check(
     'null-profile manager: manager modal refused (fail-closed without wilaya)',
     after.open === false,
     `open=${after.open} text=${JSON.stringify(after.text.slice(0, 120))}`,
+  );
+  check(
+    'null-profile manager: visible wilaya-required message (2c)',
+    after.toastShown === true && /ولاية|wilaya/i.test(after.toast),
+    `toastShown=${after.toastShown} toast=${JSON.stringify(after.toast)}`,
   );
   check(
     'null-profile manager: no registrations fetch without resolved wilaya',
@@ -870,6 +877,16 @@ assert.match(
   html,
   /Fail closed before open\/fetch: manager surfaces require a resolved wilaya/,
   'manager open path must fail closed without wilaya',
+);
+assert.match(
+  html,
+  /showToast\(t\('dashMgrWilayaRequired'\)\)/,
+  '2c: missing wilaya must show dedicated visible message',
+);
+assert.match(
+  fs.readFileSync(path.join(REPO_ROOT, 'assets/i18n.js'), 'utf8'),
+  /dashMgrWilayaRequired:/,
+  '2c i18n key required',
 );
 assert.match(
   html,

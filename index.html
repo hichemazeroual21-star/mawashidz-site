@@ -3314,7 +3314,7 @@ async function openManagerDashboard(){
  if(!dash.hasManagerAccess(access.roles, boundProfile?.role)){showToast(t('dashNoAccess'));return}
  /* Fail closed before open/fetch: manager surfaces require a resolved wilaya on the bound profile. */
  const resolvedWilaya=String(boundProfile?.wilaya||'').trim();
- if(!resolvedWilaya){showToast(t('dashNoAccess'));return}
+ if(!resolvedWilaya){showToast(t('dashMgrWilayaRequired'));return}
  closeAll();
  document.getElementById('managerDashModal').classList.add('open');
  const box=document.getElementById('managerDashContent');
@@ -3322,7 +3322,12 @@ async function openManagerDashboard(){
  try{
   const profile=boundProfile||await ensureAccountProfile(session,{force:true});
   if(!accessContextCurrent(session,access.userId,access.epoch)){closeModal('managerDashModal');showToast(t('dashNoAccess'));return}
-  if(!String(profile?.wilaya||'').trim()){closeModal('managerDashModal');showToast(t('dashNoAccess'));return}
+  if(!String(profile?.wilaya||'').trim()){
+   closeModal('managerDashModal');
+   box.innerHTML=`<div class="dash-hero manager"><h3>${t('mgrDashTitle')}</h3><div class="notice is-error" style="margin-top:12px">${t('dashMgrWilayaRequired')}</div></div>`;
+   showToast(t('dashMgrWilayaRequired'));
+   return;
+  }
   await refreshManagerDashboard(session,dash,profile,access);
  }catch(e){
   if(!accessContextCurrent(session,access.userId,access.epoch)) return;
