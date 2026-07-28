@@ -3192,7 +3192,7 @@ async function refreshManagerDashboard(session, dash, profile, access){
  if(mdzDashReviewDisposer) mdzDashReviewDisposer();
  mdzDashReviewDisposer=dash.wireDashboardReviewActions(box,{
   t, token:session.access_token, restUrl:SUPABASE_REST, apiKey:SUPABASE_PUBLISHABLE_KEY,
-  roles:snapshot.roles, actorWilaya:wilaya, asAdmin:false, profileRole:profile?.role,
+  roles:snapshot.roles, actorWilaya:wilaya, asAdmin:false,
   isAccessCurrent:()=>privilegedAccessCurrent(snapshot),
   onDone:async()=>{
    if(!privilegedAccessCurrent(snapshot)) return;
@@ -3215,7 +3215,7 @@ async function refreshAdminDashboard(session, dash, access){
  if(mdzDashReviewDisposer) mdzDashReviewDisposer();
  mdzDashReviewDisposer=dash.wireDashboardReviewActions(box,{
   t, token:session.access_token, restUrl:SUPABASE_REST, apiKey:SUPABASE_PUBLISHABLE_KEY,
-  roles:snapshot.roles, actorWilaya:null, asAdmin:true, profileRole:null,
+  roles:snapshot.roles, actorWilaya:null, asAdmin:true,
   isAccessCurrent:()=>privilegedAccessCurrent(snapshot),
   onDone:async()=>{
    if(!privilegedAccessCurrent(snapshot)) return;
@@ -3311,7 +3311,7 @@ async function openManagerDashboard(){
   boundProfile=mdzAccountProfile;
  }
  if(!accessContextCurrent(session,access.userId,access.epoch)){showToast(t('dashNoAccess'));return}
- if(!dash.hasManagerAccess(access.roles, boundProfile?.role)){showToast(t('dashNoAccess'));return}
+ if(!dash.hasManagerAccess(access.roles)){showToast(t('dashNoAccess'));return}
  /* Fail closed before open/fetch: manager surfaces require a resolved wilaya on the bound profile. */
  const resolvedWilaya=String(boundProfile?.wilaya||'').trim();
  if(!resolvedWilaya){showToast(t('dashMgrWilayaRequired'));return}
@@ -3389,14 +3389,14 @@ function updateAuthChrome(){
  }
 }
 function dashRoleFlag(kind){
- /* Fail closed while roles are pending/failed, or when they belong to another user id. */
+ /* Fail closed while roles are pending/failed, or when they belong to another user id.
+    Elevation is user_roles only — profiles.role is membership type, not privilege. */
  if(mdzAccessState!=='ready') return false;
  if(!accessContextMatches(getSession())) return false;
  const roles=mdzUserRoles||[];
  if(roles.some(r=>MDZ_ADMIN_ROLES.includes(r))) return true;
  if(kind==='admin') return false;
- if(roles.some(r=>MDZ_MANAGER_ROLES.includes(r))) return true;
- return MDZ_MANAGER_ROLES.includes(String(mdzAccountProfile?.role||'').toLowerCase());
+ return roles.some(r=>MDZ_MANAGER_ROLES.includes(r));
 }
 function logoutAccount(){
  clearAccessContext();

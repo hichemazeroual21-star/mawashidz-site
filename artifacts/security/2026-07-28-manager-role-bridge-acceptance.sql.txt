@@ -1,0 +1,43 @@
+-- ARCHIVE / RUNBOOK ONLY — NOT A MIGRATION
+-- Live acceptance pair for 015_cut_manager_profiles_role_bridge.sql
+-- Run AFTER applying 015 on production (SQL editor / psql).
+-- Requires: a disposable auth user UUID (test account).
+-- Cleanup at the end is mandatory.
+
+-- Replace before run:
+--   :test_user_id  → uuid of throwaway tester (or use a literal)
+--   :founder_token context: run as the test user via SET ROLE / request.jwt, or
+--                 call RPCs from the app while signed in as that user.
+
+-- Preconditions check
+select public.mdz_is_wilaya_manager() as helper_as_current_user;
+-- Expect false for a normal member session.
+
+-- A) profiles.role=manager only → MUST FAIL privileged paths
+-- (set the test profile role without inserting user_roles)
+-- update public.profiles set role = 'manager', wilaya = coalesce(nullif(btrim(wilaya), ''), 'بسكرة')
+--  where id = '<TEST_USER_UUID>';
+-- Then, as that user JWT:
+--   select public.mdz_is_wilaya_manager();  -- expect false
+--   select public.review_registration_status('<any-reg-in-wilaya>', 'approved', null);
+--     -- expect insufficient privileges
+-- Support ticket staff path as that user must also fail with insufficient privileges.
+
+-- B) temporary user_roles row → MUST SUCCEED helper
+-- insert into public.user_roles (user_id, role)
+-- values ('<TEST_USER_UUID>', 'wilaya_manager')
+-- on conflict do nothing;
+-- As that user JWT:
+--   select public.mdz_is_wilaya_manager();  -- expect true
+-- (Do not approve real members in this probe — helper true is enough for B.)
+
+-- C) Cleanup (mandatory)
+-- delete from public.user_roles
+--  where user_id = '<TEST_USER_UUID>'
+--    and role in ('wilaya_manager', 'manager', 'wilaya_mgr');
+-- Optionally restore profiles.role to the membership type used at signup
+-- and delete the throwaway auth user if it was created only for this probe.
+
+-- D) Ledger
+-- select * from public.mdz_schema_migrations where version = '015';
+-- expect one row.

@@ -230,7 +230,7 @@ const matrix = [];
   await page.close();
 }
 
-// 3b) manager only via profiles.role spelling (wilaya_mgr) — unified vocabulary
+// 3b) profiles.role alone must NOT elevate (membership ≠ privilege)
 {
   const { page } = await loadApp({ userId: 'mgr-2', roles: [], profile: { id: 'mgr-2', role: 'wilaya_mgr', wilaya: 'وهران' } });
   await settle(page);
@@ -239,9 +239,13 @@ const matrix = [];
   await page.evaluate(() => window.openAccount());
   await settle(page, 800);
   const s = await surfaces(page);
-  matrix.push({ persona: 'manager (profiles.role=wilaya_mgr)', ...s });
-  check('manager(profile-role): manager surface visible after profile bound', s.manager === true);
+  matrix.push({ persona: 'profiles.role=wilaya_mgr without user_roles', ...s });
+  check('manager(profile-role): manager surface stays hidden after profile bound', s.manager === false);
   check('manager(profile-role): admin surface hidden', s.admin === false);
+  await page.evaluate(() => window.openManagerDashboard());
+  await settle(page, 700);
+  const after = await surfaces(page);
+  check('manager(profile-role): dashboard refuses to open', after.managerModalOpen === false);
   await page.close();
 }
 
@@ -344,7 +348,7 @@ for (const role of ['admin', 'founder', 'super_admin']) {
   await page.close();
 }
 
-// 9) roles failure must veto the profiles.role=manager fallback
+// 9) roles failure must not elevate via profiles.role either
 {
   const { page } = await loadApp({ userId: 'mgr-3', roles: ['wilaya_manager'], rolesStatus: 503, profile: { id: 'mgr-3', role: 'manager', wilaya: 'قسنطينة' } });
   await settle(page);
@@ -821,14 +825,15 @@ function anyUnscopedRegistrations(urls) {
 // ---------------------------------------------------------------------------
 assert.deepEqual([...MANAGER_ROLES].sort(), ['manager', 'wilaya_manager', 'wilaya_mgr']);
 for (const spelling of ['manager', 'wilaya_manager', 'wilaya_mgr']) {
-  assert.equal(hasManagerAccess([], spelling), true, `profiles.role=${spelling} must grant manager surface`);
+  assert.equal(hasManagerAccess([spelling]), true, `user_roles=${spelling} must grant manager surface`);
+  assert.equal(hasManagerAccess([], spelling), false, `profiles.role=${spelling} must NOT grant manager surface`);
 }
 assert.equal(hasManagerAccess([], 'breeder'), false);
 assert.equal(hasManagerAccess([], null), false);
 assert.equal(hasAdminAccess(['ADMIN']), true, 'role comparison must be case-insensitive');
 assert.equal(hasAdminAccess(undefined), false);
-assert.equal(hasManagerAccess(undefined, undefined), false);
-check('role vocabulary: manager spellings unified frontend/backend', true);
+assert.equal(hasManagerAccess(undefined), false);
+check('role vocabulary: manager elevation is user_roles-only', true);
 
 const html = fs.readFileSync(path.join(REPO_ROOT, 'index.html'), 'utf8');
 assert.ok(!/operator/i.test(html.match(/const MDZ_MANAGER_ROLES=\[[^\]]*\]/)?.[0] || ''), 'operator is not a role');
