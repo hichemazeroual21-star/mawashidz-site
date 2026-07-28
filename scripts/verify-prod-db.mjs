@@ -43,6 +43,9 @@ export const SAFE_PROBES = Object.freeze([
     args: { lookup_value: '__mdz_probe_never_matches__' },
   },
   { fn: 'mdz_role_prefix', args: { member_role: 'buyer' } },
+  // F5 — exists in production but has an unnamed parameter, so it is unreachable via
+  // named JSON arguments. If this ever flips to REACHABLE, someone re-created the
+  // function: investigate, do not silently re-baseline.
   {
     fn: 'normalize_algerian_phone',
     args: { phone_input: '0550000000' },
@@ -54,20 +57,19 @@ export const SAFE_PROBES = Object.freeze([
   },
   {
     fn: 'mdz_registration_id_missing',
-    args: { p_registration_id: '__probe__' },
+    args: { p_id: 'probe' },
   },
   {
     fn: 'mdz_is_real_pending_registration',
     args: {
-      p_registration_id: '__probe__',
-      p_email: '__probe__@example.invalid',
+      p_status: 'pending',
+      p_email: 'probe@example.invalid',
     },
   },
 ]);
 
 const UNRESOLVED_ON_PGRST202 = new Set([
   'mdz_role_prefix',
-  'normalize_algerian_phone',
   'mdz_msg_registration_id',
   'mdz_is_test_registration_email',
   'mdz_registration_id_missing',
@@ -105,6 +107,13 @@ const volatilityDocument = JSON.parse(
   ),
 );
 export const FUNCTION_VOLATILITY = Object.freeze(volatilityDocument.functions);
+const signatureDocument = JSON.parse(
+  readFileSync(
+    new URL('../docs/runbooks/evidence/function-signatures.json', import.meta.url),
+    'utf8',
+  ),
+);
+export const FUNCTION_SIGNATURES = Object.freeze(signatureDocument.functions);
 const SAFE_VOLATILITIES = new Set(['IMMUTABLE', 'STABLE']);
 
 const headers = Object.freeze({
@@ -140,6 +149,15 @@ export function assertProbeSafe({ fn, args = {} }) {
   const approved = SAFE_PROBES.find((probe) => probe.fn === fn);
   if (!approved || !sameArgs(approved.args, args)) {
     throw new Error(`Function or argument signature is not approved: ${fn}`);
+  }
+
+  const declaredKeys = FUNCTION_SIGNATURES[fn];
+  const suppliedKeys = Object.keys(args);
+  if (
+    !Array.isArray(declaredKeys) ||
+    [...declaredKeys].sort().join('\0') !== suppliedKeys.sort().join('\0')
+  ) {
+    throw new Error(`Function argument keys do not match source signature: ${fn}`);
   }
 
   const volatility = FUNCTION_VOLATILITY[fn];

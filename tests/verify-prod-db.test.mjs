@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import {
+  FUNCTION_SIGNATURES,
   FUNCTION_VOLATILITY,
   MUTATING_DENYLIST,
   SAFE_PROBES,
@@ -22,22 +23,32 @@ for (const probe of SAFE_PROBES) {
     ['IMMUTABLE', 'STABLE'].includes(FUNCTION_VOLATILITY[probe.fn]),
     `${probe.fn} must be IMMUTABLE or STABLE`,
   );
+  assert.ok(
+    Array.isArray(FUNCTION_SIGNATURES[probe.fn]),
+    `${probe.fn} must have a committed source signature`,
+  );
+  for (const argumentKey of Object.keys(probe.args)) {
+    assert.ok(
+      FUNCTION_SIGNATURES[probe.fn].includes(argumentKey),
+      `${probe.fn}.${argumentKey} must exist in the committed source signature`,
+    );
+  }
+  assert.deepEqual(
+    Object.keys(probe.args).sort(),
+    [...FUNCTION_SIGNATURES[probe.fn]].sort(),
+    `${probe.fn} argument keys must exactly match the committed source signature`,
+  );
   assertProbeSafe(probe);
 }
 
-const expectedParameterizedArgs = new Map([
-  ['resolve_login_identifier', ['lookup_value']],
-  ['mdz_role_prefix', ['member_role']],
-  ['normalize_algerian_phone', ['phone_input']],
-  ['mdz_msg_registration_id', ['p_message']],
-  ['mdz_is_test_registration_email', ['p_email']],
-  ['mdz_registration_id_missing', ['p_registration_id']],
-  ['mdz_is_real_pending_registration', ['p_email', 'p_registration_id']],
-]);
-for (const [fn, argNames] of expectedParameterizedArgs) {
-  const probe = SAFE_PROBES.find((candidate) => candidate.fn === fn);
-  assert.deepEqual(Object.keys(probe.args).sort(), argNames);
-}
+assert.deepEqual(
+  SAFE_PROBES.find(({ fn }) => fn === 'mdz_registration_id_missing').args,
+  { p_id: 'probe' },
+);
+assert.deepEqual(
+  SAFE_PROBES.find(({ fn }) => fn === 'mdz_is_real_pending_registration').args,
+  { p_status: 'pending', p_email: 'probe@example.invalid' },
+);
 
 for (const fn of MUTATING_DENYLIST) {
   assert.throws(
@@ -111,6 +122,16 @@ assert.throws(
 {
   const probe = SAFE_PROBES.find(
     ({ fn }) => fn === 'mdz_assert_admin_caller',
+  );
+  const fetchImpl = async () =>
+    new Response(JSON.stringify({ code: 'PGRST202' }), { status: 404 });
+  const result = await probeFunction(probe, { fetchImpl });
+  assert.equal(result.status, 'ABSENT_FUNCTION');
+}
+
+{
+  const probe = SAFE_PROBES.find(
+    ({ fn }) => fn === 'normalize_algerian_phone',
   );
   const fetchImpl = async () =>
     new Response(JSON.stringify({ code: 'PGRST202' }), { status: 404 });

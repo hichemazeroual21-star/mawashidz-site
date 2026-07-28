@@ -1,0 +1,32 @@
+{
+  "source": "supabase/migrations",
+  "sourceBasis": "Declared argument names in committed migration SQL; replace with PKG-02 Q1 catalog evidence.",
+  "functions": {
+    "mdz_is_platform_admin": [],
+    "mdz_is_wilaya_manager": [],
+    "mdz_caller_wilaya": [],
+    "mdz_assert_admin_caller": [],
+    "resolve_login_identifier": [
+      "lookup_value"
+    ],
+    "mdz_role_prefix": [
+      "member_role"
+    ],
+    "normalize_algerian_phone": [
+      "phone_input"
+    ],
+    "mdz_msg_registration_id": [
+      "p_message"
+    ],
+    "mdz_is_test_registration_email": [
+      "p_email"
+    ],
+    "mdz_registration_id_missing": [
+      "p_id"
+    ],
+    "mdz_is_real_pending_registration": [
+      "p_status",
+      "p_email"
+    ]
+  }
+}
