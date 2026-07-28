@@ -10,16 +10,16 @@ import { paginateExchangeRows, nextExchangeLimit, EXCHANGE_PAGE_SIZE } from '../
 
 assert.equal(hasAdminAccess(['member']), false);
 assert.equal(hasAdminAccess(['admin']), true);
-assert.equal(hasManagerAccess(['wilaya_manager'], null), true);
-assert.equal(hasManagerAccess([], 'manager'), true);
+assert.equal(hasManagerAccess(['wilaya_manager']), true);
+assert.equal(hasManagerAccess([], 'manager'), false);
 
 assert.equal(canReviewRegistration(['member'], 'الجزائر', 'الجزائر', { asAdmin: false }), false);
 assert.equal(canReviewRegistration(['wilaya_manager'], 'الجزائر', 'وهران', { asAdmin: false }), false);
 assert.equal(canReviewRegistration(['wilaya_manager'], 'الجزائر', 'الجزائر', { asAdmin: false }), true);
 assert.equal(canReviewRegistration(['admin'], 'الجزائر', 'وهران', { asAdmin: true }), true);
 assert.equal(canReviewRegistration(['founder'], null, null, { asAdmin: true }), true);
-// profiles.role=manager without user_roles manager row must still pass client gate
-assert.equal(canReviewRegistration([], 'الجزائر', 'الجزائر', { asAdmin: false, profileRole: 'manager' }), true);
+// profiles.role=manager without user_roles must fail client gate
+assert.equal(canReviewRegistration([], 'الجزائر', 'الجزائر', { asAdmin: false, profileRole: 'manager' }), false);
 assert.equal(canReviewRegistration([], 'الجزائر', 'وهران', { asAdmin: false, profileRole: 'manager' }), false);
 assert.equal(canReviewRegistration([], 'الجزائر', 'الجزائر', { asAdmin: false, profileRole: 'breeder' }), false);
 

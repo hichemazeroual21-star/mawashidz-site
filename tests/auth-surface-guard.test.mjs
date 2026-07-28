@@ -34,7 +34,11 @@ assert.match(html, /accessToken:sessionPayload\?\.access_token/, 'recovery branc
 assert.match(html, /buildUpdatePasswordRequest|\/user'/, 'password update must call auth /user');
 assert.match(html, /openResetPasswordModal/, 'set-password UI entrypoint required');
 assert.ok(!/type==='recovery'\?t\('authRecoveryOk'\):type==='signup'/.test(html), 'recovery must not fall through to openAccount toast path');
-assert.match(html, /profileRole:profile\?\.role/, 'manager review wiring must pass profiles.role');
+assert.ok(!/profileRole:profile\?\.role/.test(html), 'manager review must not pass profiles.role as privilege');
+assert.ok(
+  !/MDZ_MANAGER_ROLES\.includes\(String\(mdzAccountProfile\?\.role/.test(html),
+  'dashRoleFlag must not elevate from profiles.role',
+);
 assert.match(
   html,
   /if\(recovery\.isRecoveryActive\(\)\)\{openResetPasswordModal\(\);return\}/,

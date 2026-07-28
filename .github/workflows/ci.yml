@@ -33,6 +33,7 @@ jobs:
           node tests/migration-review-registration.test.mjs
           node tests/migration-admin-audit.test.mjs
           node tests/migration-baseline-hardening.test.mjs
+          node tests/migration-015-manager-role-bridge.test.mjs
           node tests/phase1-member-ops.test.mjs
           node tests/email-outbox.test.mjs
           node tests/ui-remediation.test.mjs
