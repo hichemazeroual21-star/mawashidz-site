@@ -159,5 +159,44 @@ async function call(path, init = {}) {
   assert.equal((await call('/api/recover', { method: 'GET' })).status, 405);
 }
 
+// auth wrapper failures stay generic and never log request contents
+{
+  const logs = [];
+  const originalError = console.error;
+  console.error = (...parts) => logs.push(parts.join(' '));
+  try {
+    const failingAuthWorker = createWorker({
+      loginHandler: async () => { throw new Error('internal'); },
+      recoverHandler: async () => { throw new Error('internal'); },
+    });
+    const secretBody = JSON.stringify({
+      identifier: 'private@example.com',
+      password: 'private-password',
+    });
+    const login = await failingAuthWorker.fetch(
+      new Request('https://mawashidz.com/api/login', {
+        method: 'POST',
+        body: secretBody,
+      }),
+      env,
+    );
+    assert.equal(login.status, 503);
+    assert.deepEqual(await login.json(), { error: 'login-unavailable' });
+
+    const recover = await failingAuthWorker.fetch(
+      new Request('https://mawashidz.com/api/recover', {
+        method: 'POST',
+        body: secretBody,
+      }),
+      env,
+    );
+    assert.equal(recover.status, 200);
+    assert.deepEqual(await recover.json(), { ok: true });
+  } finally {
+    console.error = originalError;
+  }
+  assert.doesNotMatch(logs.join(' '), /private@example|private-password/);
+}
+
 console.log('  ✓ Worker API routes: auth, prices, news, methods, HEAD, ASSETS guard');
 

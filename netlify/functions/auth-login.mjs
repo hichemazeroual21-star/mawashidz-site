@@ -1,4 +1,7 @@
-import { normalizeSupabaseUrl } from '../../scripts/lib/supabase-url.mjs';
+import {
+  normalizeSupabaseUrl,
+  validateSupabaseUrlConfig,
+} from '../../scripts/lib/supabase-url.mjs';
 
 /**
  * Server-side login identifier resolution and password recovery.
@@ -22,9 +25,13 @@ function json(status, body) {
 }
 
 function envOf(_request, runtimeEnv, name) {
-  return runtimeEnv?.[name]
-    || (typeof process !== 'undefined' && process.env && process.env[name])
-    || '';
+  return runtimeEnv?.[name] || '';
+}
+
+function configuredBaseUrl(raw) {
+  const validation = validateSupabaseUrlConfig(raw);
+  if (!validation.ok) return '';
+  return normalizeSupabaseUrl(raw, { warn: () => {} });
 }
 
 function serviceHeaders(serviceKey) {
@@ -99,7 +106,7 @@ export async function handleLogin(
   }
 
   const get = (name) => envOf(request, runtimeEnv, name);
-  const baseUrl = normalizeSupabaseUrl(
+  const baseUrl = configuredBaseUrl(
     get('SUPABASE_URL') || get('MDZ_SUPABASE_URL'),
   );
   const serviceKey =
@@ -162,7 +169,7 @@ export async function handleRecover(
   if (!identifier) return json(200, RECOVER_OK);
 
   const get = (name) => envOf(request, runtimeEnv, name);
-  const baseUrl = normalizeSupabaseUrl(
+  const baseUrl = configuredBaseUrl(
     get('SUPABASE_URL') || get('MDZ_SUPABASE_URL'),
   );
   const serviceKey =
@@ -178,13 +185,12 @@ export async function handleRecover(
   if (!resolvedEmail) return json(200, RECOVER_OK);
 
   try {
-    await fetchImpl(`${baseUrl}/auth/v1/recover`, {
+    const recoverUrl = new URL(`${baseUrl}/auth/v1/recover`);
+    recoverUrl.searchParams.set('redirect_to', RECOVERY_REDIRECT);
+    await fetchImpl(recoverUrl, {
       method: 'POST',
       headers: serviceHeaders(serviceKey),
-      body: JSON.stringify({
-        email: resolvedEmail,
-        redirect_to: RECOVERY_REDIRECT,
-      }),
+      body: JSON.stringify({ email: resolvedEmail }),
     });
   } catch {
     // Recovery is deliberately non-enumerating for every upstream outcome.

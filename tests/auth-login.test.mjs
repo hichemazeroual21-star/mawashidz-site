@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import {
   handleLogin,
   handleRecover,
@@ -8,6 +9,11 @@ const ENV = Object.freeze({
   SUPABASE_URL: 'https://example.supabase.co',
   SUPABASE_SERVICE_ROLE_KEY: 'service-role-test-key',
 });
+const source = readFileSync(
+  new URL('../netlify/functions/auth-login.mjs', import.meta.url),
+  'utf8',
+);
+assert.doesNotMatch(source, /console\./, 'auth routes must never log sensitive inputs');
 
 function request(path, body, method = 'POST') {
   const init = { method };
@@ -67,15 +73,33 @@ function jsonResponse(status, body) {
 }
 
 {
-  const response = await handleLogin(
-    request('/api/login', {
-      identifier: 'member@example.com',
-      password: 'not-logged',
-    }),
+  for (const runtimeEnv of [
     {},
-  );
-  assert.equal(response.status, 503);
-  assert.deepEqual(await response.json(), { error: 'login-unavailable' });
+    { SUPABASE_URL: ENV.SUPABASE_URL },
+    { SUPABASE_SERVICE_ROLE_KEY: ENV.SUPABASE_SERVICE_ROLE_KEY },
+    {
+      SUPABASE_URL: 'https://attacker.invalid',
+      SUPABASE_SERVICE_ROLE_KEY: ENV.SUPABASE_SERVICE_ROLE_KEY,
+    },
+  ]) {
+    let fetchCalled = false;
+    const response = await handleLogin(
+      request('/api/login', {
+        identifier: 'member@example.com',
+        password: 'not-logged',
+      }),
+      runtimeEnv,
+      {
+        fetchImpl: async () => {
+          fetchCalled = true;
+          throw new Error('must not call invalid configuration');
+        },
+      },
+    );
+    assert.equal(response.status, 503);
+    assert.deepEqual(await response.json(), { error: 'login-unavailable' });
+    assert.equal(fetchCalled, false);
+  }
 }
 
 let loginFailureText;
@@ -111,6 +135,11 @@ let loginFailureText;
     email: 'member@example.com',
     password: 'correct-password',
   });
+  assert.equal(stub.calls[0].init.headers.apikey, ENV.SUPABASE_SERVICE_ROLE_KEY);
+  assert.equal(
+    stub.calls[0].init.headers.Authorization,
+    `Bearer ${ENV.SUPABASE_SERVICE_ROLE_KEY}`,
+  );
 
   const withoutAllowedEmail = structuredClone(session);
   delete withoutAllowedEmail.user.email;
@@ -173,7 +202,26 @@ let loginFailureText;
     email: '__mdz_login_probe__@example.invalid',
     password: 'same-password',
   });
+  assert.equal(stub.calls[1].init.headers.apikey, ENV.SUPABASE_SERVICE_ROLE_KEY);
   assert.doesNotMatch(loginFailureText, /@|same-password|service-role/);
+}
+
+{
+  const stub = fetchSequence([
+    new Error('resolver network failure'),
+    jsonResponse(400, { error: 'dummy user not found' }),
+  ]);
+  const response = await handleLogin(
+    request('/api/login', {
+      identifier: 'MDZ-U-999998',
+      password: 'network-password',
+    }),
+    ENV,
+    { fetchImpl: stub.fetchImpl },
+  );
+  assert.equal(response.status, 401);
+  assert.equal(await response.text(), loginFailureText);
+  assert.equal(stub.calls.length, 2, 'resolver errors must still make dummy GoTrue call');
 }
 
 {
@@ -257,11 +305,16 @@ let loginFailureText;
 
   assert.equal(response.status, 200);
   assert.equal(stub.calls.length, 1, 'email recovery must not call resolver');
-  assert.match(stub.calls[0].url, /\/auth\/v1\/recover$/);
+  const recoverUrl = new URL(stub.calls[0].url);
+  assert.equal(recoverUrl.pathname, '/auth/v1/recover');
+  assert.equal(
+    recoverUrl.searchParams.get('redirect_to'),
+    'https://mawashidz.com/#auth-callback',
+  );
   assert.deepEqual(JSON.parse(stub.calls[0].init.body), {
     email: 'member@example.com',
-    redirect_to: 'https://mawashidz.com/#auth-callback',
   });
+  assert.equal(stub.calls[0].init.headers.apikey, ENV.SUPABASE_SERVICE_ROLE_KEY);
 }
 
 {
@@ -279,7 +332,12 @@ let loginFailureText;
     stub.calls[0].url,
     /\/rest\/v1\/rpc\/resolve_login_identifier$/,
   );
-  assert.match(stub.calls[1].url, /\/auth\/v1\/recover$/);
+  const recoverUrl = new URL(stub.calls[1].url);
+  assert.equal(recoverUrl.pathname, '/auth/v1/recover');
+  assert.equal(
+    recoverUrl.searchParams.get('redirect_to'),
+    'https://mawashidz.com/#auth-callback',
+  );
 }
 
 console.log('  ✓ server-side login and recovery anti-enumeration');
