@@ -12,6 +12,9 @@ UTC date: 2026-07-28
 | PKG-01-R unit tests | Cursor Cloud Agent (GPT-5.6 Sol) | Cursor Cloud / Node 22 | Passed |
 | PKG-01-R baseline | Cursor Cloud Agent (GPT-5.6 Sol) | Production anonymous PostgREST API | Passed; no visible rows |
 | PKG-01-R comparison | Cursor Cloud Agent (GPT-5.6 Sol) | Production anonymous PostgREST API | Passed; baseline matched |
+| PKG-01-R2 repair | Cursor Cloud Agent (GPT-5.6 Sol) | Repository + offline tests | Corrected signatures; source-map gate passed |
+| PKG-01-R2 baseline | Cursor Cloud Agent (GPT-5.6 Sol), 2026-07-28T18:53:58Z | Production anonymous PostgREST API | Fresh measurement matched every CSO-04 cross-check |
+| PKG-01-R2 comparison | Cursor Cloud Agent (GPT-5.6 Sol), 2026-07-28T18:53:58Z | Production anonymous PostgREST API | Exit 0 against repaired-instrument baseline |
 | PKG-02 prerequisite gate | Cursor Cloud Agent (GPT-5.6 Sol) | Supabase owner SQL Editor required | BLOCKED: Operator session not scheduled and backup/PITR not confirmed |
 | PKG-02 Q1–Q7 | Operator NOT YET SCHEDULED | Production PostgreSQL catalog | NOT EXECUTED |
 
@@ -51,11 +54,12 @@ file were not changed.
 - Full evidence: `evidence/PKG01_probe.txt`
 - Baseline: `docs/runbooks/evidence/prod-db-baseline.json`
 - Source-derived volatility map: `docs/runbooks/evidence/function-volatility.json`
+- Source-derived argument map: `docs/runbooks/evidence/function-signatures.json`
 - Dedicated prober tests: exit 0
 - Full unit suite: exit 0
-- Baseline capture: exit 0
-- Baseline comparison: exit 0
-- Amendment 2 baseline correction: Principal-supplied read-only probe evidence
+- Repaired-instrument baseline capture: exit 0
+- Repaired-instrument baseline comparison: exit 0
+- CSO-04 expected-value cross-check: every line matched
 - Anonymous RLS-visible rows: zero on every reachable table
 - `mdz_next_registration_id`: **NOT INVOKED BY ENGINEER; DENIED per Principal measurement; catalog row requires Q1**
 - Confirmed anonymous-reachable floor: **8 functions**
@@ -82,7 +86,7 @@ file were not changed.
 | `mdz_assert_admin_caller` | ABSENT_FUNCTION | ABSENT_FUNCTION | CONFIRMED |
 | `resolve_login_identifier` | REACHABLE | REACHABLE | CONFIRMED |
 | `mdz_role_prefix` | not predicted | REACHABLE | CONFIRMED; extends F2 |
-| `normalize_algerian_phone` | not predicted | F5 SIGNATURE DIVERGENCE | CONFIRMED |
+| `normalize_algerian_phone` | ABSENT_FUNCTION (F5) | ABSENT_FUNCTION | CONFIRMED |
 | `mdz_msg_registration_id` | not predicted | DENIED | MEASURED |
 | `mdz_is_test_registration_email` | not predicted | REACHABLE | CONFIRMED; extends F2 |
 | `mdz_registration_id_missing` | not predicted | REACHABLE with `p_id` | CORRECTED / CONFIRMED |
@@ -93,6 +97,12 @@ guessing alternate arguments. Amendment 2 resolves two as errors in the issued
 order: migration 014 declares `mdz_registration_id_missing(p_id text)` and
 `mdz_is_real_pending_registration(p_status text, p_email text)`. The Principal's
 corrected read-only probes returned HTTP 200 and `false` for both.
+
+PKG-01-R2 then corrected the instrument itself, validated all approved argument
+keys against the committed source-derived signature map, and captured a new
+baseline from production. The Engineer's independent measurement reproduced the
+two corrected REACHABLE results and F5 ABSENT_FUNCTION result. The former
+Principal-supplied reference is superseded by this instrument-produced baseline.
 
 ### Confirmed anonymous function floor
 
@@ -198,7 +208,7 @@ DEFINER functions remains unmeasured.
 | Worker is `mawashidz-live` | CONFIRMED | PKG-00 |
 | Original revised PKG-01 signature | CONFIRMED | PKG-01-R |
 | All reachable-table anonymous row counts are zero | CONFIRMED | PKG-01-R |
-| Six added immutable probe classifications | PARTIALLY CONFIRMED | Five classified: four REACHABLE, one DENIED; `normalize_algerian_phone` is F5 |
+| Six added immutable probe classifications | CONFIRMED | Four REACHABLE, one DENIED, one ABSENT_FUNCTION (F5) |
 | Planning figure: 41 anonymous-executable functions | REFUTED as an evidence-backed count | Measured floor is 8; true count requires Q1 |
 | Q1 anonymous-executable set | UNRESOLVED | Q1 not executed |
 | Q2 four booleans | UNRESOLVED | Q2 not executed |
@@ -248,5 +258,5 @@ are pending scheduling/confirmation. No remaining package is authorized.
 - Operator: NOT YET SCHEDULED / NOT SIGNED
 - Principal Engineer: pending review
 - Production mutation performed: **NO**
-- Authorization consumed: PKG-01-R accepted; evidence amended; PKG-02 blocked
+- Authorization consumed: PKG-01-R accepted; PKG-01-R2 complete awaiting review; PKG-02 blocked
 - Next action: **STAND BY for Owner confirmation; no PKG-03 through PKG-31**

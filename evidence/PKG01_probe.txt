@@ -187,7 +187,7 @@ COMMITTED BASELINE: docs/runbooks/evidence/prod-db-baseline.json
     {"name":"mdz_assert_admin_caller","status":"ABSENT_FUNCTION"},
     {"name":"resolve_login_identifier","status":"REACHABLE"},
     {"name":"mdz_role_prefix","status":"REACHABLE"},
-    {"name":"normalize_algerian_phone","status":"UNRESOLVED"},
+    {"name":"normalize_algerian_phone","status":"ABSENT_FUNCTION"},
     {"name":"mdz_msg_registration_id","status":"DENIED"},
     {"name":"mdz_is_test_registration_email","status":"REACHABLE"},
     {"name":"mdz_registration_id_missing","status":"REACHABLE"},
@@ -195,11 +195,79 @@ COMMITTED BASELINE: docs/runbooks/evidence/prod-db-baseline.json
   ]
 }
 
-BASELINE REPRODUCIBILITY NOTE
-The committed reference incorporates the Principal's corrected probes. The
-original prober transcript and issued argument objects are preserved. Amendment
-2 authorized evidence changes only, so the prober allowlist was not changed and
-the amended baseline was not re-probed by the Engineer.
+PKG-01-R2 — REPAIRED-INSTRUMENT EVIDENCE
+UTC timestamp: 2026-07-28T18:53:58Z
+
+COMMAND: node tests/verify-prod-db.test.mjs && npm run test:unit
+EXIT: 0
+RESULT:
+  ✓ read-only production database prober
+Registration flow tests: 17 passed, 0 failed
+All remaining unit, migration, security-shape, and static gates passed.
+
+COMMAND: node scripts/verify-prod-db.mjs --baseline
+EXIT: 0
+OUTPUT (verbatim):
+TABLE  registrations                          REACHABLE rls_visible_rows=0
+TABLE  profiles                               REACHABLE rls_visible_rows=0
+TABLE  user_roles                             REACHABLE rls_visible_rows=0
+TABLE  contact_messages                       REACHABLE rls_visible_rows=0
+TABLE  feedback_tickets                       REACHABLE rls_visible_rows=0
+TABLE  notifications                          DENIED
+TABLE  support_tickets                        DENIED
+TABLE  support_messages                       DENIED
+TABLE  email_outbox                           DENIED
+TABLE  member_id_counters                     DENIED
+TABLE  mdz_schema_migrations                  DENIED
+TABLE  admin_audit_log                        ABSENT_TABLE
+FN     mdz_is_platform_admin                  REACHABLE
+FN     mdz_is_wilaya_manager                  REACHABLE
+FN     mdz_caller_wilaya                      REACHABLE
+FN     mdz_assert_admin_caller                ABSENT_FUNCTION
+FN     resolve_login_identifier               REACHABLE
+FN     mdz_role_prefix                        REACHABLE
+FN     normalize_algerian_phone               ABSENT_FUNCTION
+FN     mdz_msg_registration_id                DENIED
+FN     mdz_is_test_registration_email         REACHABLE
+FN     mdz_registration_id_missing            REACHABLE
+FN     mdz_is_real_pending_registration       REACHABLE
+BASELINE: wrote docs/runbooks/evidence/prod-db-baseline.json
+
+CSO-04 CROSS-CHECK:
+Every measured function status, table status, and visible-row count matched the
+expected values. No value was copied from the order into the baseline.
+
+COMMAND: node scripts/verify-prod-db.mjs
+EXIT: 0
+OUTPUT (verbatim):
+TABLE  registrations                          REACHABLE rls_visible_rows=0
+TABLE  profiles                               REACHABLE rls_visible_rows=0
+TABLE  user_roles                             REACHABLE rls_visible_rows=0
+TABLE  contact_messages                       REACHABLE rls_visible_rows=0
+TABLE  feedback_tickets                       REACHABLE rls_visible_rows=0
+TABLE  notifications                          DENIED
+TABLE  support_tickets                        DENIED
+TABLE  support_messages                       DENIED
+TABLE  email_outbox                           DENIED
+TABLE  member_id_counters                     DENIED
+TABLE  mdz_schema_migrations                  DENIED
+TABLE  admin_audit_log                        ABSENT_TABLE
+FN     mdz_is_platform_admin                  REACHABLE
+FN     mdz_is_wilaya_manager                  REACHABLE
+FN     mdz_caller_wilaya                      REACHABLE
+FN     mdz_assert_admin_caller                ABSENT_FUNCTION
+FN     resolve_login_identifier               REACHABLE
+FN     mdz_role_prefix                        REACHABLE
+FN     normalize_algerian_phone               ABSENT_FUNCTION
+FN     mdz_msg_registration_id                DENIED
+FN     mdz_is_test_registration_email         REACHABLE
+FN     mdz_registration_id_missing            REACHABLE
+FN     mdz_is_real_pending_registration       REACHABLE
+OK: production database signature matches baseline
+
+BASELINE REPRODUCIBILITY:
+The committed baseline is now the repaired Engineer instrument's direct
+measurement. It supersedes the Amendment 2 Principal-supplied reference.
 
 AUDIT FINDING (DEFERRED BY ORDER)
 npm ci reported 3 high-severity development-only findings in:

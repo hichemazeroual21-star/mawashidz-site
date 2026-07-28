@@ -82,7 +82,7 @@
     },
     {
       "name": "normalize_algerian_phone",
-      "status": "UNRESOLVED"
+      "status": "ABSENT_FUNCTION"
     },
     {
       "name": "mdz_msg_registration_id",
