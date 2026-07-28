@@ -1,0 +1,18 @@
+{
+  "source": "supabase/migrations",
+  "sourceBasis": "Declared volatility in committed migration SQL; replace with PKG-02 Q1 catalog evidence.",
+  "functions": {
+    "mdz_is_platform_admin": "STABLE",
+    "mdz_is_wilaya_manager": "STABLE",
+    "mdz_caller_wilaya": "STABLE",
+    "mdz_assert_admin_caller": "STABLE",
+    "resolve_login_identifier": "STABLE",
+    "mdz_role_prefix": "IMMUTABLE",
+    "normalize_algerian_phone": "IMMUTABLE",
+    "mdz_msg_registration_id": "IMMUTABLE",
+    "mdz_is_test_registration_email": "IMMUTABLE",
+    "mdz_registration_id_missing": "IMMUTABLE",
+    "mdz_is_real_pending_registration": "IMMUTABLE",
+    "mdz_next_registration_id": "VOLATILE"
+  }
+}
