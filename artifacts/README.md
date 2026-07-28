@@ -1,3 +1,13 @@
+# Artifacts
+
+| File | Description |
+|------|-------------|
+| `ELIMINATION-VERIFICATION-ONE-PAGER-2026-07-28.md` | Independent verification board one-pager (Top 5, ≤10 workers) |
+
+Full board report: `docs/strategy/ELIMINATION-VERIFICATION-BOARD-2026-07-28.md`
+
+---
+
 # External code review packages
 
 Pre-built ZIP archives for third-party security/architecture review.
