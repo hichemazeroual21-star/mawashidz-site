@@ -1,10 +1,10 @@
 # PKG-02 production catalog evidence
 
-Status: **NOT EXECUTED — D4 prerequisite stop**
+Status: **NOT EXECUTED — D5 BLOCKED / STAND BY**
 
 - UTC date: 2026-07-28
 - Engineer: Cursor Cloud Agent (GPT-5.6 Sol)
-- Operator: NOT PRESENT
+- Operator: NOT YET SCHEDULED
 - Target project required: `fpjvjfgwbfehhcvdirpy`
 - Operator confirmation of selected project: NOT PROVIDED
 - Backup/PITR restore-point confirmation and date: NOT PROVIDED
@@ -15,13 +15,35 @@ Status: **NOT EXECUTED — D4 prerequisite stop**
 The Engineer environment contains no Supabase/Postgres database credential. The
 order requires an Operator with Supabase owner access to inspect and execute each
 `SELECT` in SQL Editor, and forbids requesting or using a service-role key.
-Consequently Q1 could not be run safely in this execution context. No later
-query group was attempted.
+Consequently Q1 is blocked pending scheduling and prerequisite confirmation.
+No later query group was attempted. This is not D4: Operator refusal/inability
+and backup/PITR impossibility have not been established.
+
+## Amendment 2 supplementary read-only evidence
+
+The Principal supplied results from separate anonymous read-only probes. These
+do not replace Q1 catalog output:
+
+- Confirmed anonymous-reachable floor: **8**
+  (`mdz_is_platform_admin`, `mdz_is_wilaya_manager`, `mdz_caller_wilaya`,
+  `resolve_login_identifier`, `mdz_role_prefix`,
+  `mdz_is_test_registration_email`, `mdz_registration_id_missing`,
+  `mdz_is_real_pending_registration`).
+- Confirmed denied: `mdz_msg_registration_id`, `mdz_next_registration_id`,
+  `allocate_member_id`, `review_registration_status`.
+- Corrected signatures:
+  `mdz_registration_id_missing(p_id)` and
+  `mdz_is_real_pending_registration(p_status,p_email)` both returned HTTP 200.
+- Finding F5: `normalize_algerian_phone` returned PGRST202 for `phone_input`,
+  `phone`, `p_phone`, `phone_text`, `input`, and `raw_phone`, while
+  `resolve_login_identifier` proves internal function existence.
+- The measured floor of 8 is not the planning figure of 41. Only Q1 establishes
+  the complete anonymous-executable count and catalog volatility/`prosecdef`.
 
 ## Q1 — function ACL and volatility
 
 Timestamp: NOT EXECUTED  
-Operator: NOT PRESENT  
+Operator: NOT YET SCHEDULED
 Output: UNRESOLVED
 
 ```sql
@@ -40,17 +62,17 @@ where n.nspname = 'public'
 order by anon_can_execute desc, volatility, p.proname;
 ```
 
-- Number of functions with `anon_can_execute = true`: UNRESOLVED
+- Number of functions with `anon_can_execute = true`: UNRESOLVED (measured floor: 8)
 - Number of VOLATILE SECURITY DEFINER functions with `anon_can_execute = true`: UNRESOLVED
 - VOLATILE SECURITY DEFINER signatures reachable by anon: UNRESOLVED
 - `mdz_enqueue_email` anon execution: UNRESOLVED
 - `mdz_claim_email_outbox` anon execution: UNRESOLVED
-- `mdz_next_registration_id` privilege and catalog volatility: UNRESOLVED / NOT PROBED
+- `mdz_next_registration_id` anonymous call: DENIED per Principal probe; catalog volatility/ACL row: UNRESOLVED
 
 ## Q2 — live `review_registration_status` body
 
 Timestamp: NOT EXECUTED  
-Operator: NOT PRESENT  
+Operator: NOT YET SCHEDULED
 Output: UNRESOLVED
 
 ```sql
@@ -73,7 +95,7 @@ where n.nspname = 'public' and p.proname = 'review_registration_status';
 ## Q3 — applied migration ground truth
 
 Timestamp: NOT EXECUTED  
-Operator: NOT PRESENT  
+Operator: NOT YET SCHEDULED
 Output: UNRESOLVED
 
 ```sql
@@ -95,7 +117,7 @@ select
 ## Q4 — manager-label blast radius
 
 Timestamp: NOT EXECUTED  
-Operator: NOT PRESENT  
+Operator: NOT YET SCHEDULED
 Output: UNRESOLVED
 
 ```sql
@@ -126,7 +148,7 @@ where lower(coalesce(p.role,'')) in ('manager','wilaya_manager','wilaya_mgr')
 ## Q5 — functions referenced by RLS policies
 
 Timestamp: NOT EXECUTED  
-Operator: NOT PRESENT  
+Operator: NOT YET SCHEDULED
 Output: UNRESOLVED
 
 ```sql
@@ -158,7 +180,7 @@ Actual list: UNRESOLVED
 ## Q6 — grants and RLS
 
 Timestamp: NOT EXECUTED  
-Operator: NOT PRESENT  
+Operator: NOT YET SCHEDULED
 Output: UNRESOLVED
 
 ```sql
@@ -183,7 +205,7 @@ order by relname;
 ## Q7 — rollback baselines
 
 Timestamp: NOT EXECUTED  
-Operator: NOT PRESENT  
+Operator: NOT YET SCHEDULED
 Output: UNRESOLVED
 
 ```sql

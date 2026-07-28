@@ -4,6 +4,8 @@ Engineer: Cursor Cloud Agent (GPT-5.6 Sol)
 Project: fpjvjfgwbfehhcvdirpy
 PR: https://github.com/hichemazeroual21-star/mawashidz-site/pull/20
 Production mutations: NONE
+Amendment 2: Principal-supplied read-only corrections recorded 2026-07-28.
+The original command outputs below remain verbatim.
 
 COMMAND: node tests/verify-prod-db.test.mjs
 EXIT: 0
@@ -93,23 +95,73 @@ FN     mdz_caller_wilaya                       REACHABLE                REACHABL
 FN     mdz_assert_admin_caller                 ABSENT_FUNCTION          ABSENT_FUNCTION          MATCH
 FN     resolve_login_identifier                REACHABLE                REACHABLE                MATCH
 FN     mdz_role_prefix                         NOT PREDICTED            REACHABLE                MEASURED
-FN     normalize_algerian_phone                NOT PREDICTED            UNRESOLVED               FLAG
+FN     normalize_algerian_phone                NOT PREDICTED            F5 (original PGRST202)    FINDING
 FN     mdz_msg_registration_id                 NOT PREDICTED            DENIED                   MEASURED
-FN     mdz_is_test_registration_email          NOT PREDICTED            REACHABLE                MEASURED
-FN     mdz_registration_id_missing             NOT PREDICTED            UNRESOLVED               FLAG
-FN     mdz_is_real_pending_registration        NOT PREDICTED            UNRESOLVED               FLAG
-FN     mdz_next_registration_id                NOT PROBED; Q1 ONLY      NOT PROBED               MATCH
+FN     mdz_is_test_registration_email          NOT PREDICTED            REACHABLE                F2 CONFIRMED
+FN     mdz_registration_id_missing             NOT PREDICTED            REACHABLE (p_id)          CORRECTED
+FN     mdz_is_real_pending_registration        NOT PREDICTED            REACHABLE (p_status)      CORRECTED
+FN     mdz_next_registration_id                NOT PROBED; Q1 ONLY      DENIED (Principal)       CORRECTED
 
-DEVIATIONS AND UNRESOLVED RESULTS
+AMENDMENT 2 CORRECTIONS AND FINDINGS
 - The original revised expected signature matches every measured row.
-- normalize_algerian_phone returned PGRST202. Per Amendment 1 this is
-  UNRESOLVED (absent or argument signature mismatch); no empty-body retry.
-- mdz_registration_id_missing returned PGRST202. Per Amendment 1 this is
-  UNRESOLVED (absent or argument signature mismatch); no empty-body retry.
-- mdz_is_real_pending_registration returned PGRST202. Per Amendment 1 this is
-  UNRESOLVED (absent or argument signature mismatch); no empty-body retry.
-- mdz_next_registration_id was not invoked. Its privilege and volatility remain
-  assigned exclusively to PKG-02 Q1.
+- The original prober correctly preserved all PGRST202 results as UNRESOLVED
+  without guessing or retrying with an empty body.
+- The issued mdz_registration_id_missing argument was wrong. Migration 014
+  declares p_id, not p_registration_id. The Principal's corrected read-only
+  probe returned HTTP 200 and false: EXISTS, ANON-REACHABLE.
+- The issued mdz_is_real_pending_registration arguments were wrong. Migration
+  014 declares p_status,p_email, not p_registration_id,p_email. The Principal's
+  corrected read-only probe returned HTTP 200 and false: EXISTS,
+  ANON-REACHABLE.
+- mdz_next_registration_id was not invoked by the Engineer. The Principal's
+  read-only measurement confirms DENIED; its catalog ACL and volatility row
+  remain assigned to PKG-02 Q1.
+
+CONFIRMED ANONYMOUS-REACHABLE FLOOR: 8
+  mdz_is_platform_admin
+  mdz_is_wilaya_manager
+  mdz_caller_wilaya
+  resolve_login_identifier
+  mdz_role_prefix
+  mdz_is_test_registration_email
+  mdz_registration_id_missing
+  mdz_is_real_pending_registration
+
+CONFIRMED DENIED: 4
+  mdz_msg_registration_id
+  mdz_next_registration_id
+  allocate_member_id
+  review_registration_status
+
+Eight is a measured floor, not the planning figure of 41. Only PKG-02 Q1
+provides the complete catalog count. The HTTP 200 results for mdz_role_prefix
+and mdz_is_test_registration_email are new confirmations of anonymous
+reachability (F2), not merely data points.
+
+FINDING F5 — PRODUCTION/REPOSITORY SIGNATURE DIVERGENCE
+Security severity: LOW. Recovery significance: HIGH.
+
+The Principal tried phone_input, phone, p_phone, phone_text, input, and raw_phone;
+all returned PGRST202. resolve_login_identifier returns HTTP 200 while invoking
+normalize_algerian_phone internally, proving the function exists. Production
+therefore has no PostgREST-callable named parameter for the function, while
+setup.sql, phase0_core.sql, and
+20260719000000_phase0_member_id_foundation.sql all declare phone_input text.
+No repository definition found produces the measured production signature.
+
+PHASE 1 HAZARD
+PostgreSQL CREATE OR REPLACE FUNCTION cannot rename an input parameter and
+raises "cannot change name of input parameter". Reapplying repository source
+could fail at normalize_algerian_phone or introduce an unintended overload.
+Before recreating any function, diff its full production pg_proc signature
+against repository source.
+
+WITHIN-MIGRATION REVOKE INCONSISTENCY
+Production denies mdz_msg_registration_id while migration 014 siblings are
+anonymous-reachable. Migration 014 explicitly revokes mdz_msg_registration_id
+from anon and authenticated; sibling functions only revoke PUBLIC, so direct
+role grants can survive CREATE OR REPLACE FUNCTION. Revoke coverage is
+per-function evidence, not a per-migration property.
 
 COMMITTED BASELINE: docs/runbooks/evidence/prod-db-baseline.json
 {
@@ -138,10 +190,16 @@ COMMITTED BASELINE: docs/runbooks/evidence/prod-db-baseline.json
     {"name":"normalize_algerian_phone","status":"UNRESOLVED"},
     {"name":"mdz_msg_registration_id","status":"DENIED"},
     {"name":"mdz_is_test_registration_email","status":"REACHABLE"},
-    {"name":"mdz_registration_id_missing","status":"UNRESOLVED"},
-    {"name":"mdz_is_real_pending_registration","status":"UNRESOLVED"}
+    {"name":"mdz_registration_id_missing","status":"REACHABLE"},
+    {"name":"mdz_is_real_pending_registration","status":"REACHABLE"}
   ]
 }
+
+BASELINE REPRODUCIBILITY NOTE
+The committed reference incorporates the Principal's corrected probes. The
+original prober transcript and issued argument objects are preserved. Amendment
+2 authorized evidence changes only, so the prober allowlist was not changed and
+the amended baseline was not re-probed by the Engineer.
 
 AUDIT FINDING (DEFERRED BY ORDER)
 npm ci reported 3 high-severity development-only findings in:

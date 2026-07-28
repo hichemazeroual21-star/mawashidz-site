@@ -94,11 +94,11 @@
     },
     {
       "name": "mdz_registration_id_missing",
-      "status": "UNRESOLVED"
+      "status": "REACHABLE"
     },
     {
       "name": "mdz_is_real_pending_registration",
-      "status": "UNRESOLVED"
+      "status": "REACHABLE"
     }
   ]
 }
