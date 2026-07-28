@@ -40,6 +40,9 @@ assert.ok(
 // Migration ledger introduced without inventing 001–014 history
 assert.match(sql, /create table if not exists public\.mdz_schema_migrations/i);
 assert.match(sql, /'015'/);
+assert.match(sql, /Tracking STARTS at 015/i);
+assert.match(sql, /artifacts\/security\//);
+assert.match(sql, /ROLLBACK \(no down migration file\)/i);
 assert.ok(
   !/baseline ledger seed/i.test(sql),
   'must not fabricate applied history for unknown prior migrations',
