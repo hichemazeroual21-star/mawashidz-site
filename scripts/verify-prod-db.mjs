@@ -12,9 +12,7 @@ import { fileURLToPath } from 'node:url';
 
 export const SUPABASE_URL = 'https://fpjvjfgwbfehhcvdirpy.supabase.co';
 export const REST = `${SUPABASE_URL}/rest/v1`;
-const PUBLISHABLE_KEY =
-  process.env.MDZ_SUPABASE_PUBLISHABLE_KEY ||
-  'sb_publishable_kl5En74g9tnPW6JDpf3wDA_wQ573fB9';
+const PUBLISHABLE_KEY = 'sb_publishable_kl5En74g9tnPW6JDpf3wDA_wQ573fB9';
 
 export const BASELINE_PATH = 'docs/runbooks/evidence/prod-db-baseline.json';
 export const REQUEST_TIMEOUT_MS = 15_000;
