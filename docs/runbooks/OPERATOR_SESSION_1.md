@@ -52,6 +52,7 @@ SECURITY DEFINER function can write state; or an anonymous write function has
 no repository provenance.
 
 ```sql
+-- BAD: mdz_enqueue_email or mdz_claim_email_outbox has anon_can_execute=true.
 select
   p.oid::regprocedure                                       as signature,
   p.prosecdef                                               as is_security_definer,
@@ -151,8 +152,7 @@ where schemaname='public'
 order by tablename, policyname;
 
 -- Q5b — FUNCTIONS REFERENCED INSIDE RLS POLICIES
--- BAD: any helper beyond mdz_is_platform_admin, mdz_is_wilaya_manager,
---      and mdz_caller_wilaya.
+-- BAD: any helper beyond mdz_is_platform_admin, mdz_is_wilaya_manager, and mdz_caller_wilaya.
 select distinct tablename, policyname,
        regexp_matches(
          coalesce(qual,'')||' '||coalesce(with_check,''),
@@ -246,11 +246,13 @@ route. Do not delete, rename, detach, or deploy anything.
 
 ### 4.3 Supabase API logs — previous 30 days
 
-Filter `rpc/resolve_login_identifier` and group or sort by source IP.
+Use the UTC interval from session start minus 30 days through session start.
+Filter `rpc/resolve_login_identifier`, export the complete source-IP/count
+aggregation, and record any dashboard retention gap.
 
-| Date range | Top source IP volumes | High-volume single source | Evidence path |
-|---|---|---|---|
-| | | YES / NO / UNRESOLVED | |
+| Date range | Complete source-IP/count export | Retention gap | High-volume single source | Evidence path |
+|---|---|---|---|---|
+| | | | YES / NO / UNRESOLVED | |
 
 A high-volume single source is a D3 trigger. Preserve logs before any action.
 
@@ -300,11 +302,15 @@ F5 proves repository migrations cannot recreate every live function definition.
 The Owner captures the complete public schema from an authenticated local
 terminal. The Engineer does not receive database credentials.
 
+Before using the Supabase CLI, the Owner confirms its linked project ref is
+exactly `fpjvjfgwbfehhcvdirpy`.
+
 ```bash
-supabase db dump --schema public -f evidence/PRODUCTION_SCHEMA_BASELINE.sql
+supabase db dump --linked --schema public -f evidence/PRODUCTION_SCHEMA_BASELINE.sql
 ```
 
-Alternatively:
+Alternatively, use an Owner-controlled connection profile already verified to
+target `fpjvjfgwbfehhcvdirpy`; do not paste its URI into evidence:
 
 ```bash
 pg_dump --schema-only --schema=public --file=evidence/PRODUCTION_SCHEMA_BASELINE.sql
