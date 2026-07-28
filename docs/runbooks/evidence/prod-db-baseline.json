@@ -1,0 +1,104 @@
+{
+  "schemaVersion": 1,
+  "tables": [
+    {
+      "name": "registrations",
+      "status": "REACHABLE",
+      "rlsVisibleRows": 0
+    },
+    {
+      "name": "profiles",
+      "status": "REACHABLE",
+      "rlsVisibleRows": 0
+    },
+    {
+      "name": "user_roles",
+      "status": "REACHABLE",
+      "rlsVisibleRows": 0
+    },
+    {
+      "name": "contact_messages",
+      "status": "REACHABLE",
+      "rlsVisibleRows": 0
+    },
+    {
+      "name": "feedback_tickets",
+      "status": "REACHABLE",
+      "rlsVisibleRows": 0
+    },
+    {
+      "name": "notifications",
+      "status": "DENIED"
+    },
+    {
+      "name": "support_tickets",
+      "status": "DENIED"
+    },
+    {
+      "name": "support_messages",
+      "status": "DENIED"
+    },
+    {
+      "name": "email_outbox",
+      "status": "DENIED"
+    },
+    {
+      "name": "member_id_counters",
+      "status": "DENIED"
+    },
+    {
+      "name": "mdz_schema_migrations",
+      "status": "DENIED"
+    },
+    {
+      "name": "admin_audit_log",
+      "status": "ABSENT_TABLE"
+    }
+  ],
+  "functions": [
+    {
+      "name": "mdz_is_platform_admin",
+      "status": "REACHABLE"
+    },
+    {
+      "name": "mdz_is_wilaya_manager",
+      "status": "REACHABLE"
+    },
+    {
+      "name": "mdz_caller_wilaya",
+      "status": "REACHABLE"
+    },
+    {
+      "name": "mdz_assert_admin_caller",
+      "status": "ABSENT_FUNCTION"
+    },
+    {
+      "name": "resolve_login_identifier",
+      "status": "REACHABLE"
+    },
+    {
+      "name": "mdz_role_prefix",
+      "status": "REACHABLE"
+    },
+    {
+      "name": "normalize_algerian_phone",
+      "status": "UNRESOLVED"
+    },
+    {
+      "name": "mdz_msg_registration_id",
+      "status": "DENIED"
+    },
+    {
+      "name": "mdz_is_test_registration_email",
+      "status": "REACHABLE"
+    },
+    {
+      "name": "mdz_registration_id_missing",
+      "status": "UNRESOLVED"
+    },
+    {
+      "name": "mdz_is_real_pending_registration",
+      "status": "UNRESOLVED"
+    }
+  ]
+}

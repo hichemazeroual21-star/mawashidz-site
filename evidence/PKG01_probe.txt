@@ -1,0 +1,151 @@
+PKG-01-R READ-ONLY PRODUCTION PROBER EVIDENCE
+UTC date: 2026-07-28
+Engineer: Cursor Cloud Agent (GPT-5.6 Sol)
+Project: fpjvjfgwbfehhcvdirpy
+PR: https://github.com/hichemazeroual21-star/mawashidz-site/pull/20
+Production mutations: NONE
+
+COMMAND: node tests/verify-prod-db.test.mjs
+EXIT: 0
+OUTPUT:
+  ✓ read-only production database prober
+
+COMMAND: npm run test:unit
+EXIT: 0
+RESULT:
+Registration flow tests: 17 passed, 0 failed
+All static asset, API, auth, recovery, dashboard, migration, outbox,
+UI remediation, Supabase URL, and production prober unit gates passed.
+
+COMMAND: node scripts/verify-prod-db.mjs --baseline
+EXIT: 0
+OUTPUT (verbatim):
+TABLE  registrations                          REACHABLE rls_visible_rows=0
+TABLE  profiles                               REACHABLE rls_visible_rows=0
+TABLE  user_roles                             REACHABLE rls_visible_rows=0
+TABLE  contact_messages                       REACHABLE rls_visible_rows=0
+TABLE  feedback_tickets                       REACHABLE rls_visible_rows=0
+TABLE  notifications                          DENIED
+TABLE  support_tickets                        DENIED
+TABLE  support_messages                       DENIED
+TABLE  email_outbox                           DENIED
+TABLE  member_id_counters                     DENIED
+TABLE  mdz_schema_migrations                  DENIED
+TABLE  admin_audit_log                        ABSENT_TABLE
+FN     mdz_is_platform_admin                  REACHABLE
+FN     mdz_is_wilaya_manager                  REACHABLE
+FN     mdz_caller_wilaya                      REACHABLE
+FN     mdz_assert_admin_caller                ABSENT_FUNCTION
+FN     resolve_login_identifier               REACHABLE
+FN     mdz_role_prefix                        REACHABLE
+FN     normalize_algerian_phone               UNRESOLVED
+FN     mdz_msg_registration_id                DENIED
+FN     mdz_is_test_registration_email         REACHABLE
+FN     mdz_registration_id_missing            UNRESOLVED
+FN     mdz_is_real_pending_registration       UNRESOLVED
+BASELINE: wrote docs/runbooks/evidence/prod-db-baseline.json
+
+COMMAND: node scripts/verify-prod-db.mjs
+EXIT: 0
+OUTPUT (verbatim):
+TABLE  registrations                          REACHABLE rls_visible_rows=0
+TABLE  profiles                               REACHABLE rls_visible_rows=0
+TABLE  user_roles                             REACHABLE rls_visible_rows=0
+TABLE  contact_messages                       REACHABLE rls_visible_rows=0
+TABLE  feedback_tickets                       REACHABLE rls_visible_rows=0
+TABLE  notifications                          DENIED
+TABLE  support_tickets                        DENIED
+TABLE  support_messages                       DENIED
+TABLE  email_outbox                           DENIED
+TABLE  member_id_counters                     DENIED
+TABLE  mdz_schema_migrations                  DENIED
+TABLE  admin_audit_log                        ABSENT_TABLE
+FN     mdz_is_platform_admin                  REACHABLE
+FN     mdz_is_wilaya_manager                  REACHABLE
+FN     mdz_caller_wilaya                      REACHABLE
+FN     mdz_assert_admin_caller                ABSENT_FUNCTION
+FN     resolve_login_identifier               REACHABLE
+FN     mdz_role_prefix                        REACHABLE
+FN     normalize_algerian_phone               UNRESOLVED
+FN     mdz_msg_registration_id                DENIED
+FN     mdz_is_test_registration_email         REACHABLE
+FN     mdz_registration_id_missing            UNRESOLVED
+FN     mdz_is_real_pending_registration       UNRESOLVED
+OK: production database signature matches baseline
+
+EXPECTED VERSUS OBSERVED
+KIND   NAME                                    EXPECTED                 OBSERVED                 RESULT
+TABLE  registrations                           REACHABLE rows=0         REACHABLE rows=0         MATCH
+TABLE  profiles                                REACHABLE rows=0         REACHABLE rows=0         MATCH
+TABLE  user_roles                              REACHABLE rows=0         REACHABLE rows=0         MATCH
+TABLE  contact_messages                        REACHABLE rows=0         REACHABLE rows=0         MATCH
+TABLE  feedback_tickets                        REACHABLE rows=0         REACHABLE rows=0         MATCH
+TABLE  notifications                           DENIED                   DENIED                   MATCH
+TABLE  support_tickets                         DENIED                   DENIED                   MATCH
+TABLE  support_messages                        DENIED                   DENIED                   MATCH
+TABLE  email_outbox                            DENIED                   DENIED                   MATCH
+TABLE  member_id_counters                      DENIED                   DENIED                   MATCH
+TABLE  mdz_schema_migrations                   DENIED                   DENIED                   MATCH
+TABLE  admin_audit_log                         ABSENT_TABLE             ABSENT_TABLE             MATCH
+FN     mdz_is_platform_admin                   REACHABLE                REACHABLE                MATCH
+FN     mdz_is_wilaya_manager                   REACHABLE                REACHABLE                MATCH
+FN     mdz_caller_wilaya                       REACHABLE                REACHABLE                MATCH
+FN     mdz_assert_admin_caller                 ABSENT_FUNCTION          ABSENT_FUNCTION          MATCH
+FN     resolve_login_identifier                REACHABLE                REACHABLE                MATCH
+FN     mdz_role_prefix                         NOT PREDICTED            REACHABLE                MEASURED
+FN     normalize_algerian_phone                NOT PREDICTED            UNRESOLVED               FLAG
+FN     mdz_msg_registration_id                 NOT PREDICTED            DENIED                   MEASURED
+FN     mdz_is_test_registration_email          NOT PREDICTED            REACHABLE                MEASURED
+FN     mdz_registration_id_missing             NOT PREDICTED            UNRESOLVED               FLAG
+FN     mdz_is_real_pending_registration        NOT PREDICTED            UNRESOLVED               FLAG
+FN     mdz_next_registration_id                NOT PROBED; Q1 ONLY      NOT PROBED               MATCH
+
+DEVIATIONS AND UNRESOLVED RESULTS
+- The original revised expected signature matches every measured row.
+- normalize_algerian_phone returned PGRST202. Per Amendment 1 this is
+  UNRESOLVED (absent or argument signature mismatch); no empty-body retry.
+- mdz_registration_id_missing returned PGRST202. Per Amendment 1 this is
+  UNRESOLVED (absent or argument signature mismatch); no empty-body retry.
+- mdz_is_real_pending_registration returned PGRST202. Per Amendment 1 this is
+  UNRESOLVED (absent or argument signature mismatch); no empty-body retry.
+- mdz_next_registration_id was not invoked. Its privilege and volatility remain
+  assigned exclusively to PKG-02 Q1.
+
+COMMITTED BASELINE: docs/runbooks/evidence/prod-db-baseline.json
+{
+  "schemaVersion": 1,
+  "tables": [
+    {"name":"registrations","status":"REACHABLE","rlsVisibleRows":0},
+    {"name":"profiles","status":"REACHABLE","rlsVisibleRows":0},
+    {"name":"user_roles","status":"REACHABLE","rlsVisibleRows":0},
+    {"name":"contact_messages","status":"REACHABLE","rlsVisibleRows":0},
+    {"name":"feedback_tickets","status":"REACHABLE","rlsVisibleRows":0},
+    {"name":"notifications","status":"DENIED"},
+    {"name":"support_tickets","status":"DENIED"},
+    {"name":"support_messages","status":"DENIED"},
+    {"name":"email_outbox","status":"DENIED"},
+    {"name":"member_id_counters","status":"DENIED"},
+    {"name":"mdz_schema_migrations","status":"DENIED"},
+    {"name":"admin_audit_log","status":"ABSENT_TABLE"}
+  ],
+  "functions": [
+    {"name":"mdz_is_platform_admin","status":"REACHABLE"},
+    {"name":"mdz_is_wilaya_manager","status":"REACHABLE"},
+    {"name":"mdz_caller_wilaya","status":"REACHABLE"},
+    {"name":"mdz_assert_admin_caller","status":"ABSENT_FUNCTION"},
+    {"name":"resolve_login_identifier","status":"REACHABLE"},
+    {"name":"mdz_role_prefix","status":"REACHABLE"},
+    {"name":"normalize_algerian_phone","status":"UNRESOLVED"},
+    {"name":"mdz_msg_registration_id","status":"DENIED"},
+    {"name":"mdz_is_test_registration_email","status":"REACHABLE"},
+    {"name":"mdz_registration_id_missing","status":"UNRESOLVED"},
+    {"name":"mdz_is_real_pending_registration","status":"UNRESOLVED"}
+  ]
+}
+
+AUDIT FINDING (DEFERRED BY ORDER)
+npm ci reported 3 high-severity development-only findings in:
+wrangler -> miniflare -> sharp -> libvips (CVE-2026-33327/33328).
+The deployed Worker has no sharp runtime dependency and does not process image
+input. No npm audit remediation, Wrangler update, deployment, or package change
+was performed.
