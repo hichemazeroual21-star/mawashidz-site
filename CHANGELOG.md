@@ -2,6 +2,19 @@
 
 All notable changes to MawashiDZ are documented here.
 
+## [1.10.1] — 2026-07-28 — Livestock index provenance fix
+
+### Fixed
+
+- **Critical trust defect:** the livestock price index is computed locally from hardcoded base prices, yet every row was attributed to `madr.gov.dz` / «وزارة الفلاحة» as a clickable source, and the disclaimer claimed the index was «based on market averages and official sources» in all 4 locales. Rows now self-attribute («تقدير MawashiDZ») and the disclaimer states the index is an internally computed demo indicator, not a field survey or official publication.
+- `index.html` source cell is link-guarded (`renderExchangeSource`) so a non-HTTP source can never render as an anchor.
+- `index.html` inline disclaimer said «كل دقيقة» while the engine ticks per second.
+
+### Added
+
+- `tests/market-index-provenance.test.mjs` — regression guard wired into `test:unit`
+- `docs/reports/VENTURE_AUDIT_TPE_TOP5_2026-07-28.md` — venture audit under a 1–9 employee (TPE) constraint
+
 ## [1.11.0] — 2026-07-24 — Phase 1 foundation: notifications, tickets, email outbox
 
 ### Added

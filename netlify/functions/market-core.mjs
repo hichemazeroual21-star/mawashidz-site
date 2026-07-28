@@ -3,16 +3,19 @@
  * يُستخدم من prices.mjs ومن assets/market-engine.js (نسخة متطابقة).
  */
 
+// Rows are computed from the hardcoded `base` below — no external feed is queried.
+// Attributing them to a ministry would misstate their provenance, so `source` is
+// left empty and the UI renders `sourceName` as plain text (never a link).
 export const MDZ_PRODUCTS = [
-  { id: 'sheep_meat', category: 'meat', base: 3100, spread: 0.14, source: 'https://madr.gov.dz', sourceName: 'وزارة الفلاحة' },
-  { id: 'beef', category: 'meat', base: 2450, spread: 0.12, source: 'https://madr.gov.dz', sourceName: 'وزارة الفلاحة' },
-  { id: 'goat_meat', category: 'meat', base: 2900, spread: 0.13, source: 'https://madr.gov.dz', sourceName: 'وزارة الفلاحة' },
-  { id: 'cow_milk', category: 'milk', base: 95, spread: 0.10, source: 'https://madr.gov.dz', sourceName: 'وزارة الفلاحة' },
-  { id: 'goat_milk', category: 'milk', base: 175, spread: 0.11, source: 'https://madr.gov.dz', sourceName: 'وزارة الفلاحة' },
-  { id: 'camel_milk', category: 'milk', base: 265, spread: 0.12, source: 'https://madr.gov.dz', sourceName: 'وزارة الفلاحة' },
-  { id: 'barley', category: 'feed', base: 52, spread: 0.11, source: 'https://madr.gov.dz', sourceName: 'وزارة الفلاحة' },
-  { id: 'corn', category: 'feed', base: 46, spread: 0.10, source: 'https://madr.gov.dz', sourceName: 'وزارة الفلاحة' },
-  { id: 'bran', category: 'feed', base: 38, spread: 0.09, source: 'https://madr.gov.dz', sourceName: 'وزارة الفلاحة' },
+  { id: 'sheep_meat', category: 'meat', base: 3100, spread: 0.14, source: '', sourceName: 'تقدير MawashiDZ' },
+  { id: 'beef', category: 'meat', base: 2450, spread: 0.12, source: '', sourceName: 'تقدير MawashiDZ' },
+  { id: 'goat_meat', category: 'meat', base: 2900, spread: 0.13, source: '', sourceName: 'تقدير MawashiDZ' },
+  { id: 'cow_milk', category: 'milk', base: 95, spread: 0.10, source: '', sourceName: 'تقدير MawashiDZ' },
+  { id: 'goat_milk', category: 'milk', base: 175, spread: 0.11, source: '', sourceName: 'تقدير MawashiDZ' },
+  { id: 'camel_milk', category: 'milk', base: 265, spread: 0.12, source: '', sourceName: 'تقدير MawashiDZ' },
+  { id: 'barley', category: 'feed', base: 52, spread: 0.11, source: '', sourceName: 'تقدير MawashiDZ' },
+  { id: 'corn', category: 'feed', base: 46, spread: 0.10, source: '', sourceName: 'تقدير MawashiDZ' },
+  { id: 'bran', category: 'feed', base: 38, spread: 0.09, source: '', sourceName: 'تقدير MawashiDZ' },
 ];
 
 export const MDZ_WILAYAS = [

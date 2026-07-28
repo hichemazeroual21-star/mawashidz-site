@@ -1,14 +1,16 @@
 /* MawashiDZ — محرك بورصة المواشي (عميل + fallback بدون Netlify) — تحديث كل ثانية */
+// Mirrors netlify/functions/market-core.mjs: values are computed locally from `base`,
+// so no ministry or external feed may be named as their source.
 const MDZ_MARKET_PRODUCTS = [
-  { id: 'sheep_meat', category: 'meat', base: 3100, source: 'https://madr.gov.dz', sourceName: 'وزارة الفلاحة' },
-  { id: 'beef', category: 'meat', base: 2450, source: 'https://madr.gov.dz', sourceName: 'وزارة الفلاحة' },
-  { id: 'goat_meat', category: 'meat', base: 2900, source: 'https://madr.gov.dz', sourceName: 'وزارة الفلاحة' },
-  { id: 'cow_milk', category: 'milk', base: 95, source: 'https://madr.gov.dz', sourceName: 'وزارة الفلاحة' },
-  { id: 'goat_milk', category: 'milk', base: 175, source: 'https://madr.gov.dz', sourceName: 'وزارة الفلاحة' },
-  { id: 'camel_milk', category: 'milk', base: 265, source: 'https://madr.gov.dz', sourceName: 'وزارة الفلاحة' },
-  { id: 'barley', category: 'feed', base: 52, source: 'https://madr.gov.dz', sourceName: 'وزارة الفلاحة' },
-  { id: 'corn', category: 'feed', base: 46, source: 'https://madr.gov.dz', sourceName: 'وزارة الفلاحة' },
-  { id: 'bran', category: 'feed', base: 38, source: 'https://madr.gov.dz', sourceName: 'وزارة الفلاحة' },
+  { id: 'sheep_meat', category: 'meat', base: 3100, source: '', sourceName: 'تقدير MawashiDZ' },
+  { id: 'beef', category: 'meat', base: 2450, source: '', sourceName: 'تقدير MawashiDZ' },
+  { id: 'goat_meat', category: 'meat', base: 2900, source: '', sourceName: 'تقدير MawashiDZ' },
+  { id: 'cow_milk', category: 'milk', base: 95, source: '', sourceName: 'تقدير MawashiDZ' },
+  { id: 'goat_milk', category: 'milk', base: 175, source: '', sourceName: 'تقدير MawashiDZ' },
+  { id: 'camel_milk', category: 'milk', base: 265, source: '', sourceName: 'تقدير MawashiDZ' },
+  { id: 'barley', category: 'feed', base: 52, source: '', sourceName: 'تقدير MawashiDZ' },
+  { id: 'corn', category: 'feed', base: 46, source: '', sourceName: 'تقدير MawashiDZ' },
+  { id: 'bran', category: 'feed', base: 38, source: '', sourceName: 'تقدير MawashiDZ' },
 ];
 
 const MDZ_MARKET_WILAYAS = [

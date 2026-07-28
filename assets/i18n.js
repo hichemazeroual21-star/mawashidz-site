@@ -1,5 +1,5 @@
 /* MawashiDZ — multilingual UI (ar, en, fr, de) */
-const MDZ_APP_VERSION = '1.10.0';
+const MDZ_APP_VERSION = '1.10.1';
 const MDZ_LANGS = ['ar', 'en', 'fr', 'de'];
 
 const MDZ_I18N = {
@@ -109,8 +109,8 @@ const MDZ_I18N = {
     exchangeProductSheep: 'لحم الضأن', exchangeProductBeef: 'لحم بقري', exchangeProductGoat: 'لحم الماعز',
     exchangeProductCowMilk: 'حليب البقر', exchangeProductGoatMilk: 'حليب الماعز', exchangeProductCamelMilk: 'حليب الإبل',
     exchangeProductBarley: 'شعير', exchangeProductCorn: 'ذرة', exchangeProductBran: 'نخالة',
-    exchangeDisclaimer: 'مؤشر مرجعي وطني مبني على متوسطات السوق والمصادر الرسمية. يُحدَّث كل ثانية. للقرارات المالية راجع المصدر الرسمي.',
-    exchangeSource: 'المصدر', exchangeViewBoard: 'عرض البورصة الكاملة', externalSource: 'مصدر خارجي',
+    exchangeDisclaimer: 'مؤشر استرشادي تجريبي يحسبه MawashiDZ داخلياً من أسعار أساس ثابتة، وليس مسحاً ميدانياً ولا بياناً رسمياً. لا يصلح لأي قرار مالي أو تعاقدي؛ راجع الجهات الرسمية.',
+    exchangeSource: 'المصدر', exchangeSourceInternal: 'تقدير MawashiDZ', exchangeViewBoard: 'عرض البورصة الكاملة', externalSource: 'مصدر خارجي',
     vetNewsTitle: 'البيطرة والصحة الحيوانية', vetNewsDesc: 'تحديث مباشر كل دقيقة من مصادر بيطرية وصحية موثوقة.',
     officialNewsTitle: 'القرارات والبلاغات الرسمية', officialNewsDesc: 'أخبار رسمية فقط من الوزارات والجهات العمومية — تُستبدل عند ظهور أحدث.',
     specialNewsEmpty: 'لا يوجد خبر جديد في هذه الفئة حالياً.', specialNewsLive: 'مباشر — تحديث كل دقيقة',
@@ -306,8 +306,8 @@ const MDZ_I18N = {
     exchangeProductSheep: 'Lamb meat', exchangeProductBeef: 'Beef', exchangeProductGoat: 'Goat meat',
     exchangeProductCowMilk: 'Cow milk', exchangeProductGoatMilk: 'Goat milk', exchangeProductCamelMilk: 'Camel milk',
     exchangeProductBarley: 'Barley', exchangeProductCorn: 'Corn', exchangeProductBran: 'Bran',
-    exchangeDisclaimer: 'National reference index based on market averages and official sources. Updated every second. Check official sources before financial decisions.',
-    exchangeSource: 'Source', exchangeViewBoard: 'Open full exchange', externalSource: 'External source',
+    exchangeDisclaimer: 'Demo indicative index computed internally by MawashiDZ from fixed base prices. It is not a field survey and not an official publication. Do not use it for financial or contractual decisions — consult official bodies.',
+    exchangeSource: 'Source', exchangeSourceInternal: 'MawashiDZ estimate', exchangeViewBoard: 'Open full exchange', externalSource: 'External source',
     vetNewsTitle: 'Veterinary & animal health', vetNewsDesc: 'Live updates every minute from trusted veterinary and health sources.',
     officialNewsTitle: 'Official decisions & notices', officialNewsDesc: 'Official news only from ministries and public bodies — replaced when newer items appear.',
     specialNewsEmpty: 'No new item in this category right now.', specialNewsLive: 'Live — updates every minute',
@@ -503,8 +503,8 @@ const MDZ_I18N = {
     exchangeProductSheep: 'Viande d\'agneau', exchangeProductBeef: 'Bœuf', exchangeProductGoat: 'Viande de chèvre',
     exchangeProductCowMilk: 'Lait de vache', exchangeProductGoatMilk: 'Lait de chèvre', exchangeProductCamelMilk: 'Lait de chamelle',
     exchangeProductBarley: 'Orge', exchangeProductCorn: 'Maïs', exchangeProductBran: 'Son',
-    exchangeDisclaimer: 'Indice de référence national basé sur les moyennes du marché et sources officielles. Mis à jour chaque seconde.',
-    exchangeSource: 'Source', exchangeViewBoard: 'Voir la bourse complète', externalSource: 'Source externe',
+    exchangeDisclaimer: 'Indice indicatif de démonstration calculé en interne par MawashiDZ à partir de prix de base fixes. Ce n\'est ni un relevé de terrain ni une publication officielle. À ne pas utiliser pour une décision financière ou contractuelle — consultez les organismes officiels.',
+    exchangeSource: 'Source', exchangeSourceInternal: 'Estimation MawashiDZ', exchangeViewBoard: 'Voir la bourse complète', externalSource: 'Source externe',
     vetNewsTitle: 'Vétérinaire & santé animale', vetNewsDesc: 'Mise à jour directe chaque minute depuis des sources vétérinaires fiables.',
     officialNewsTitle: 'Décisions et communiqués officiels', officialNewsDesc: 'Actualités officielles uniquement — remplacées dès qu\'un item plus récent apparaît.',
     specialNewsEmpty: 'Aucune nouvelle dans cette catégorie pour le moment.', specialNewsLive: 'En direct — chaque minute',
@@ -694,8 +694,8 @@ const MDZ_I18N = {
     exchangeProductSheep: 'Lammfleisch', exchangeProductBeef: 'Rindfleisch', exchangeProductGoat: 'Ziegenfleisch',
     exchangeProductCowMilk: 'Kuhmilch', exchangeProductGoatMilk: 'Ziegenmilch', exchangeProductCamelMilk: 'Kamelmilch',
     exchangeProductBarley: 'Gerste', exchangeProductCorn: 'Mais', exchangeProductBran: 'Kleie',
-    exchangeDisclaimer: 'Nationaler Referenzindex basierend auf Marktdurchschnitten und offiziellen Quellen. Jede Sekunde aktualisiert.',
-    exchangeSource: 'Quelle', exchangeViewBoard: 'Vollständige Börse öffnen', externalSource: 'Externe Quelle',
+    exchangeDisclaimer: 'Indikativer Demo-Index, der von MawashiDZ intern aus festen Basispreisen berechnet wird. Keine Felderhebung und keine amtliche Veröffentlichung. Nicht für finanzielle oder vertragliche Entscheidungen verwenden — wenden Sie sich an offizielle Stellen.',
+    exchangeSource: 'Quelle', exchangeSourceInternal: 'MawashiDZ-Schätzung', exchangeViewBoard: 'Vollständige Börse öffnen', externalSource: 'Externe Quelle',
     vetNewsTitle: 'Tierarzt & Tiergesundheit', vetNewsDesc: 'Live-Aktualisierung jede Minute aus vertrauenswürdigen tierärztlichen Quellen.',
     officialNewsTitle: 'Offizielle Entscheidungen & Bekanntmachungen', officialNewsDesc: 'Nur offizielle Meldungen von Ministerien und Behörden — wird bei neueren News ersetzt.',
     specialNewsEmpty: 'Derzeit keine neue Meldung in dieser Kategorie.', specialNewsLive: 'Live — jede Minute',
