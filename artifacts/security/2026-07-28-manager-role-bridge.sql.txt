@@ -1,0 +1,30 @@
+-- ARCHIVE ONLY — NOT A MIGRATION
+-- Captured: 2026-07-28
+-- Source in repo: supabase/migrations/012_phase1_quality_elevation.sql (L62–78 body)
+-- Live production confirmed identical shape before cutover:
+--   exists(user_roles ...) OR exists(profiles.role ...)
+--   roles: wilaya_manager | manager | wilaya_mgr
+-- Do NOT place under supabase/migrations/. Do NOT re-apply as a forward migration.
+-- Purpose: forensic evidence of the privilege bridge before it is removed.
+
+create or replace function public.mdz_is_wilaya_manager()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1 from public.user_roles ur
+    where ur.user_id = (select auth.uid())
+      and ur.role in ('wilaya_manager', 'manager', 'wilaya_mgr')
+  )
+  or exists (
+    select 1 from public.profiles p
+    where p.id = (select auth.uid())
+      and lower(coalesce(p.role, '')) in ('manager', 'wilaya_manager', 'wilaya_mgr')
+  );
+$$;
+
+revoke all on function public.mdz_is_wilaya_manager() from public;
+grant execute on function public.mdz_is_wilaya_manager() to authenticated, service_role;
