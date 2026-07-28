@@ -88,11 +88,13 @@ async function openApp(cfg) {
     rolesDelayMs: cfg.rolesDelayMs ?? 0,
     profile: cfg.profile ?? null,
     profileDelayMs: cfg.profileDelayMs ?? 0,
+    profileStatus: cfg.profileStatus ?? 200,
     registrationsRows: cfg.registrationsRows || [],
     registrationsDelayMs: cfg.registrationsDelayMs ?? 0,
     rolesRequests: 0,
     profileRequests: 0,
     registrationsRequests: 0,
+    registrationsUrls: [],
   };
   const page = await browser.newPage();
   page.on('pageerror', (e) => console.log(`PAGEERROR: ${e.message}`));
@@ -115,10 +117,12 @@ async function openApp(cfg) {
       if (url.includes('/rest/v1/profiles')) {
         state.profileRequests += 1;
         if (state.profileDelayMs) await new Promise((r) => setTimeout(r, state.profileDelayMs));
+        if (state.profileStatus !== 200) return json({ message: 'profile unavailable' }, state.profileStatus);
         return json(state.profile ? [state.profile] : []);
       }
       if (url.includes('/rest/v1/registrations')) {
         state.registrationsRequests += 1;
+        state.registrationsUrls.push(url);
         if (state.registrationsDelayMs) await new Promise((r) => setTimeout(r, state.registrationsDelayMs));
         return json(state.registrationsRows);
       }
@@ -539,6 +543,280 @@ for (const role of ['admin', 'founder', 'super_admin']) {
 }
 
 // ---------------------------------------------------------------------------
+// Wilaya scoping — failing contracts (hotfix evidence; no product fix in this commit)
+// ---------------------------------------------------------------------------
+
+function registrationsUrlsScoped(urls) {
+  return urls.filter((u) => u.includes('/rest/v1/registrations'));
+}
+
+function allRegistrationsScopedByWilaya(urls) {
+  const regs = registrationsUrlsScoped(urls);
+  return regs.length > 0 && regs.every((u) => u.includes('wilaya=eq.'));
+}
+
+function anyUnscopedRegistrations(urls) {
+  return registrationsUrlsScoped(urls).some((u) => !u.includes('wilaya=eq.'));
+}
+
+// 14) manager role with profile=null must not load an unscoped registrations list
+{
+  const { page, state } = await loadApp({
+    userId: 'mgr-null-profile',
+    roles: ['wilaya_manager'],
+    profile: null,
+    registrationsRows: [{
+      registration_id: 'MDZ-REG-2026-UNSCOPED',
+      full_name: 'Should Not Render Unscoped',
+      role: 'breeder',
+      user_type: 'breeder',
+      wilaya: 'وهران',
+      status: 'pending',
+      created_at: '2026-07-27T00:00:00Z',
+    }],
+  });
+  await settle(page, 700);
+  state.registrationsRequests = 0;
+  state.registrationsUrls = [];
+  await page.evaluate(() => window.openManagerDashboard());
+  await settle(page, 1200);
+  const after = await page.evaluate(() => ({
+    open: document.getElementById('managerDashModal').classList.contains('open'),
+    text: document.getElementById('managerDashContent')?.textContent || '',
+    toast: document.getElementById('toast')?.textContent || '',
+    toastShown: document.getElementById('toast')?.classList.contains('show') || false,
+  }));
+  check(
+    'null-profile manager: manager modal refused (fail-closed without wilaya)',
+    after.open === false,
+    `open=${after.open} text=${JSON.stringify(after.text.slice(0, 120))}`,
+  );
+  check(
+    'null-profile manager: visible wilaya-required message (2c)',
+    after.toastShown === true && /ولاية|wilaya/i.test(after.toast),
+    `toastShown=${after.toastShown} toast=${JSON.stringify(after.toast)}`,
+  );
+  check(
+    'null-profile manager: no registrations fetch without resolved wilaya',
+    state.registrationsRequests === 0,
+    `requests=${state.registrationsRequests} urls=${JSON.stringify(state.registrationsUrls)}`,
+  );
+  check(
+    'null-profile manager: must not issue unscoped registrations fetch',
+    !anyUnscopedRegistrations(state.registrationsUrls),
+    `urls=${JSON.stringify(state.registrationsUrls)}`,
+  );
+  await page.close();
+}
+
+// 15) logout → login → open manager dash: registrations must stay wilaya-scoped
+{
+  const wilaya = 'بسكرة';
+  const { page, state } = await loadApp({
+    userId: 'mgr-relogin',
+    roles: ['wilaya_manager'],
+    profile: { id: 'mgr-relogin', role: 'manager', wilaya },
+    registrationsRows: [{
+      registration_id: 'MDZ-REG-2026-BISKRA',
+      full_name: 'Biskra Row',
+      role: 'breeder',
+      user_type: 'breeder',
+      wilaya,
+      status: 'pending',
+      created_at: '2026-07-27T00:00:00Z',
+    }],
+  });
+  await settle(page, 700);
+  await page.evaluate(() => window.logoutAccount());
+  await settle(page, 200);
+  // Re-login same manager, but profile bind returns null (roles still grant manager chrome).
+  state.profile = null;
+  state.registrationsRequests = 0;
+  state.registrationsUrls = [];
+  await page.evaluate((s) => window.saveSession(s), sessionFor('mgr-relogin'));
+  await settle(page, 400);
+  await page.evaluate(async () => {
+    if (typeof window.openManagerDashboard === 'function') await window.openManagerDashboard();
+  });
+  await settle(page, 1200);
+  const after = await page.evaluate(() => ({
+    open: document.getElementById('managerDashModal').classList.contains('open'),
+    text: document.getElementById('managerDashContent')?.textContent || '',
+  }));
+  check(
+    'logout→login manager: manager modal refused when profile bind has no wilaya',
+    after.open === false,
+    `open=${after.open} text=${JSON.stringify(after.text.slice(0, 120))}`,
+  );
+  check(
+    'logout→login manager: no registrations fetch without resolved wilaya',
+    state.registrationsRequests === 0,
+    `requests=${state.registrationsRequests} urls=${JSON.stringify(state.registrationsUrls)}`,
+  );
+  check(
+    'logout→login manager: must not issue unscoped registrations fetch',
+    !anyUnscopedRegistrations(state.registrationsUrls),
+    `urls=${JSON.stringify(state.registrationsUrls)}`,
+  );
+  await page.close();
+}
+
+// 2b) logout → full login path with a real wilaya on the profile (no profile=null injection)
+{
+  const wilaya = 'بسكرة';
+  const userId = 'mgr-natural-relogin';
+  const { page, state } = await loadApp({
+    userId,
+    roles: ['wilaya_manager'],
+    profile: { id: userId, role: 'manager', wilaya, member_id: 'MDZ-W-000042', status: 'approved' },
+    registrationsRows: [{
+      registration_id: 'MDZ-REG-2026-BISKRA-NAT',
+      full_name: 'Biskra Natural',
+      role: 'breeder',
+      user_type: 'breeder',
+      wilaya,
+      status: 'pending',
+      created_at: '2026-07-27T00:00:00Z',
+    }],
+  });
+  await settle(page, 700);
+  await page.evaluate(() => window.logoutAccount());
+  await settle(page, 300);
+
+  // Full login path: form submit → resolve email → signIn → saveSession → openAccount.
+  // Profile mock keeps the real wilaya row — never assigned to null in this test.
+  state.registrationsRequests = 0;
+  state.registrationsUrls = [];
+  const profileRequestsBeforeLogin = state.profileRequests;
+  await page.evaluate(() => window.openLogin());
+  await page.type('#loginIdentifier', 'manager.biskra@example.com', { delay: 5 });
+  await page.type('#loginForm input[name="password"]', 'test-password-ok', { delay: 5 });
+  await Promise.all([
+    page.click('#loginSubmit'),
+    page.waitForFunction(() => {
+      const session = localStorage.getItem('mdz_auth_session');
+      return Boolean(session && JSON.parse(session)?.access_token);
+    }, { timeout: 10000 }).catch(() => null),
+  ]);
+  await settle(page, 1500);
+
+  await page.evaluate(async () => {
+    window.__mgrRefreshWilayaArgs = [];
+    const originalOpen = window.openManagerDashboard;
+    // Probe the wilaya argument that refreshManagerDashboard passes into loadManagerData
+    // by wrapping fetch for registrations while the dashboard opens.
+    const origFetch = window.fetch.bind(window);
+    window.fetch = async (...args) => {
+      const url = String(args[0] || '');
+      if (url.includes('/rest/v1/registrations')) {
+        try {
+          const u = new URL(url);
+          window.__mgrRefreshWilayaArgs.push(u.searchParams.get('wilaya') || null);
+        } catch {
+          window.__mgrRefreshWilayaArgs.push(null);
+        }
+      }
+      return origFetch(...args);
+    };
+    try {
+      await originalOpen();
+    } finally {
+      window.fetch = origFetch;
+    }
+  });
+  await settle(page, 1200);
+
+  const after = await page.evaluate(() => ({
+    open: document.getElementById('managerDashModal').classList.contains('open'),
+    text: document.getElementById('managerDashContent')?.textContent || '',
+    wilayaArgs: window.__mgrRefreshWilayaArgs || [],
+    hasSession: Boolean(localStorage.getItem('mdz_auth_session')),
+  }));
+  const scoped = allRegistrationsScopedByWilaya(state.registrationsUrls);
+  const wilayaInUrl = state.registrationsUrls.some((u) => {
+    try {
+      return decodeURIComponent(u).includes(`wilaya=eq.${wilaya}`);
+    } catch {
+      return u.includes('wilaya=eq.');
+    }
+  });
+  check(
+    '2b natural logout→login: profile kept real wilaya (no null injection)',
+    state.profile?.wilaya === wilaya,
+    `profile=${JSON.stringify(state.profile)}`,
+  );
+  check(
+    '2b natural logout→login: login restored a session',
+    after.hasSession === true,
+  );
+  check(
+    '2b natural logout→login: profile was re-fetched after login',
+    state.profileRequests > profileRequestsBeforeLogin,
+    `before=${profileRequestsBeforeLogin} after=${state.profileRequests}`,
+  );
+  check(
+    '2b natural logout→login: wilaya reached registrations request (refreshManagerDashboard path)',
+    after.wilayaArgs.some((w) => w === `eq.${wilaya}` || w === wilaya) || wilayaInUrl,
+    `wilayaArgs=${JSON.stringify(after.wilayaArgs)} urls=${JSON.stringify(state.registrationsUrls)} text=${JSON.stringify(after.text.slice(0, 160))}`,
+  );
+  check(
+    '2b natural logout→login: registrations URL must include wilaya=eq.',
+    scoped || wilayaInUrl,
+    `requests=${state.registrationsRequests} urls=${JSON.stringify(state.registrationsUrls)} open=${after.open}`,
+  );
+  check(
+    '2b natural logout→login: rendered wilaya label (not laterValue)',
+    after.open === true && after.text.includes(wilaya) && !after.text.includes('يُحدد لاحقًا'),
+    `open=${after.open} text=${JSON.stringify(after.text.slice(0, 200))}`,
+  );
+  await page.close();
+}
+
+// 16) profile lookup throw falls back to in-memory profile (no silent .catch(()=>null))
+{
+  const wilaya = 'بسكرة';
+  const userId = 'mgr-profile-fallback';
+  const { page, state } = await loadApp({
+    userId,
+    roles: ['wilaya_manager'],
+    profile: { id: userId, role: 'manager', wilaya, member_id: 'MDZ-W-000099', status: 'approved' },
+    registrationsRows: [{
+      registration_id: 'MDZ-REG-2026-FALLBACK',
+      full_name: 'Fallback Row',
+      role: 'breeder',
+      user_type: 'breeder',
+      wilaya,
+      status: 'pending',
+      created_at: '2026-07-27T00:00:00Z',
+    }],
+  });
+  await settle(page, 700);
+  await page.evaluate(async () => { await window.openAccount(); });
+  await settle(page, 900);
+  // Next ensureAccountProfile force-refetch will throw; in-memory profile must remain usable.
+  state.profileStatus = 500;
+  state.registrationsRequests = 0;
+  state.registrationsUrls = [];
+  await page.evaluate(async () => { await window.openManagerDashboard(); });
+  await settle(page, 1200);
+  const after = await page.evaluate(() => ({
+    open: document.getElementById('managerDashModal').classList.contains('open'),
+    text: document.getElementById('managerDashContent')?.textContent || '',
+  }));
+  check(
+    'profile-fallback: manager opens using in-memory wilaya after profile fetch error',
+    after.open === true && after.text.includes(wilaya) && !after.text.includes('يُحدد لاحقًا'),
+    `open=${after.open} text=${JSON.stringify(after.text.slice(0, 180))}`,
+  );
+  check(
+    'profile-fallback: registrations URL stays wilaya-scoped',
+    allRegistrationsScopedByWilaya(state.registrationsUrls),
+    `requests=${state.registrationsRequests} urls=${JSON.stringify(state.registrationsUrls)}`,
+  );
+  await page.close();
+}
+
+// ---------------------------------------------------------------------------
 // Shared role vocabulary (frontend ↔ backend helper module)
 // ---------------------------------------------------------------------------
 assert.deepEqual([...MANAGER_ROLES].sort(), ['manager', 'wilaya_manager', 'wilaya_mgr']);
@@ -586,6 +864,37 @@ for (const fn of ['openManagerDashboard', 'openAdminDashboard']) {
   assert.match(body, /accessContextCurrent\(session,access\.userId,access\.epoch\)/, `${fn} must revalidate the context`);
   assert.ok(!/\bmdzUserRoles\b/.test(body), `${fn} must gate on local access.roles, not the global cache`);
 }
+assert.ok(
+  !/ensureAccountProfile\(session,\{force:true\}\)\.catch\(\(\)=>null\)/.test(html),
+  'manager profile bind must not use silent .catch(()=>null)',
+);
+assert.match(
+  html,
+  /reuse the in-memory profile instead of swallowing/,
+  'manager profile bind must document in-memory fallback',
+);
+assert.match(
+  html,
+  /Fail closed before open\/fetch: manager surfaces require a resolved wilaya/,
+  'manager open path must fail closed without wilaya',
+);
+assert.match(
+  html,
+  /showToast\(t\('dashMgrWilayaRequired'\)\)/,
+  '2c: missing wilaya must show dedicated visible message',
+);
+assert.match(
+  fs.readFileSync(path.join(REPO_ROOT, 'assets/i18n.js'), 'utf8'),
+  /dashMgrWilayaRequired:/,
+  '2c i18n key required',
+);
+assert.match(
+  html,
+  /const wilaya=String\(profile\?\.wilaya\|\|''\)\.trim\(\);\s*\n\s*if\(!wilaya\)\{box\.replaceChildren\(\);return false\}/,
+  'manager refresh must refuse load without wilaya',
+);
+const dashSrc = fs.readFileSync(path.join(REPO_ROOT, 'js/mdz-dashboards.mjs'), 'utf8');
+assert.match(dashSrc, /manager_wilaya_required/, 'loadManagerData must reject missing wilaya');
 check('static guards: epoch invalidation + local access gating', true);
 
 // ---------------------------------------------------------------------------
