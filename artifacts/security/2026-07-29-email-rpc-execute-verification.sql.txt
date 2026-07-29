@@ -1,0 +1,123 @@
+-- ARCHIVE / RUNBOOK ONLY — NOT A MIGRATION
+-- Re-verification queries for 016_revoke_email_function_execute.sql
+-- Companion to: docs/runbooks/evidence/INCIDENT_2026-07-29_EMAIL_RPC_ACL.md
+--
+-- NOT EXECUTED BY THE DOCUMENTING AGENT. This file was committed as documentation
+-- only; every statement below is READ-ONLY (select / catalog inspection). There is
+-- deliberately no grant, revoke, DDL or DML statement in this file, so it cannot
+-- change privileges if it is pasted into a SQL editor.
+--
+-- Read-only by construction. Safe to run in production as the Owner.
+
+-- ------------------------------------------------------------------
+-- A) Privilege matrix for the four email RPCs (the §3 table)
+--    Expected after 016: anon = false, authenticated = false,
+--                        service_role = true, PUBLIC = false,
+--                        postgres = true (never revoked).
+-- ------------------------------------------------------------------
+select
+  f.signature,
+  has_function_privilege('anon',          f.signature, 'EXECUTE') as anon_execute,
+  has_function_privilege('authenticated', f.signature, 'EXECUTE') as authenticated_execute,
+  has_function_privilege('service_role',  f.signature, 'EXECUTE') as service_role_execute,
+  has_function_privilege('postgres',      f.signature, 'EXECUTE') as postgres_execute
+from (values
+  ('public.mdz_claim_email_outbox(integer,text)'),
+  ('public.mdz_enqueue_email(text,uuid,text,text,text,jsonb)'),
+  ('public.mdz_mark_email_outbox(bigint,text,text,text)'),
+  ('public.mdz_notify_user(uuid,text,text,text,jsonb,text)')
+) as f(signature);
+
+-- ------------------------------------------------------------------
+-- B) Raw ACL dump — record this VERBATIM in the PKG-02 evidence pass.
+--    Pre-016 evidence was 16 rows (4 functions x 4 grantees:
+--    postgres, anon, authenticated, service_role).
+--    Expected post-016: no anon / authenticated / PUBLIC (grantee 0) rows
+--    for these four functions.
+-- ------------------------------------------------------------------
+select
+  p.oid::regprocedure                                as signature,
+  p.prosecdef                                        as security_definer,
+  coalesce(a.grantee::regrole::text, 'PUBLIC')       as grantee,
+  a.privilege_type
+from pg_proc p
+join pg_namespace n on n.oid = p.pronamespace
+left join lateral aclexplode(p.proacl) a on true
+where n.nspname = 'public'
+  and p.proname in (
+    'mdz_claim_email_outbox',
+    'mdz_enqueue_email',
+    'mdz_mark_email_outbox',
+    'mdz_notify_user'
+  )
+order by signature, grantee, a.privilege_type;
+
+-- ------------------------------------------------------------------
+-- C) Root-cause scope (why containment is fragile — §6.3)
+--    Lists the schema-level default privileges that re-grant EXECUTE on
+--    every newly created function in schema public. Until this is
+--    corrected, any new (or dropped-and-recreated) function re-opens the
+--    surface. This is the root privilege package, not 016.
+-- ------------------------------------------------------------------
+select
+  d.defaclrole::regrole   as granting_role,
+  d.defaclnamespace::regnamespace as schema_name,
+  d.defaclobjtype         as object_type,   -- 'f' = functions
+  d.defaclacl             as default_acl
+from pg_default_acl d
+where d.defaclobjtype = 'f';
+
+-- ------------------------------------------------------------------
+-- D) Blast-radius sweep — every function in schema public that still
+--    grants EXECUTE to anon or authenticated (PKG-02 / root package
+--    input). 016 fixed four; this shows what else is exposed.
+-- ------------------------------------------------------------------
+select
+  p.oid::regprocedure as signature,
+  p.prosecdef         as security_definer,
+  has_function_privilege('anon',          p.oid, 'EXECUTE') as anon_execute,
+  has_function_privilege('authenticated', p.oid, 'EXECUTE') as authenticated_execute
+from pg_proc p
+join pg_namespace n on n.oid = p.pronamespace
+where n.nspname = 'public'
+  and p.prokind = 'f'
+  and (
+    has_function_privilege('anon',          p.oid, 'EXECUTE')
+    or has_function_privilege('authenticated', p.oid, 'EXECUTE')
+  )
+order by signature;
+
+-- ------------------------------------------------------------------
+-- E) Migration ledger gap (§6.4)
+--    015 writes a ledger row; 016 does not. Expect ZERO rows here even
+--    though 016 was applied in production on 2026-07-29.
+-- ------------------------------------------------------------------
+select * from public.mdz_schema_migrations where version = '016';
+
+-- ------------------------------------------------------------------
+-- F) Approval-path evidence row (§4). The recipient address is
+--    deliberately NOT committed to this public repository — read it from
+--    the row itself.
+-- ------------------------------------------------------------------
+select id, template_key, status, last_error, created_at, sent_at
+from public.email_outbox
+where id = 6;
+
+-- ------------------------------------------------------------------
+-- G) Behavioural negative probe (§6.1) — NOT SQL, and NOT run here.
+--    This is the missing containment proof and the first PKG-02 item.
+--    Run it as the anon key from a shell, NOT in the SQL editor
+--    (a SQL-editor session is not the anon role):
+--
+--      curl -sS -X POST "$SUPABASE_URL/rest/v1/rpc/mdz_enqueue_email" \
+--        -H "apikey: $SUPABASE_ANON_KEY" \
+--        -H "Authorization: Bearer $SUPABASE_ANON_KEY" \
+--        -H "Content-Type: application/json" \
+--        -d '{}' -w '\nHTTP:%{http_code}\n'
+--
+--    Expected AFTER containment: HTTP 401/403/404 with a PostgREST body
+--    reporting insufficient privilege (SQLSTATE 42501) or an unresolvable
+--    function — never 200 and never an enqueued row.
+--    Record the verbatim response, then confirm no new email_outbox row
+--    was created by the probe.
+-- ------------------------------------------------------------------
