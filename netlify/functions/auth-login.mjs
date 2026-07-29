@@ -88,6 +88,16 @@ async function requestPasswordToken(
   });
 }
 
+async function requestRecovery(baseUrl, serviceKey, email, fetchImpl) {
+  const recoverUrl = new URL(`${baseUrl}/auth/v1/recover`);
+  recoverUrl.searchParams.set('redirect_to', RECOVERY_REDIRECT);
+  return fetchImpl(recoverUrl, {
+    method: 'POST',
+    headers: serviceHeaders(serviceKey),
+    body: JSON.stringify({ email }),
+  });
+}
+
 export async function handleLogin(
   request,
   runtimeEnv = {},
@@ -106,11 +116,8 @@ export async function handleLogin(
   }
 
   const get = (name) => envOf(request, runtimeEnv, name);
-  const baseUrl = configuredBaseUrl(
-    get('SUPABASE_URL') || get('MDZ_SUPABASE_URL'),
-  );
-  const serviceKey =
-    get('SUPABASE_SERVICE_ROLE_KEY') || get('MDZ_SERVICE_ROLE_KEY');
+  const baseUrl = configuredBaseUrl(get('SUPABASE_URL'));
+  const serviceKey = get('SUPABASE_SERVICE_ROLE_KEY');
   if (!baseUrl || !serviceKey) {
     return json(503, { error: 'login-unavailable' });
   }
@@ -169,11 +176,8 @@ export async function handleRecover(
   if (!identifier) return json(200, RECOVER_OK);
 
   const get = (name) => envOf(request, runtimeEnv, name);
-  const baseUrl = configuredBaseUrl(
-    get('SUPABASE_URL') || get('MDZ_SUPABASE_URL'),
-  );
-  const serviceKey =
-    get('SUPABASE_SERVICE_ROLE_KEY') || get('MDZ_SERVICE_ROLE_KEY');
+  const baseUrl = configuredBaseUrl(get('SUPABASE_URL'));
+  const serviceKey = get('SUPABASE_SERVICE_ROLE_KEY');
   if (!baseUrl || !serviceKey) return json(200, RECOVER_OK);
 
   const resolvedEmail = await resolveIdentifier(
@@ -182,16 +186,12 @@ export async function handleRecover(
     identifier,
     fetchImpl,
   );
-  if (!resolvedEmail) return json(200, RECOVER_OK);
 
+  // Recover for a resolution miss with a dummy address so account existence
+  // cannot be inferred from upstream-call latency (matches the login path).
+  const recoveryEmail = resolvedEmail || DUMMY_EMAIL;
   try {
-    const recoverUrl = new URL(`${baseUrl}/auth/v1/recover`);
-    recoverUrl.searchParams.set('redirect_to', RECOVERY_REDIRECT);
-    await fetchImpl(recoverUrl, {
-      method: 'POST',
-      headers: serviceHeaders(serviceKey),
-      body: JSON.stringify({ email: resolvedEmail }),
-    });
+    await requestRecovery(baseUrl, serviceKey, recoveryEmail, fetchImpl);
   } catch {
     // Recovery is deliberately non-enumerating for every upstream outcome.
   }
@@ -199,10 +199,15 @@ export async function handleRecover(
   return json(200, RECOVER_OK);
 }
 
+// Node-only shim. Cloudflare Workers deliver secrets via the `env` argument, so
+// production routes through worker.mjs, which calls handleLogin/handleRecover
+// with `env` directly. This default export reads process.env and must never be
+// wired into worker.mjs; if it were, it would silently return login-unavailable.
 export default async function handler(request) {
+  const runtimeEnv = typeof process !== 'undefined' ? process.env : {};
   const pathname = new URL(request.url).pathname.replace(/\/$/, '');
   if (pathname.endsWith('/recover')) {
-    return handleRecover(request, process.env);
+    return handleRecover(request, runtimeEnv);
   }
-  return handleLogin(request, process.env);
+  return handleLogin(request, runtimeEnv);
 }

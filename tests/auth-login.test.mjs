@@ -259,7 +259,10 @@ let loginFailureText;
     ),
   );
 
-  const unresolved = fetchSequence([jsonResponse(200, null)]);
+  const unresolved = fetchSequence([
+    jsonResponse(200, null),
+    jsonResponse(200, {}),
+  ]);
   outcomes.push(
     await handleRecover(
       request('/api/recover', { identifier: 'MDZ-U-999999' }),
@@ -267,6 +270,24 @@ let loginFailureText;
       { fetchImpl: unresolved.fetchImpl },
     ),
   );
+  assert.equal(
+    unresolved.calls.length,
+    2,
+    'recovery miss must still make dummy recover call',
+  );
+  assert.match(
+    unresolved.calls[0].url,
+    /\/rest\/v1\/rpc\/resolve_login_identifier$/,
+  );
+  const dummyRecoverUrl = new URL(unresolved.calls[1].url);
+  assert.equal(dummyRecoverUrl.pathname, '/auth/v1/recover');
+  assert.equal(
+    dummyRecoverUrl.searchParams.get('redirect_to'),
+    'https://mawashidz.com/#auth-callback',
+  );
+  assert.deepEqual(JSON.parse(unresolved.calls[1].init.body), {
+    email: '__mdz_login_probe__@example.invalid',
+  });
 
   const upstreamFailure = fetchSequence([
     jsonResponse(500, { message: 'email provider unavailable' }),
