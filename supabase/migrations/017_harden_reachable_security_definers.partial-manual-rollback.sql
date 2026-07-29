@@ -1,18 +1,31 @@
 -- ============================================================
--- MawashiDZ — Migration 017 ROLLBACK (manual Owner apply)
+-- MawashiDZ — Migration 017 PARTIAL MANUAL ROLLBACK
 -- ============================================================
--- WARNING: Destructive objects dropped in 017 cannot be restored to the
--- exact pre-change bodies without a pre-apply pg_get_functiondef backup.
+-- LABEL: PARTIAL MANUAL ROLLBACK / privilege rollback ONLY.
 --
--- Before applying 017, Operator SHOULD save:
+-- This script restores client-facing EXECUTE grants that 017 revoked.
+-- It does NOT automatically recreate:
+--   - public.process_contact_message()
+--   - public.contact_messages.on_contact_message_insert
+--   - public.send_welcome_email()
+--   - public.registrations.on_registration_created
+--
+-- HARD PRE-APPLY REQUIREMENT (Owner):
+-- If full restoration capability is required after 017, save BEFORE apply:
+--
 --   select pg_get_functiondef('public.process_contact_message()'::regprocedure);
 --   select pg_get_functiondef('public.send_welcome_email()'::regprocedure);
 --   select pg_get_functiondef('public.get_wilaya_manager_email(text)'::regprocedure);
 --
--- This rollback restores PRIVILEGES and documents how to restore dropped
--- objects from that backup. It does NOT reintroduce the Google Apps Script
--- webhook or the misleading welcome NOTICE trigger unless Operator pastes
--- the saved definitions below.
+--   select tgname, tgtype, tgenabled, pg_get_triggerdef(oid)
+--   from pg_trigger
+--   where not tgisinternal
+--     and tgname in ('on_contact_message_insert', 'on_registration_created');
+--
+-- Without those saved definitions, dropped functions/triggers cannot be
+-- restored exactly. Do not reintroduce the Google Apps Script placeholder
+-- webhook or the misleading welcome NOTICE trigger unless that is an
+-- explicit Owner decision with the saved definitions pasted below.
 -- ============================================================
 
 begin;
@@ -36,11 +49,9 @@ grant execute on function public.mdz_is_platform_admin() to anon;
 grant execute on function public.mdz_is_wilaya_manager() to anon;
 grant execute on function public.mdz_caller_wilaya() to anon;
 
--- Dropped functions/triggers: paste saved definitions, then:
---   create trigger on_contact_message_insert ...
---   create trigger on_registration_created ...
--- Intentionally omitted here so rollback cannot silently recreate a
--- placeholder webhook or a fake welcome mailer.
+-- Dropped functions/triggers: NOT restored by this script.
+-- Paste saved CREATE FUNCTION / CREATE TRIGGER statements here only under
+-- explicit Owner instruction.
 
 comment on function public.admin_set_profile_status(uuid, text) is null;
 comment on function public.get_wilaya_manager_email(text) is null;

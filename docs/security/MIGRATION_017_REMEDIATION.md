@@ -7,7 +7,7 @@
 | Artifact | Path |
 |---|---|
 | Migration | `supabase/migrations/017_harden_reachable_security_definers.sql` |
-| Rollback | `supabase/migrations/017_harden_reachable_security_definers.rollback.sql` |
+| Partial manual rollback | `supabase/migrations/017_harden_reachable_security_definers.partial-manual-rollback.sql` |
 | Verification | `supabase/migrations/017_harden_reachable_security_definers.verify.sql` |
 | Login design (out of band) | `docs/security/RESOLVE_LOGIN_IDENTIFIER_DESIGN.md` |
 
@@ -98,13 +98,26 @@
 
 ## Note on `get_wilaya_manager_email` body
 
-Confirmed live: returns manager email, no authorization, externally executable.  
-**017 does not invent a replacement SELECT.** It revokes client EXECUTE and sets `search_path = public`. A follow-up may recreate with `search_path = ''` and fully-qualified names **after** Operator exports `pg_get_functiondef`.
+Operator-exported live body:
 
-## Pre-apply checklist (Owner)
+```sql
+SELECT wm.email
+FROM public.wilaya_managers wm
+JOIN public.wilayas w ON wm.wilaya_id = w.id
+WHERE w.name = p_wilaya_name
+LIMIT 1;
+```
 
-1. Save `pg_get_functiondef` for `process_contact_message()`, `send_welcome_email()`, `get_wilaya_manager_email(text)`.
+**017 intentionally does not rewrite this body** — package scope is containment (REVOKE client EXECUTE + `search_path = public`) and legacy-trigger removal only. A later package may recreate with `search_path = ''` and fully-qualified refs if still retained.
+
+## Rollback label
+
+`017_….partial-manual-rollback.sql` is a **PARTIAL MANUAL ROLLBACK / privilege rollback**. It restores revoked EXECUTE grants only. It does **not** auto-recreate dropped functions/triggers.
+
+## Pre-apply checklist (Owner) — hard requirement for full restore capability
+
+1. **Required if full restoration may be needed:** save exact `pg_get_functiondef` for `process_contact_message()`, `send_welcome_email()`, `get_wilaya_manager_email(text)`, and `pg_get_triggerdef` for `on_contact_message_insert` / `on_registration_created`.
 2. Confirm backup/PITR restore point.
 3. Apply `017_harden_reachable_security_definers.sql` in one session.
-4. Run `017_….verify.sql`.
+4. Run `017_….verify.sql` — every `check_result` must be `OK`.
 5. Smoke: signup, registration insert, contact insert, admin review, login.

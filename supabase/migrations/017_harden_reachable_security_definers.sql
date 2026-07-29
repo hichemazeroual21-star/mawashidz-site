@@ -5,10 +5,10 @@
 --   A) REVOKE client EXECUTE on required triggers' functions
 --      handle_new_user(), mdz_registrations_assign_registration_id()
 --   B) REVOKE client EXECUTE on get_wilaya_manager_email(text);
---      lock search_path explicitly. Body NOT rewritten here: exact live
---      SELECT was not exported; inventing it would risk semantic drift.
---      Follow-up may recreate with search_path='' + fully-qualified refs
---      after Operator pastes pg_get_functiondef.
+--      lock search_path explicitly. Body rewriting intentionally deferred
+--      to keep 017 limited to containment + legacy-trigger removal.
+--      Live body (exported) reads public.wilaya_managers / public.wilayas;
+--      a later package may recreate with search_path='' + fully-qualified refs.
 --   C) Drop legacy contact webhook trigger + process_contact_message()
 --      (placeholder YOUR_GOOGLE_APPS_SCRIPT_WEBHOOK_URL). contact_messages
 --      INSERT remains; notification delivery is NOT provided by this
@@ -170,9 +170,14 @@ begin
 end;
 $$;
 
--- Comment: do not CREATE OR REPLACE here — live SELECT body was not exported.
--- Explicit search_path lock (not '') avoids breaking unqualified identifiers in the
--- unknown live body while removing ambient schema search.
+-- Body rewriting intentionally deferred (017 = containment only).
+-- Live exported body (Operator):
+--   SELECT wm.email
+--   FROM public.wilaya_managers wm
+--   JOIN public.wilayas w ON wm.wilaya_id = w.id
+--   WHERE w.name = p_wilaya_name
+--   LIMIT 1;
+-- Explicit search_path=public locks ambient search without changing that SELECT.
 alter function public.get_wilaya_manager_email(text)
   set search_path = public;
 
@@ -183,7 +188,7 @@ grant execute on function public.get_wilaya_manager_email(text)
   to service_role;
 
 comment on function public.get_wilaya_manager_email(text) is
-  'LEGACY: returns manager email; client EXECUTE revoked in 017. Not for browser RPC. Body rewrite to search_path='''' + fully-qualified refs requires exported live definition.';
+  'LEGACY: returns manager email from wilaya_managers; client EXECUTE revoked in 017. Not for browser RPC. Body rewrite to search_path='''' deferred (containment-only package).';
 
 -- ------------------------------------------------------------
 -- C) process_contact_message — assert, drop trigger, drop function
