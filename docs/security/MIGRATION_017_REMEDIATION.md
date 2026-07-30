@@ -80,7 +80,7 @@ Migration 017 does **not** change function ownership. Post-apply verify compares
 |---|---|---|---|---|
 | `handle_new_user()` | `public` (repo create) | Partial / trigger body | **No** | **Yes** — defer full DEFINER harden |
 | `mdz_registrations_assign_registration_id()` | `public` (014) | Uses `public.` in places | **No** | **Yes** |
-| `get_wilaya_manager_email(text)` | often unset / ambient | **Yes** — live body uses `public.wilaya_managers` / `public.wilayas` | **Yes → `''`** | Body rewrite deferred; path lock only |
+| `get_wilaya_manager_email(text)` | often unset / ambient | **Yes** — live body uses `public.wilaya_managers` / `public.wilayas` | **Yes → `SET search_path = ''`** (stored `proconfig` element `search_path=""`; verify expects extracted `""`) | Body rewrite deferred; path lock only |
 | `admin_set_profile_status(uuid,text)` | `public` (007) | Mixed | **No** | **Yes** |
 | `mdz_is_platform_admin()` | `public` (012/015) | Mixed | **No** | **Yes** |
 | `mdz_is_wilaya_manager()` | `public` | Mixed | **No** | **Yes** |

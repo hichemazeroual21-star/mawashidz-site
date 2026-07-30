@@ -56,7 +56,9 @@ with target_functions as (
         'containment',
         false,
         true,
-        ''
+        -- PostgreSQL stores ALTER ... SET search_path = '' as proconfig
+        -- element search_path="" ; substring after 'search_path=' is "".
+        '""'
       ),
       (
         'public.admin_set_profile_status(uuid, text)',
