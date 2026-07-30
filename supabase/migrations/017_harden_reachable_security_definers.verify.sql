@@ -15,8 +15,31 @@
 -- ------------------------------------------------------------
 -- 1) Retained functions — existence / DEFINER / owner / EXECUTE
 --     + search_path only for functions 017 intentionally modifies
+--
+-- Owner check: Migration 017 does NOT modify function ownership.
+-- Paste owner_name values from the mandatory Go/No-Go pre-apply
+-- capture (pg_get_userbyid(p.proowner) / owner_name column) into
+-- captured_owners below. Do NOT hardcode a role name such as postgres.
+-- Post-apply owner must equal the captured pre-apply owner.
 -- ------------------------------------------------------------
-with targets as (
+with captured_owners as (
+  -- REQUIRED for post-apply acceptance: replace each
+  -- '<<PASTE_FROM_CAPTURE>>' with the captured owner_name string.
+  select *
+  from (
+    values
+      ('handle_new_user', '', '<<PASTE_FROM_CAPTURE>>'),
+      ('mdz_registrations_assign_registration_id', '', '<<PASTE_FROM_CAPTURE>>'),
+      ('get_wilaya_manager_email', 'text', '<<PASTE_FROM_CAPTURE>>'),
+      ('admin_set_profile_status', 'uuid, text', '<<PASTE_FROM_CAPTURE>>'),
+      ('mdz_is_platform_admin', '', '<<PASTE_FROM_CAPTURE>>'),
+      ('mdz_is_wilaya_manager', '', '<<PASTE_FROM_CAPTURE>>'),
+      ('mdz_caller_wilaya', '', '<<PASTE_FROM_CAPTURE>>'),
+      ('resolve_login_identifier', 'text', '<<PASTE_FROM_CAPTURE>>'),
+      ('review_registration_status', 'text, text, text', '<<PASTE_FROM_CAPTURE>>')
+  ) as c(proname, identity_args, captured_owner_name)
+),
+targets as (
   select *
   from (
     values
@@ -41,6 +64,7 @@ select
   (p.oid is not null) as function_exists,
   coalesce(p.prosecdef, false) as is_security_definer,
   pg_get_userbyid(p.proowner) as owner_name,
+  co.captured_owner_name,
   p.proconfig as proconfig,
   (
     select substring(cfg from length('search_path=') + 1)
@@ -57,8 +81,12 @@ select
       then 'FAIL function missing'
     when not p.prosecdef
       then 'FAIL not SECURITY DEFINER'
-    when pg_get_userbyid(p.proowner) is distinct from 'postgres'
-      then 'FAIL unexpected owner (expected postgres)'
+    when co.captured_owner_name is null
+      or co.captured_owner_name = ''
+      or co.captured_owner_name = '<<PASTE_FROM_CAPTURE>>'
+      then 'FAIL captured owner missing (paste from Go/No-Go capture)'
+    when pg_get_userbyid(p.proowner) is distinct from co.captured_owner_name
+      then 'FAIL owner changed unexpectedly'
     when t.expect_search_path is not null
       and coalesce(
         (
@@ -91,6 +119,9 @@ select
     else 'OK'
   end as check_result
 from targets t
+left join captured_owners co
+  on co.proname = t.proname
+ and co.identity_args = t.identity_args
 left join pg_proc p
   on p.pronamespace = 'public'::regnamespace
  and p.proname = t.proname

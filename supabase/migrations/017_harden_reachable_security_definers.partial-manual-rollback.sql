@@ -28,6 +28,10 @@
 -- select
 --   p.oid::regprocedure::text as full_signature,
 --   pg_get_userbyid(p.proowner) as owner_name,
+--
+-- Paste each captured owner_name into captured_owners in
+-- 017_harden_reachable_security_definers.verify.sql before post-apply
+-- acceptance. 017 does not change ownership; mismatch = FAIL.
 --   p.prosecdef as is_security_definer,
 --   p.proconfig,
 --   p.proacl,

@@ -53,7 +53,7 @@
 
 ## Privilege changes (expected ACL matrix after 017)
 
-Measured with `has_function_privilege(role, fn, 'EXECUTE')` — not ACL inspection alone.
+Effective privilege verification uses `has_function_privilege(role, fn, 'EXECUTE')` for `public`, `anon`, and `authenticated` (and `service_role` where 017 asserts it). `aclexplode` is supporting evidence only — not a substitute for `has_function_privilege`.
 
 | Function | public | anon | authenticated | service_role |
 |---|---|---|---|---|
@@ -69,6 +69,10 @@ Measured with `has_function_privilege(role, fn, 'EXECUTE')` — not ACL inspecti
 | `send_welcome_email()` | **absent** | **absent** | **absent** | **absent** |
 
 `aclexplode` is supporting documentation only (verify section 2).
+
+### Owner verification (no hardcoded role)
+
+Migration 017 does **not** change function ownership. Post-apply verify compares each retained function’s live owner to the `owner_name` recorded in the mandatory Go/No-Go pre-apply capture (paste into `captured_owners` in `017_….verify.sql`). Any mismatch → `FAIL owner changed unexpectedly`. Do not hardcode `postgres` or any other role name as the expected owner.
 
 ## Expected search_path matrix (retained SECURITY DEFINER in 017 scope)
 
@@ -119,9 +123,13 @@ Before production apply, capture and retain raw output of:
 - `pg_get_triggerdef` for drop targets + retained required triggers
 - `proacl`, `proconfig`, owner, `prosecdef`
 
-Populate / annotate `017_….partial-manual-rollback.sql` from that capture. **Without capture → No-Go for full restore capability.**
+Populate / annotate `017_….partial-manual-rollback.sql` from that capture. Paste captured `owner_name` values into `captured_owners` in `017_….verify.sql` before post-apply acceptance. **Without capture → No-Go** (no full restore capability; owner verification cannot pass).
 
 Capture SQL is embedded in the partial-manual-rollback header.
+
+## Repository visibility
+
+This repository is currently **public**. Security design notes (for example `RESOLVE_LOGIN_IDENTIFIER_DESIGN.md`) describe deferred vulnerabilities. **Recommended:** make the repository private before production if possible. Deleting documents in later commits does **not** remove them from Git history.
 
 ## Execution gates (before production)
 
@@ -129,7 +137,7 @@ Capture SQL is embedded in the partial-manual-rollback header.
 2. Capture all required definitions (Go/No-Go).
 3. Confirm preconditions (signatures, triggers, wilaya body fully-qualified refs, no CREATE grants for external roles).
 4. Apply `017_harden_reachable_security_definers.sql` (Owner only — **this package does not apply**).
-5. Run verification again; **every `check_result` = OK**; preserve raw outputs.
+5. Paste captured `owner_name` values into `captured_owners` in `017_….verify.sql`, then run verification again; **every `check_result` = OK**; preserve raw outputs.
 
 Acceptance requires: expected pre-state, expected post-state, all final verification = OK, raw outputs preserved.
 
