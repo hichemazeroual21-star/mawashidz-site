@@ -225,15 +225,15 @@ cross join lateral aclexplode(coalesce(p.proacl, acldefault('f', p.proowner)))
   as a(grantor, grantee, privilege_type, is_grantable)
 where n.nspname = 'public'
   and a.privilege_type = 'EXECUTE'
-  and (
-    (p.proname = 'handle_new_user' and pg_get_function_identity_arguments(p.oid) = '')
-    or (p.proname = 'mdz_registrations_assign_registration_id' and pg_get_function_identity_arguments(p.oid) = '')
-    or (p.proname = 'get_wilaya_manager_email' and pg_get_function_identity_arguments(p.oid) = 'text')
-    or (p.proname = 'admin_set_profile_status' and pg_get_function_identity_arguments(p.oid) = 'uuid, text')
-    or (p.proname = 'mdz_is_platform_admin' and pg_get_function_identity_arguments(p.oid) = '')
-    or (p.proname = 'mdz_is_wilaya_manager' and pg_get_function_identity_arguments(p.oid) = '')
-    or (p.proname = 'mdz_caller_wilaya' and pg_get_function_identity_arguments(p.oid) = '')
-    or (p.proname = 'resolve_login_identifier' and pg_get_function_identity_arguments(p.oid) = 'text')
+  and p.oid in (
+    to_regprocedure('public.handle_new_user()'),
+    to_regprocedure('public.mdz_registrations_assign_registration_id()'),
+    to_regprocedure('public.get_wilaya_manager_email(text)'),
+    to_regprocedure('public.admin_set_profile_status(uuid, text)'),
+    to_regprocedure('public.mdz_is_platform_admin()'),
+    to_regprocedure('public.mdz_is_wilaya_manager()'),
+    to_regprocedure('public.mdz_caller_wilaya()'),
+    to_regprocedure('public.resolve_login_identifier(text)')
   )
 order by 1, 3;
 

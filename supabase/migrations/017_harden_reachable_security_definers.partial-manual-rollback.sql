@@ -25,6 +25,9 @@
 -- ============================================================
 --
 -- -- Functions (definitions + ACL metadata):
+-- -- Resolve by OID via to_regprocedure('public.name(types)') — do NOT
+-- -- match pg_get_function_identity_arguments against types-only strings
+-- -- (that API retains parameter names, e.g. 'p_wilaya_name text').
 -- select
 --   format(
 --     'public.%s(%s)',
@@ -40,17 +43,18 @@
 -- from pg_proc p
 -- join pg_namespace n on n.oid = p.pronamespace
 -- where n.nspname = 'public'
---   and (
---     (p.proname = 'process_contact_message' and pg_get_function_identity_arguments(p.oid) = '')
---     or (p.proname = 'send_welcome_email' and pg_get_function_identity_arguments(p.oid) = '')
---     or (p.proname = 'get_wilaya_manager_email' and pg_get_function_identity_arguments(p.oid) = 'text')
---     or (p.proname = 'handle_new_user' and pg_get_function_identity_arguments(p.oid) = '')
---     or (p.proname = 'mdz_registrations_assign_registration_id' and pg_get_function_identity_arguments(p.oid) = '')
---     or (p.proname = 'admin_set_profile_status' and pg_get_function_identity_arguments(p.oid) = 'uuid, text')
---     or (p.proname = 'mdz_is_platform_admin' and pg_get_function_identity_arguments(p.oid) = '')
---     or (p.proname = 'mdz_is_wilaya_manager' and pg_get_function_identity_arguments(p.oid) = '')
---     or (p.proname = 'mdz_caller_wilaya' and pg_get_function_identity_arguments(p.oid) = '')
---     or (p.proname = 'resolve_login_identifier' and pg_get_function_identity_arguments(p.oid) = 'text')
+--   and p.oid in (
+--     to_regprocedure('public.process_contact_message()'),
+--     to_regprocedure('public.send_welcome_email()'),
+--     to_regprocedure('public.get_wilaya_manager_email(text)'),
+--     to_regprocedure('public.handle_new_user()'),
+--     to_regprocedure('public.mdz_registrations_assign_registration_id()'),
+--     to_regprocedure('public.admin_set_profile_status(uuid, text)'),
+--     to_regprocedure('public.mdz_is_platform_admin()'),
+--     to_regprocedure('public.mdz_is_wilaya_manager()'),
+--     to_regprocedure('public.mdz_caller_wilaya()'),
+--     to_regprocedure('public.resolve_login_identifier(text)'),
+--     to_regprocedure('public.review_registration_status(text, text, text)')
 --   );
 --
 -- Paste each captured owner_name into captured_owners in
