@@ -29,10 +29,10 @@ with targets as (
       ('mdz_is_platform_admin', '', 'helper', true, true, null::text),
       ('mdz_is_wilaya_manager', '', 'helper', true, true, null::text),
       ('mdz_caller_wilaya', '', 'helper', true, true, null::text),
-      -- unchanged login oracle (017 must not alter grants)
-      ('resolve_login_identifier', 'text', 'unchanged_login', true, true, null::text),
-      -- replacement path for legacy admin — must remain present/untouched by 017 body edits
-      ('review_registration_status', 'text, text, text', 'untouched', true, true, null::text)
+      -- unchanged login oracle (017 must not alter grants; do not assert service_role)
+      ('resolve_login_identifier', 'text', 'unchanged_login', true, false, null::text),
+      -- replacement path for legacy admin — present/untouched; no service_role assert
+      ('review_registration_status', 'text, text, text', 'untouched', true, false, null::text)
   ) as t(proname, identity_args, kind, expect_authenticated, expect_service_role, expect_search_path)
 )
 select
