@@ -121,23 +121,23 @@ captured_owners as (
   select *
   from (
     values
-      ('public.handle_new_user()', '<<PASTE_FROM_CAPTURE>>'),
+      ('public.handle_new_user()', 'postgres'),
       (
         'public.mdz_registrations_assign_registration_id()',
-        '<<PASTE_FROM_CAPTURE>>'
+        'postgres'
       ),
-      ('public.get_wilaya_manager_email(text)', '<<PASTE_FROM_CAPTURE>>'),
+      ('public.get_wilaya_manager_email(text)', 'postgres'),
       (
         'public.admin_set_profile_status(uuid, text)',
-        '<<PASTE_FROM_CAPTURE>>'
+        'postgres'
       ),
-      ('public.mdz_is_platform_admin()', '<<PASTE_FROM_CAPTURE>>'),
-      ('public.mdz_is_wilaya_manager()', '<<PASTE_FROM_CAPTURE>>'),
-      ('public.mdz_caller_wilaya()', '<<PASTE_FROM_CAPTURE>>'),
-      ('public.resolve_login_identifier(text)', '<<PASTE_FROM_CAPTURE>>'),
+      ('public.mdz_is_platform_admin()', 'postgres'),
+      ('public.mdz_is_wilaya_manager()', 'postgres'),
+      ('public.mdz_caller_wilaya()', 'postgres'),
+      ('public.resolve_login_identifier(text)', 'postgres'),
       (
         'public.review_registration_status(text, text, text)',
-        '<<PASTE_FROM_CAPTURE>>'
+        'postgres'
       )
   ) as c(function_signature, captured_owner_name)
 )
