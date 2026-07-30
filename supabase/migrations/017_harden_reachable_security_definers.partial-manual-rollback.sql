@@ -53,8 +53,7 @@
 --     to_regprocedure('public.mdz_is_platform_admin()'),
 --     to_regprocedure('public.mdz_is_wilaya_manager()'),
 --     to_regprocedure('public.mdz_caller_wilaya()'),
---     to_regprocedure('public.resolve_login_identifier(text)'),
---     to_regprocedure('public.review_registration_status(text, text, text)')
+--     to_regprocedure('public.resolve_login_identifier(text)')
 --   );
 --
 -- Paste each captured owner_name into captured_owners in
