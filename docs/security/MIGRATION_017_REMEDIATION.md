@@ -1,6 +1,6 @@
 # Migration 017 — Reachable SECURITY DEFINER remediation
 
-**Status:** reviewable package only — **do not apply to production** until Owner approval.  
+**Status:** reviewable package only — **do not apply to production** until Owner Go gates pass.  
 **Branch:** `cursor/migration-017-definer-trigger-harden-9060`  
 **Files:**
 
@@ -11,80 +11,95 @@
 | Verification | `supabase/migrations/017_harden_reachable_security_definers.verify.sql` |
 | Login design (out of band) | `docs/security/RESOLVE_LOGIN_IDENTIFIER_DESIGN.md` |
 
+**No** `017_….rollback.sql` stub — only the partial-manual-rollback file exists.
+
 ## Properties
 
 | Property | Value |
 |---|---|
-| Transaction-safe | **Yes** — single `BEGIN`/`COMMIT`; all statements are transactional |
-| Repeat-safe | **Partial** — `REVOKE`/`GRANT`/`COMMENT`/`ALTER … SET search_path` are repeat-safe; **DROP TRIGGER/FUNCTION are fail-closed on re-apply** via preflight assertions |
-| Fail-closed on drift | **Yes** — assertions raise and abort before destructive DDL |
+| Transaction-safe | **Yes** — single `BEGIN`/`COMMIT` |
+| Repeat-safe | **Partial** — `REVOKE`/`GRANT`/`COMMENT`/`ALTER … SET search_path` repeat-safe; **DROP TRIGGER/FUNCTION fail-closed on re-apply** via preflight assertions (no silent `DROP IF EXISTS`) |
+| Fail-closed on drift | **Yes** — catalog assertions abort before destructive DDL |
+| Data changes | **None** |
 
-## Lock / concurrency impact
+## Confirmed facts (live evidence)
 
-| Statement class | Lock | Duration | Concurrent effect |
-|---|---|---|---|
-| `REVOKE` / `GRANT` / `COMMENT` | Catalog / function | Brief | Negligible |
-| `ALTER FUNCTION … SET search_path` | Function | Brief | Calls wait briefly |
-| `DROP TRIGGER` on `contact_messages` | **AccessExclusiveLock** on table | Short | Concurrent contact INSERTs **wait** |
-| `DROP TRIGGER` on `registrations` | **AccessExclusiveLock** on table | Short | Concurrent registration INSERTs **wait** |
-| `DROP FUNCTION` | Function | Brief | Direct calls fail once dropped |
-| Nothing here is non-transaction-safe | — | — | No `CONCURRENTLY`, no `VACUUM FULL` |
+1. External roles cannot `CREATE` in schema `public` (`anon`/`authenticated`/`service_role` = false).
+2. Active triggers (pre-017): `auth.users.on_auth_user_created→handle_new_user`; `registrations.mdz_registrations_assign_registration_id`; `contact_messages.on_contact_message_insert→process_contact_message`; `registrations.on_registration_created→send_welcome_email`.
+3. Live bodies: wilaya email SELECT (fully-qualified `public.*`); contact webhook placeholder; welcome NOTICE no-op; legacy `admin_set_profile_status(uuid,text)` with profiles.role bridge; `resolve_login_identifier` required for login (unchanged in 017).
 
-## Objects
+## Objects dropped
 
-### Dropped
-- Trigger `public.contact_messages.on_contact_message_insert`
-- Function `public.process_contact_message()`
-- Trigger `public.registrations.on_registration_created`
-- Function `public.send_welcome_email()`
+| Object | Reason |
+|---|---|
+| Trigger `public.contact_messages.on_contact_message_insert` | Placeholder webhook; not replaced with HTTP |
+| Function `public.process_contact_message()` | Same |
+| Trigger `public.registrations.on_registration_created` | Misleading NOTICE no-op |
+| Function `public.send_welcome_email()` | Same |
 
-### Retained (privilege-changed and/or commented)
-- `public.handle_new_user()` — REVOKE `public,anon,authenticated`
-- `public.mdz_registrations_assign_registration_id()` — REVOKE `public,anon,authenticated`
-- `public.get_wilaya_manager_email(text)` — REVOKE clients; `GRANT service_role`; `search_path=public`
-- `public.admin_set_profile_status(uuid,text)` — REVOKE clients; `GRANT service_role`; legacy comment
-- `public.mdz_is_platform_admin()` / `mdz_is_wilaya_manager()` / `mdz_caller_wilaya()` — REVOKE **anon** only
+**Contact inserts into `public.contact_messages` are preserved.** Contact notification delivery is **intentionally deferred** to the supported `email_outbox` architecture. **Do not imply contact notifications currently work** after 017.
 
-### Intentionally unchanged
-- `public.resolve_login_identifier(text)` (see design note)
-- `public.review_registration_status(text,text,text)`
-- Email outbox functions / Worker drain path
-- Notification RPCs (`list_my_notifications`, etc.)
-- Support ticket RPCs
-- `contact_messages` table + INSERT RLS policies
-- Signup trigger attachment `auth.users.on_auth_user_created` (kept; only EXECUTE revoked from clients)
+## Objects retained
 
-## Expected privilege matrix after 017
+| Function | 017 action |
+|---|---|
+| `handle_new_user()` | REVOKE `public,anon,authenticated`; trigger kept; body unchanged |
+| `mdz_registrations_assign_registration_id()` | REVOKE `public,anon,authenticated`; trigger kept; body unchanged |
+| `get_wilaya_manager_email(text)` | REVOKE clients; GRANT `service_role`; `search_path=''` (behaviour-preserving); body unchanged |
+| `admin_set_profile_status(uuid,text)` | REVOKE clients; GRANT `service_role`; legacy COMMENT; body unchanged |
+| `mdz_is_platform_admin()` / `mdz_is_wilaya_manager()` / `mdz_caller_wilaya()` | REVOKE `public,anon`; GRANT `authenticated,service_role`; bodies unchanged |
+| `resolve_login_identifier(text)` | **Unchanged** (design note only) |
+| `review_registration_status(...)` | **Unmodified** |
 
-| Function | anon | authenticated | service_role | public |
+## Privilege changes (expected ACL matrix after 017)
+
+Measured with `has_function_privilege(role, fn, 'EXECUTE')` — not ACL inspection alone.
+
+| Function | public | anon | authenticated | service_role |
 |---|---|---|---|---|
-| `handle_new_user()` | false | false | *(unchanged / owner)* | false |
-| `mdz_registrations_assign_registration_id()` | false | false | *(unchanged / owner)* | false |
-| `get_wilaya_manager_email(text)` | false | false | **true** | false |
-| `admin_set_profile_status(uuid,text)` | false | false | **true** | false |
-| `mdz_is_platform_admin()` | false | **true** | **true** | false* |
-| `mdz_is_wilaya_manager()` | false | **true** | **true** | false* |
-| `mdz_caller_wilaya()` | false | **true** | **true** | false* |
-| `resolve_login_identifier(text)` | **true** (unchanged) | **true** | **true** | — |
-| `process_contact_message()` | **absent** | **absent** | **absent** | — |
-| `send_welcome_email()` | **absent** | **absent** | **absent** | — |
+| `handle_new_user()` | **false** | **false** | **false** | *(owner / prior)* |
+| `mdz_registrations_assign_registration_id()` | **false** | **false** | **false** | *(owner / prior)* |
+| `get_wilaya_manager_email(text)` | **false** | **false** | **false** | **true** |
+| `admin_set_profile_status(uuid,text)` | **false** | **false** | **false** | **true** |
+| `mdz_is_platform_admin()` | **false** | **false** | **true** | **true** |
+| `mdz_is_wilaya_manager()` | **false** | **false** | **true** | **true** |
+| `mdz_caller_wilaya()` | **false** | **false** | **true** | **true** |
+| `resolve_login_identifier(text)` | *(unchanged)* | **true** | **true** | **true** |
+| `process_contact_message()` | **absent** | **absent** | **absent** | **absent** |
+| `send_welcome_email()` | **absent** | **absent** | **absent** | **absent** |
 
-\*Effective `public` EXECUTE should be false after explicit revoke from `public` role on helpers where previously granted; verify with `017_….verify.sql`.
+`aclexplode` is supporting documentation only (verify section 2).
+
+## Expected search_path matrix (retained SECURITY DEFINER in 017 scope)
+
+| Function | Current (repo / typical live) | Fully-qualified refs? | 017 changes search_path? | Hardening deferred? |
+|---|---|---|---|---|
+| `handle_new_user()` | `public` (repo create) | Partial / trigger body | **No** | **Yes** — defer full DEFINER harden |
+| `mdz_registrations_assign_registration_id()` | `public` (014) | Uses `public.` in places | **No** | **Yes** |
+| `get_wilaya_manager_email(text)` | often unset / ambient | **Yes** — live body uses `public.wilaya_managers` / `public.wilayas` | **Yes → `''`** | Body rewrite deferred; path lock only |
+| `admin_set_profile_status(uuid,text)` | `public` (007) | Mixed | **No** | **Yes** |
+| `mdz_is_platform_admin()` | `public` (012/015) | Mixed | **No** | **Yes** |
+| `mdz_is_wilaya_manager()` | `public` | Mixed | **No** | **Yes** |
+| `mdz_caller_wilaya()` | `public` | Mixed | **No** | **Yes** |
+| `resolve_login_identifier(text)` | `public` (phase0) | Mixed | **No** (out of scope) | Separate design |
+
+017 is **not** expanded into a full SECURITY DEFINER hardening migration. Only `get_wilaya_manager_email` gets `search_path` changed because the reviewed live body proves `search_path=''` is behaviour-preserving. Migration asserts the body still contains `public.wilaya_managers` and `public.wilayas` before applying that SET.
 
 ## Impact analysis
 
 | Flow | Impact |
 |---|---|
 | **Signup** | **OK** — `on_auth_user_created` → `handle_new_user` retained; client EXECUTE revoked (triggers do not need it) |
-| **Registration creation / registration_id** | **OK** — `mdz_registrations_assign_registration_id` trigger retained |
-| **Contact form** | **OK** — table INSERT unchanged (`index.html:3548`); legacy webhook trigger removed; **no notification email is claimed or provided** |
-| **Approval / rejection** | **OK** — `review_registration_status` untouched; outbox untouched |
-| **Notifications** | **OK** — notification RPCs untouched |
+| **Registration / registration_id** | **OK** — assign trigger retained |
+| **Contact form** | **OK** — table INSERT unchanged; webhook removed; **no claim that contact notifications work** |
+| **Approval / rejection** | **OK** — `review_registration_status` + outbox untouched |
+| **Welcome-on-insert** | **Removed NOTICE no-op only** — never real mail |
+| **Legacy admin_set_profile_status from browser** | **Blocked** |
+| **Auth helpers from anon** | **Blocked** (PUBLIC+anon revoked) |
 | **Member login** | **OK** — `resolve_login_identifier` untouched |
-| **Welcome-on-insert** | **Removed misleading NOTICE only** — never sent real mail |
-| **Legacy admin_set_profile_status from browser** | **Blocked** (EXECUTE revoked from authenticated) |
+| **Wilaya manager email via client RPC** | **Blocked** |
 
-## Repository evidence for decisions
+## Repository evidence
 
 | Decision | Evidence |
 |---|---|
@@ -92,32 +107,32 @@
 | Keep reg-id trigger | `014_registration_id_integrity.sql:209-258` |
 | Approval mail via outbox not welcome trigger | `012_phase1_quality_elevation.sql:388-405` |
 | Contact UI uses table insert not RPC | `index.html:3548` |
-| Legacy admin status RPC | `007_review_registration_status.sql:157-245`; app uses `js/mdz-dashboards.mjs:346` → `review_registration_status` |
+| Legacy admin status RPC | `007_review_registration_status.sql:157-245`; app → `review_registration_status` (`js/mdz-dashboards.mjs`) |
 | Auth helpers | `012_phase1_quality_elevation.sql:48-96`; `015_cut_manager_profiles_role_bridge.sql:52-67` |
 | Login RPC | `20260719000000_phase0_member_id_foundation.sql:168-198`; `index.html:2439` |
 
-## Note on `get_wilaya_manager_email` body
+## Pre-production capture (mandatory Go / No-Go)
 
-Operator-exported live body:
+Before production apply, capture and retain raw output of:
 
-```sql
-SELECT wm.email
-FROM public.wilaya_managers wm
-JOIN public.wilayas w ON wm.wilaya_id = w.id
-WHERE w.name = p_wilaya_name
-LIMIT 1;
-```
+- `pg_get_functiondef` for all 017-touched functions (especially drop targets + wilaya email)
+- `pg_get_triggerdef` for drop targets + retained required triggers
+- `proacl`, `proconfig`, owner, `prosecdef`
 
-**017 intentionally does not rewrite this body** — package scope is containment (REVOKE client EXECUTE + `search_path = public`) and legacy-trigger removal only. A later package may recreate with `search_path = ''` and fully-qualified refs if still retained.
+Populate / annotate `017_….partial-manual-rollback.sql` from that capture. **Without capture → No-Go for full restore capability.**
+
+Capture SQL is embedded in the partial-manual-rollback header.
+
+## Execution gates (before production)
+
+1. Run `017_….verify.sql` against **Production** and save raw output (pre-state baseline; expect FAIL on post-017 absence/privilege rows).
+2. Capture all required definitions (Go/No-Go).
+3. Confirm preconditions (signatures, triggers, wilaya body fully-qualified refs, no CREATE grants for external roles).
+4. Apply `017_harden_reachable_security_definers.sql` (Owner only — **this package does not apply**).
+5. Run verification again; **every `check_result` = OK**; preserve raw outputs.
+
+Acceptance requires: expected pre-state, expected post-state, all final verification = OK, raw outputs preserved.
 
 ## Rollback label
 
-`017_….partial-manual-rollback.sql` is a **PARTIAL MANUAL ROLLBACK / privilege rollback**. It restores revoked EXECUTE grants only. It does **not** auto-recreate dropped functions/triggers.
-
-## Pre-apply checklist (Owner) — hard requirement for full restore capability
-
-1. **Required if full restoration may be needed:** save exact `pg_get_functiondef` for `process_contact_message()`, `send_welcome_email()`, `get_wilaya_manager_email(text)`, and `pg_get_triggerdef` for `on_contact_message_insert` / `on_registration_created`.
-2. Confirm backup/PITR restore point.
-3. Apply `017_harden_reachable_security_definers.sql` in one session.
-4. Run `017_….verify.sql` — every `check_result` must be `OK`.
-5. Smoke: signup, registration insert, contact insert, admin review, login.
+`017_….partial-manual-rollback.sql` is **partial manual rollback only** — not a complete restoration. Full restoration requires pre-apply capture.

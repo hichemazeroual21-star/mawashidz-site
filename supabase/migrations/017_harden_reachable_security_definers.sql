@@ -1,25 +1,30 @@
 -- ============================================================
 -- MawashiDZ — Migration 017: harden reachable SECURITY DEFINER
 -- ============================================================
--- Scope (confirmed live evidence 2026-07-29; do NOT invent):
+-- Scope (confirmed live evidence; do NOT invent):
 --   A) REVOKE client EXECUTE on required triggers' functions
 --      handle_new_user(), mdz_registrations_assign_registration_id()
+--      Preserve trigger bindings and bodies (no rewrite).
 --   B) REVOKE client EXECUTE on get_wilaya_manager_email(text);
---      lock search_path explicitly. Body rewriting intentionally deferred
---      to keep 017 limited to containment + legacy-trigger removal.
---      Live body (exported) reads public.wilaya_managers / public.wilayas;
---      a later package may recreate with search_path='' + fully-qualified refs.
+--      SET search_path = '' — behaviour-preserving because the reviewed
+--      live body already uses fully-qualified public.* references.
+--      Do not expose manager email through client RPC.
 --   C) Drop legacy contact webhook trigger + process_contact_message()
 --      (placeholder YOUR_GOOGLE_APPS_SCRIPT_WEBHOOK_URL). contact_messages
---      INSERT remains; notification delivery is NOT provided by this
---      migration — implement later via email_outbox if required.
+--      INSERT remains; notification delivery is intentionally deferred to
+--      the supported email_outbox architecture (NOT claimed working here).
 --   D) Drop misleading no-op send_welcome_email trigger+function.
---      Real approval mail remains review_registration_status → outbox.
+--      Do not modify approval/email_outbox workflow.
 --   E) REVOKE client EXECUTE on admin_set_profile_status(uuid,text)
---      (legacy; app uses review_registration_status).
---   F) REVOKE anon EXECUTE on mdz_is_platform_admin/mdz_is_wilaya_manager/
---      mdz_caller_wilaya (keep authenticated, service_role).
---   G) resolve_login_identifier intentionally UNCHANGED (separate design).
+--      (legacy; replacement is review_registration_status — untouched).
+--   F) REVOKE PUBLIC/anon EXECUTE on mdz_is_platform_admin /
+--      mdz_is_wilaya_manager / mdz_caller_wilaya; keep authenticated +
+--      service_role. Do not rewrite bodies.
+--   G) resolve_login_identifier intentionally UNCHANGED (design note only).
+--
+-- Search-path scope: NOT a full SECURITY DEFINER hardening pass.
+-- Only get_wilaya_manager_email(text) has search_path changed (proven
+-- behaviour-preserving). All other retained DEFINER search_path deferred.
 --
 -- Evidence anchors (repository):
 --   handle_new_user trigger: 20260719110000_secure_allocate_member_id.sql:25,86-88
@@ -153,6 +158,7 @@ revoke execute on function public.mdz_registrations_assign_registration_id()
 do $$
 declare
   v_fn oid;
+  v_def text;
 begin
   select p.oid into v_fn
   from pg_proc p
@@ -167,19 +173,28 @@ begin
     v_fn is not null,
     'expected public.get_wilaya_manager_email(text) SECURITY DEFINER RETURNS text'
   );
+
+  -- Fail closed if live body is no longer the reviewed fully-qualified form;
+  -- search_path='' is only behaviour-preserving for that body.
+  v_def := pg_get_functiondef(v_fn);
+  perform pg_temp.mdz017_assert(
+    v_def ilike '%public.wilaya_managers%'
+      and v_def ilike '%public.wilayas%',
+    'get_wilaya_manager_email body missing fully-qualified public.wilaya_managers / public.wilayas — abort (search_path='''' not proven safe)'
+  );
 end;
 $$;
 
--- Body rewriting intentionally deferred (017 = containment only).
--- Live exported body (Operator):
+-- Live exported body (Operator — confirmed):
 --   SELECT wm.email
 --   FROM public.wilaya_managers wm
 --   JOIN public.wilayas w ON wm.wilaya_id = w.id
 --   WHERE w.name = p_wilaya_name
 --   LIMIT 1;
--- Explicit search_path=public locks ambient search without changing that SELECT.
+-- Fully-qualified refs ⇒ search_path = '' is behaviour-preserving.
+-- Body is NOT rewritten in 017.
 alter function public.get_wilaya_manager_email(text)
-  set search_path = public;
+  set search_path = '';
 
 revoke execute on function public.get_wilaya_manager_email(text)
   from public, anon, authenticated;
@@ -188,14 +203,15 @@ grant execute on function public.get_wilaya_manager_email(text)
   to service_role;
 
 comment on function public.get_wilaya_manager_email(text) is
-  'LEGACY: returns manager email from wilaya_managers; client EXECUTE revoked in 017. Not for browser RPC. Body rewrite to search_path='''' deferred (containment-only package).';
+  'LEGACY: returns manager email from wilaya_managers; client EXECUTE revoked in 017. Not for browser RPC. search_path locked to empty (live body already fully-qualified public.*).';
 
 -- ------------------------------------------------------------
 -- C) process_contact_message — assert, drop trigger, drop function
 -- ------------------------------------------------------------
--- Notification delivery is NOT implemented here. contact_messages INSERT
--- continues via RLS policies. Supported mail path remains email_outbox
--- (012/013 Worker + Resend), not this placeholder webhook.
+-- CONTACT NOTIFICATION DELIVERY: intentionally deferred to the supported
+-- email_outbox architecture. This migration does NOT replace the dropped
+-- webhook with another HTTP webhook. contact_messages INSERT is preserved.
+-- Do not imply contact notifications currently work after 017.
 do $$
 declare
   v_fn oid;
@@ -349,11 +365,12 @@ grant execute on function public.admin_set_profile_status(uuid, text)
   to service_role;
 
 comment on function public.admin_set_profile_status(uuid, text) is
-  'LEGACY (017): externally revoked. Application path is review_registration_status(text,text,text). Contains historical profiles.role manager bridge. Do not re-grant to authenticated.';
+  'LEGACY (017): externally revoked. Replacement: review_registration_status(text,text,text) — do not modify that RPC in 017. Contains historical profiles.role manager bridge. Do not re-grant to authenticated.';
 
 -- ------------------------------------------------------------
--- F) Auth helpers — REVOKE anon only
+-- F) Auth helpers — REVOKE PUBLIC + anon; keep authenticated/service_role
 -- ------------------------------------------------------------
+-- REVOKE PUBLIC is required so anon cannot inherit EXECUTE via PUBLIC.
 do $$
 begin
   perform pg_temp.mdz017_assert(
@@ -371,9 +388,9 @@ begin
 end;
 $$;
 
-revoke execute on function public.mdz_is_platform_admin() from anon;
-revoke execute on function public.mdz_is_wilaya_manager() from anon;
-revoke execute on function public.mdz_caller_wilaya() from anon;
+revoke execute on function public.mdz_is_platform_admin() from public, anon;
+revoke execute on function public.mdz_is_wilaya_manager() from public, anon;
+revoke execute on function public.mdz_caller_wilaya() from public, anon;
 
 grant execute on function public.mdz_is_platform_admin() to authenticated, service_role;
 grant execute on function public.mdz_is_wilaya_manager() to authenticated, service_role;
@@ -394,7 +411,7 @@ begin
       (
         '017',
         '017_harden_reachable_security_definers.sql',
-        'Revoke client EXECUTE on triggers/helpers/legacy admin; drop contact webhook + welcome no-op'
+        'Revoke client EXECUTE on triggers/helpers/legacy admin; lock wilaya email search_path=''''; drop contact webhook + welcome no-op; contact notify deferred to email_outbox'
       )
     on conflict (version) do update
     set name = excluded.name,
