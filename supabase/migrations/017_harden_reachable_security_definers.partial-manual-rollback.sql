@@ -27,10 +27,18 @@
 -- -- Functions (definitions + ACL metadata):
 -- select
 --   p.oid::regprocedure::text as full_signature,
+-- select
+--   format(
+--     'public.%s(%s)',
+--     p.proname,
+--     pg_get_function_identity_arguments(p.oid)
+--   ) as function_signature,
+--   p.oid::regprocedure::text as live_regprocedure_text,
 --   pg_get_userbyid(p.proowner) as owner_name,
 --
 -- Paste each captured owner_name into captured_owners in
--- 017_harden_reachable_security_definers.verify.sql before post-apply
+-- 017_harden_reachable_security_definers.verify.sql using the
+-- function_signature key (public.name(args)) before post-apply
 -- acceptance. 017 does not change ownership; mismatch = FAIL.
 --   p.prosecdef as is_security_definer,
 --   p.proconfig,

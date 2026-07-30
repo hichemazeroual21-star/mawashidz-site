@@ -18,49 +18,131 @@
 --
 -- Owner check: Migration 017 does NOT modify function ownership.
 -- Paste owner_name values from the mandatory Go/No-Go pre-apply
--- capture (pg_get_userbyid(p.proowner) / owner_name column) into
--- captured_owners below. Do NOT hardcode a role name such as postgres.
+-- capture into captured_owners below, keyed by function_signature.
+-- Do NOT hardcode a role name such as postgres.
 -- Post-apply owner must equal the captured pre-apply owner.
+--
+-- Invariants:
+--   * target_functions is the complete independent retained set.
+--   * captured_owners is paste-only; it does NOT define the target set.
+--   * LEFT JOIN captured_owners (never INNER) so missing paste rows
+--     still emit a visible FAIL.
+--   * Signature key is the full canonical function signature on both
+--     sides (not proname alone).
 -- ------------------------------------------------------------
-with captured_owners as (
-  -- REQUIRED for post-apply acceptance: replace each
-  -- '<<PASTE_FROM_CAPTURE>>' with the captured owner_name string.
-  select *
-  from (
-    values
-      ('handle_new_user', '', '<<PASTE_FROM_CAPTURE>>'),
-      ('mdz_registrations_assign_registration_id', '', '<<PASTE_FROM_CAPTURE>>'),
-      ('get_wilaya_manager_email', 'text', '<<PASTE_FROM_CAPTURE>>'),
-      ('admin_set_profile_status', 'uuid, text', '<<PASTE_FROM_CAPTURE>>'),
-      ('mdz_is_platform_admin', '', '<<PASTE_FROM_CAPTURE>>'),
-      ('mdz_is_wilaya_manager', '', '<<PASTE_FROM_CAPTURE>>'),
-      ('mdz_caller_wilaya', '', '<<PASTE_FROM_CAPTURE>>'),
-      ('resolve_login_identifier', 'text', '<<PASTE_FROM_CAPTURE>>'),
-      ('review_registration_status', 'text, text, text', '<<PASTE_FROM_CAPTURE>>')
-  ) as c(proname, identity_args, captured_owner_name)
-),
-targets as (
+with target_functions as (
+  -- Complete known retained-function set covered by Migration 017.
+  -- Defined independently of captured_owners.
   select *
   from (
     values
       -- containment: public/anon/authenticated EXECUTE must all be FALSE
-      ('handle_new_user', '', 'containment', false, false, null::text),
-      ('mdz_registrations_assign_registration_id', '', 'containment', false, false, null::text),
-      ('get_wilaya_manager_email', 'text', 'containment', false, true, ''),
-      ('admin_set_profile_status', 'uuid, text', 'containment', false, true, null::text),
+      (
+        'public.handle_new_user()',
+        'containment',
+        false,
+        false,
+        null::text
+      ),
+      (
+        'public.mdz_registrations_assign_registration_id()',
+        'containment',
+        false,
+        false,
+        null::text
+      ),
+      (
+        'public.get_wilaya_manager_email(text)',
+        'containment',
+        false,
+        true,
+        ''
+      ),
+      (
+        'public.admin_set_profile_status(uuid, text)',
+        'containment',
+        false,
+        true,
+        null::text
+      ),
       -- helpers: anon FALSE; authenticated TRUE; public FALSE (via REVOKE PUBLIC)
-      ('mdz_is_platform_admin', '', 'helper', true, true, null::text),
-      ('mdz_is_wilaya_manager', '', 'helper', true, true, null::text),
-      ('mdz_caller_wilaya', '', 'helper', true, true, null::text),
+      (
+        'public.mdz_is_platform_admin()',
+        'helper',
+        true,
+        true,
+        null::text
+      ),
+      (
+        'public.mdz_is_wilaya_manager()',
+        'helper',
+        true,
+        true,
+        null::text
+      ),
+      (
+        'public.mdz_caller_wilaya()',
+        'helper',
+        true,
+        true,
+        null::text
+      ),
       -- unchanged login oracle (017 must not alter grants; do not assert service_role)
-      ('resolve_login_identifier', 'text', 'unchanged_login', true, false, null::text),
+      (
+        'public.resolve_login_identifier(text)',
+        'unchanged_login',
+        true,
+        false,
+        null::text
+      ),
       -- replacement path for legacy admin — present/untouched; no service_role assert
-      ('review_registration_status', 'text, text, text', 'untouched', true, false, null::text)
-  ) as t(proname, identity_args, kind, expect_authenticated, expect_service_role, expect_search_path)
+      (
+        'public.review_registration_status(text, text, text)',
+        'untouched',
+        true,
+        false,
+        null::text
+      )
+  ) as tf(
+    function_signature,
+    kind,
+    expect_authenticated,
+    expect_service_role,
+    expect_search_path
+  )
+),
+captured_owners as (
+  -- REQUIRED for post-apply acceptance: replace each
+  -- '<<PASTE_FROM_CAPTURE>>' with the captured owner_name string.
+  -- Keys MUST equal target_functions.function_signature exactly.
+  -- Missing / empty / placeholder / unmatched signature => FAIL.
+  select *
+  from (
+    values
+      ('public.handle_new_user()', '<<PASTE_FROM_CAPTURE>>'),
+      (
+        'public.mdz_registrations_assign_registration_id()',
+        '<<PASTE_FROM_CAPTURE>>'
+      ),
+      ('public.get_wilaya_manager_email(text)', '<<PASTE_FROM_CAPTURE>>'),
+      (
+        'public.admin_set_profile_status(uuid, text)',
+        '<<PASTE_FROM_CAPTURE>>'
+      ),
+      ('public.mdz_is_platform_admin()', '<<PASTE_FROM_CAPTURE>>'),
+      ('public.mdz_is_wilaya_manager()', '<<PASTE_FROM_CAPTURE>>'),
+      ('public.mdz_caller_wilaya()', '<<PASTE_FROM_CAPTURE>>'),
+      ('public.resolve_login_identifier(text)', '<<PASTE_FROM_CAPTURE>>'),
+      (
+        'public.review_registration_status(text, text, text)',
+        '<<PASTE_FROM_CAPTURE>>'
+      )
+  ) as c(function_signature, captured_owner_name)
 )
 select
-  t.proname || '(' || t.identity_args || ')' as full_signature,
-  t.kind,
+  tf.function_signature,
+  p.oid::regprocedure::text as live_regprocedure_text,
+  tf.kind,
   (p.oid is not null) as function_exists,
   coalesce(p.prosecdef, false) as is_security_definer,
   pg_get_userbyid(p.proowner) as owner_name,
@@ -81,13 +163,14 @@ select
       then 'FAIL function missing'
     when not p.prosecdef
       then 'FAIL not SECURITY DEFINER'
-    when co.captured_owner_name is null
+    when co.function_signature is null
+      or co.captured_owner_name is null
       or co.captured_owner_name = ''
       or co.captured_owner_name = '<<PASTE_FROM_CAPTURE>>'
       then 'FAIL captured owner missing (paste from Go/No-Go capture)'
     when pg_get_userbyid(p.proowner) is distinct from co.captured_owner_name
       then 'FAIL owner changed unexpectedly'
-    when t.expect_search_path is not null
+    when tf.expect_search_path is not null
       and coalesce(
         (
           select substring(cfg from length('search_path=') + 1)
@@ -96,37 +179,34 @@ select
           limit 1
         ),
         '<unset>'
-      ) is distinct from t.expect_search_path
+      ) is distinct from tf.expect_search_path
       then 'FAIL unexpected search_path/proconfig (017 intentionally modified this function)'
-    when t.kind in ('containment', 'helper')
+    when tf.kind in ('containment', 'helper')
       and has_function_privilege('public', p.oid, 'EXECUTE')
       then 'FAIL public still has EXECUTE'
-    when t.kind in ('containment', 'helper')
+    when tf.kind in ('containment', 'helper')
       and has_function_privilege('anon', p.oid, 'EXECUTE')
       then 'FAIL anon still has EXECUTE'
-    when t.kind = 'containment'
+    when tf.kind = 'containment'
       and has_function_privilege('authenticated', p.oid, 'EXECUTE')
       then 'FAIL authenticated still has EXECUTE'
-    when t.kind = 'helper'
+    when tf.kind = 'helper'
       and not has_function_privilege('authenticated', p.oid, 'EXECUTE')
       then 'FAIL helper missing authenticated EXECUTE'
-    when t.expect_service_role
+    when tf.expect_service_role
       and not has_function_privilege('service_role', p.oid, 'EXECUTE')
       then 'FAIL missing service_role EXECUTE'
-    when t.kind = 'unchanged_login'
+    when tf.kind = 'unchanged_login'
       and not has_function_privilege('anon', p.oid, 'EXECUTE')
       then 'FAIL resolve_login_identifier anon EXECUTE changed (017 must leave it unchanged)'
     else 'OK'
   end as check_result
-from targets t
-left join captured_owners co
-  on co.proname = t.proname
- and co.identity_args = t.identity_args
+from target_functions tf
 left join pg_proc p
-  on p.pronamespace = 'public'::regnamespace
- and p.proname = t.proname
- and pg_get_function_identity_arguments(p.oid) = t.identity_args
-order by t.kind, full_signature;
+  on p.oid = to_regprocedure(tf.function_signature)
+left join captured_owners co
+  on co.function_signature = tf.function_signature
+order by tf.kind, tf.function_signature;
 
 -- ------------------------------------------------------------
 -- 2) Supporting ACL documentation (aclexplode) — NOT sole acceptance

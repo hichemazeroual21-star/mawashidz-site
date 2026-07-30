@@ -72,7 +72,7 @@ Effective privilege verification uses `has_function_privilege(role, fn, 'EXECUTE
 
 ### Owner verification (no hardcoded role)
 
-Migration 017 does **not** change function ownership. Post-apply verify compares each retained function’s live owner to the `owner_name` recorded in the mandatory Go/No-Go pre-apply capture (paste into `captured_owners` in `017_….verify.sql`). Any mismatch → `FAIL owner changed unexpectedly`. Do not hardcode `postgres` or any other role name as the expected owner.
+Migration 017 does **not** change function ownership. Post-apply verify compares each retained function’s live owner to the `owner_name` recorded in the mandatory Go/No-Go pre-apply capture. Paste into `captured_owners` in `017_….verify.sql` keyed by full canonical `function_signature` (`public.name(args)`), independently of the `target_functions` set (`LEFT JOIN` only). Any missing / empty / placeholder / unmatched signature → `FAIL captured owner missing …`. Any live owner mismatch → `FAIL owner changed unexpectedly`. Do not hardcode `postgres` or any other role name as the expected owner.
 
 ## Expected search_path matrix (retained SECURITY DEFINER in 017 scope)
 
