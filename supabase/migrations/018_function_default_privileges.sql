@@ -244,7 +244,7 @@ begin
       (
         '018',
         '018_function_default_privileges.sql',
-        'GLOBAL ALTER DEFAULT PRIVILEGES FOR ROLE postgres (+ current session role): REVOKE EXECUTE on FUNCTIONS from PUBLIC, anon, authenticated. Forward-only (not retroactive). supabase_admin FOR ROLE not required (residual risk). Migration 017 untouched.'
+        'ALTER DEFAULT PRIVILEGES FOR ROLE postgres: REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC, anon, authenticated. Global forward-looking defaults; not retroactive. Also applies current-session defaults when runner ≠ postgres. supabase_admin defaults remain residual risk. Migration 017 untouched.'
       )
     on conflict (version) do update
     set name = excluded.name,
