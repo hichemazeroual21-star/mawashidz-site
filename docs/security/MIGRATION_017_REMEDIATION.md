@@ -1,7 +1,10 @@
 # Migration 017 — Reachable SECURITY DEFINER remediation
 
-**Status:** reviewable package only — **do not apply to production** until Owner Go gates pass.  
-**Branch:** `cursor/migration-017-definer-trigger-harden-9060`  
+**Status:** **COMPLETE AND ACCEPTED** (Production post-apply verify passed).  
+**Acceptance evidence:** `docs/security/MIGRATION_017_ACCEPTANCE_EVIDENCE.md`  
+**Applied build:** PR #26 (`4ddcc93` — `to_regprocedure` OID resolver).  
+**Freeze:** Do not perform further `ALTER` / `REVOKE` / `GRANT` / `DROP` / rollback for Migration 017. Future DB work is a separate task.
+
 **Files:**
 
 | Artifact | Path |
@@ -9,6 +12,7 @@
 | Migration | `supabase/migrations/017_harden_reachable_security_definers.sql` |
 | Partial manual rollback | `supabase/migrations/017_harden_reachable_security_definers.partial-manual-rollback.sql` |
 | Verification | `supabase/migrations/017_harden_reachable_security_definers.verify.sql` |
+| Acceptance evidence | `docs/security/MIGRATION_017_ACCEPTANCE_EVIDENCE.md` |
 | Login design (out of band) | `docs/security/RESOLVE_LOGIN_IDENTIFIER_DESIGN.md` |
 
 **No** `017_….rollback.sql` stub — only the partial-manual-rollback file exists.
@@ -131,15 +135,17 @@ Capture SQL is embedded in the partial-manual-rollback header.
 
 This repository is currently **public**. Security design notes (for example `RESOLVE_LOGIN_IDENTIFIER_DESIGN.md`) describe deferred vulnerabilities. **Recommended:** make the repository private before production if possible. Deleting documents in later commits does **not** remove them from Git history.
 
-## Execution gates (before production)
+## Execution gates — closed
 
-1. Run `017_….verify.sql` against **Production** and save raw output (pre-state baseline; expect FAIL on post-017 absence/privilege rows).
+Pre-apply capture, PR #26 apply, and final post-apply verification are **complete**. See `MIGRATION_017_ACCEPTANCE_EVIDENCE.md`.
+
+Historical gate checklist (retained for audit):
+
+1. Run `017_….verify.sql` against **Production** and save raw output (pre-state baseline).
 2. Capture all required definitions (Go/No-Go).
 3. Confirm preconditions (signatures, triggers, wilaya body fully-qualified refs, no CREATE grants for external roles).
-4. Apply `017_harden_reachable_security_definers.sql` (Owner only — **this package does not apply**).
+4. Apply `017_harden_reachable_security_definers.sql` (Owner — PR #26 resolver build).
 5. Paste captured `owner_name` values into `captured_owners` in `017_….verify.sql`, then run verification again; **every `check_result` = OK**; preserve raw outputs.
-
-Acceptance requires: expected pre-state, expected post-state, all final verification = OK, raw outputs preserved.
 
 ## Rollback label
 

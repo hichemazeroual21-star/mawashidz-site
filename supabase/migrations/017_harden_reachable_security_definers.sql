@@ -37,6 +37,11 @@
 -- Fail-closed: destructive DDL runs only after catalog assertions.
 -- Privilege REVOKE is repeat-safe. Exact DROP is not silently IF EXISTS.
 --
+-- Function OID resolution: use to_regprocedure('public.name(types)') only.
+-- Do NOT match pg_get_function_identity_arguments() against types-only
+-- strings — that API retains parameter NAMES (e.g. 'p_wilaya_name text'),
+-- which caused a false drift abort on Production for Section B/E.
+--
 -- Transaction: single explicit BEGIN/COMMIT. Apply by Owner SQL Editor
 -- or migration runner that does not double-wrap transactions.
 -- ============================================================
@@ -73,10 +78,7 @@ declare
 begin
   select p.oid into v_fn
   from pg_proc p
-  join pg_namespace n on n.oid = p.pronamespace
-  where n.nspname = 'public'
-    and p.proname = 'handle_new_user'
-    and pg_get_function_identity_arguments(p.oid) = ''
+  where p.oid = to_regprocedure('public.handle_new_user()')
     and p.prorettype = 'trigger'::regtype
     and p.prosecdef;
 
@@ -118,10 +120,7 @@ declare
 begin
   select p.oid into v_fn
   from pg_proc p
-  join pg_namespace n on n.oid = p.pronamespace
-  where n.nspname = 'public'
-    and p.proname = 'mdz_registrations_assign_registration_id'
-    and pg_get_function_identity_arguments(p.oid) = ''
+  where p.oid = to_regprocedure('public.mdz_registrations_assign_registration_id()')
     and p.prorettype = 'trigger'::regtype
     and p.prosecdef;
 
@@ -162,10 +161,7 @@ declare
 begin
   select p.oid into v_fn
   from pg_proc p
-  join pg_namespace n on n.oid = p.pronamespace
-  where n.nspname = 'public'
-    and p.proname = 'get_wilaya_manager_email'
-    and pg_get_function_identity_arguments(p.oid) = 'text'
+  where p.oid = to_regprocedure('public.get_wilaya_manager_email(text)')
     and p.prorettype = 'text'::regtype
     and p.prosecdef;
 
@@ -223,10 +219,7 @@ declare
 begin
   select p.oid into v_fn
   from pg_proc p
-  join pg_namespace n on n.oid = p.pronamespace
-  where n.nspname = 'public'
-    and p.proname = 'process_contact_message'
-    and pg_get_function_identity_arguments(p.oid) = ''
+  where p.oid = to_regprocedure('public.process_contact_message()')
     and p.prorettype = 'trigger'::regtype
     and p.prosecdef;
 
@@ -280,10 +273,7 @@ declare
 begin
   select p.oid into v_fn
   from pg_proc p
-  join pg_namespace n on n.oid = p.pronamespace
-  where n.nspname = 'public'
-    and p.proname = 'send_welcome_email'
-    and pg_get_function_identity_arguments(p.oid) = ''
+  where p.oid = to_regprocedure('public.send_welcome_email()')
     and p.prorettype = 'trigger'::regtype
     and p.prosecdef;
 
@@ -337,10 +327,7 @@ declare
 begin
   select p.oid into v_fn
   from pg_proc p
-  join pg_namespace n on n.oid = p.pronamespace
-  where n.nspname = 'public'
-    and p.proname = 'admin_set_profile_status'
-    and pg_get_function_identity_arguments(p.oid) = 'uuid, text'
+  where p.oid = to_regprocedure('public.admin_set_profile_status(uuid, text)')
     and p.prosecdef;
 
   perform pg_temp.mdz017_assert(
