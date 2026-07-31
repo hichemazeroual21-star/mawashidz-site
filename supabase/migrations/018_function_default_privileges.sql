@@ -5,19 +5,27 @@
 --
 -- FORWARD-ONLY (read carefully):
 --   • ALTER DEFAULT PRIVILEGES affects functions CREATED AFTER this
---     command for the named role in schema public.
+--     command for the named role.
 --   • It does NOT retroactively modify privileges on existing functions.
 --   • Existing sensitive / reachable SECURITY DEFINER surfaces were
 --     handled separately by Migration 017 (FROZEN / historical).
 --   • This migration MUST NOT modify any 017 artifact.
 --
+-- CRITICAL PostgreSQL RULE (root-cause of false 018 acceptance):
+--   REVOKE via ALTER DEFAULT PRIVILEGES **must be GLOBAL**
+--   (no IN SCHEMA). Per PostgreSQL docs, per-schema default privileges
+--   can only ADD grants; `… IN SCHEMA public REVOKE EXECUTE …` is a
+--   no-op unless undoing a matching per-schema GRANT. That no-op left
+--   hardwired PUBLIC EXECUTE intact (NULL proacl → acldefault).
+--
 -- TARGET ROLE:
---   Apply defaults for ROLE postgres only — the role confirmed to
---   create/own project functions in the live catalog.
---   Do NOT require ALTER DEFAULT PRIVILEGES FOR ROLE supabase_admin:
---   the migration runner may lack membership and that would abort the
---   whole migration with permission denied. supabase_admin default ACL
---   is inspected and documented as residual platform risk only.
+--   Apply global defaults for ROLE postgres (project function owner).
+--   Also apply global defaults for the *current* session role (no FOR
+--   ROLE clause) so SQL Editor / apply sessions that are not postgres
+--   still stop inheriting PUBLIC EXECUTE on newly created functions.
+--   Do NOT require `ALTER DEFAULT PRIVILEGES FOR ROLE supabase_admin`
+--   as a hard dependency (membership / permission denied abort risk).
+--   Any remaining other-role defaults = residual platform risk.
 --
 -- EXPLICIT PRIVILEGES (policy for future migrations):
 --   Default privileges are defense-in-depth only. Every new/modified
@@ -32,14 +40,14 @@
 begin;
 
 -- ------------------------------------------------------------
--- 0) Preflight — roles and current default ACL (fail-closed only
---    for conditions under project control)
+-- 0) Preflight — roles
 -- ------------------------------------------------------------
 do $$
 declare
   v_postgres_exists boolean;
   v_supabase_admin_exists boolean;
   v_admin_acl text;
+  v_admin_nsp text;
 begin
   select exists(select 1 from pg_roles where rolname = 'postgres')
     into v_postgres_exists;
@@ -48,23 +56,29 @@ begin
       '018 abort: role postgres not found — cannot set project default privileges';
   end if;
 
+  raise notice
+    '018 apply context: session_user=% current_user=%',
+    session_user, current_user;
+
   select exists(select 1 from pg_roles where rolname = 'supabase_admin')
     into v_supabase_admin_exists;
 
   if v_supabase_admin_exists then
-    select d.defaclacl::text
-      into v_admin_acl
+    select d.defaclacl::text,
+           case when d.defaclnamespace = 0 then '<global>'
+                else coalesce(n.nspname, d.defaclnamespace::text)
+           end
+      into v_admin_acl, v_admin_nsp
     from pg_default_acl d
     left join pg_namespace n on n.oid = d.defaclnamespace
     where d.defaclobjtype = 'f'
       and pg_get_userbyid(d.defaclrole) = 'supabase_admin'
-      and (n.nspname = 'public' or d.defaclnamespace = 0)
-    order by n.nspname nulls last
+    order by case when d.defaclnamespace = 0 then 0 else 1 end
     limit 1;
 
     raise notice
-      '018 residual risk (not a migration failure): supabase_admin function default ACL present=% acl=%',
-      (v_admin_acl is not null),
+      '018 residual risk (not a migration failure): supabase_admin function default ACL nsp=% acl=%',
+      coalesce(v_admin_nsp, '<none>'),
       coalesce(v_admin_acl, '<none>');
   else
     raise notice
@@ -74,26 +88,39 @@ end;
 $$;
 
 -- ------------------------------------------------------------
--- 1) Forward-looking defaults for ROLE postgres in schema public
---    Repeat-safe: re-REVOKE is a no-op if already revoked.
+-- 1) GLOBAL default REVOKE for ROLE postgres
+--    (NOT "IN SCHEMA public" — that form cannot remove PUBLIC EXECUTE)
 -- ------------------------------------------------------------
-alter default privileges for role postgres in schema public
+alter default privileges for role postgres
   revoke execute on functions from public;
 
-alter default privileges for role postgres in schema public
+alter default privileges for role postgres
   revoke execute on functions from anon;
 
-alter default privileges for role postgres in schema public
+alter default privileges for role postgres
   revoke execute on functions from authenticated;
 
--- Explicitly do NOT:
+-- ------------------------------------------------------------
+-- 1b) GLOBAL default REVOKE for the applying session role
+--     (no FOR ROLE — alters current_user's own defaults only).
+--     Idempotent / duplicate when current_user = postgres.
+-- ------------------------------------------------------------
+alter default privileges
+  revoke execute on functions from public;
+
+alter default privileges
+  revoke execute on functions from anon;
+
+alter default privileges
+  revoke execute on functions from authenticated;
+
+-- Explicitly do NOT hard-depend on:
 --   alter default privileges for role supabase_admin ...
--- That remains residual platform risk (documented in verify + package notes).
+-- Remaining other-role defaults = residual platform risk.
 
 -- ------------------------------------------------------------
--- 2) Post-condition under project control — postgres defaults
---    must not grant EXECUTE to PUBLIC / anon / authenticated.
---    Fail closed if postgres still grants those after ALTER.
+-- 2) Fail-closed post-condition for ROLE postgres GLOBAL defaults
+--    Missing global row is NOT success (hardwired PUBLIC EXECUTE remains).
 -- ------------------------------------------------------------
 do $$
 declare
@@ -101,46 +128,114 @@ declare
   v_item aclitem;
   v_grantee text;
   v_priv text;
+  v_bad text[] := array[]::text[];
 begin
   select d.defaclacl
     into v_acl
   from pg_default_acl d
-  join pg_namespace n on n.oid = d.defaclnamespace
   where d.defaclobjtype = 'f'
-    and n.nspname = 'public'
-    and pg_get_userbyid(d.defaclrole) = 'postgres'
-  limit 1;
+    and d.defaclnamespace = 0  -- GLOBAL only
+    and pg_get_userbyid(d.defaclrole) = 'postgres';
 
-  -- No row / empty ACL is acceptable (means no default grants recorded).
   if v_acl is null then
-    raise notice
-      '018 OK: no pg_default_acl row for postgres/public/functions (or empty) after REVOKE';
-    return;
+    raise exception
+      '018 abort: no GLOBAL pg_default_acl row for postgres/functions after REVOKE — hardwired PUBLIC EXECUTE would still apply';
   end if;
 
   foreach v_item in array v_acl
   loop
-    -- aclitem text form: grantee=privs/grantor
     v_grantee := split_part(v_item::text, '=', 1);
     v_priv := split_part(split_part(v_item::text, '=', 2), '/', 1);
 
-    -- Empty grantee name means PUBLIC in PostgreSQL ACL text
     if (v_grantee = '' or v_grantee in ('public', 'anon', 'authenticated'))
        and position('X' in v_priv) > 0
     then
-      raise exception
-        '018 abort: postgres default function ACL still grants EXECUTE to % (aclitem=%)',
-        case when v_grantee = '' then 'PUBLIC' else v_grantee end,
-        v_item::text;
+      v_bad := v_bad || case when v_grantee = '' then 'PUBLIC' else v_grantee end;
     end if;
   end loop;
 
-  raise notice '018 OK: postgres/public function defaults no longer grant EXECUTE to PUBLIC/anon/authenticated';
+  if cardinality(v_bad) > 0 then
+    raise exception
+      '018 abort: postgres GLOBAL function defaults still grant EXECUTE to: % (acl=%)',
+      array_to_string(v_bad, ', '),
+      v_acl::text;
+  end if;
+
+  raise notice
+    '018 OK: postgres GLOBAL function defaults acl=% (no PUBLIC/anon/authenticated EXECUTE)',
+    v_acl::text;
 end;
 $$;
 
 -- ------------------------------------------------------------
--- 3) Ledger (idempotent upsert; table may exist from 015+)
+-- 3) In-migration probe (same transaction) — creator = current_user
+--    Must not inherit EXECUTE for PUBLIC / anon / authenticated.
+--    Dropped before commit (no leftover object).
+-- ------------------------------------------------------------
+do $$
+declare
+  v_public boolean;
+  v_anon boolean;
+  v_auth boolean;
+  v_owner text;
+  v_proacl_null boolean;
+  v_proacl text;
+begin
+  execute $c$
+    create function public.mdz018_mig_probe()
+    returns text
+    language sql
+    stable
+    as $f$ select 'probe'::text $f$
+  $c$;
+
+  select pg_get_userbyid(p.proowner),
+         p.proacl is null,
+         p.proacl::text
+    into v_owner, v_proacl_null, v_proacl
+  from pg_proc p
+  join pg_namespace n on n.oid = p.pronamespace
+  where n.nspname = 'public'
+    and p.proname = 'mdz018_mig_probe'
+    and pg_get_function_identity_arguments(p.oid) = '';
+
+  -- Measure DEFAULTS only (before any explicit REVOKE).
+  v_public := has_function_privilege(
+    'public', 'public.mdz018_mig_probe()', 'EXECUTE'
+  );
+  v_anon := has_function_privilege(
+    'anon', 'public.mdz018_mig_probe()', 'EXECUTE'
+  );
+  v_auth := has_function_privilege(
+    'authenticated', 'public.mdz018_mig_probe()', 'EXECUTE'
+  );
+
+  raise notice
+    '018 probe(defaults): session_user=% current_user=% owner=% proacl_null=% proacl=% public_x=% anon_x=% auth_x=%',
+    session_user, current_user, v_owner, v_proacl_null, coalesce(v_proacl, '<null>'),
+    v_public, v_anon, v_auth;
+
+  if v_public or v_anon or v_auth then
+    execute 'drop function public.mdz018_mig_probe()';
+    raise exception
+      '018 abort: probe still grants client EXECUTE under defaults alone (public=% anon=% authenticated=%). creator current_user=% owner=%. GLOBAL defaults not effective for this session role.',
+      v_public, v_anon, v_auth, current_user, v_owner;
+  end if;
+
+  -- Explicit REVOKE after successful defaults proof (package policy + CI signature match).
+  execute $c$
+    revoke all on function public.mdz018_mig_probe() from public;
+    revoke execute on function public.mdz018_mig_probe() from anon;
+    revoke execute on function public.mdz018_mig_probe() from authenticated
+  $c$;
+
+  execute 'drop function public.mdz018_mig_probe()';
+  raise notice '018 OK: in-migration probe has no PUBLIC/anon/authenticated EXECUTE under GLOBAL defaults';
+end;
+$$;
+
+-- ------------------------------------------------------------
+-- 4) Ledger (idempotent upsert; table may exist from 015+)
 -- ------------------------------------------------------------
 do $$
 begin
@@ -149,7 +244,7 @@ begin
       (
         '018',
         '018_function_default_privileges.sql',
-        'ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public: REVOKE EXECUTE on FUNCTIONS from PUBLIC, anon, authenticated. Forward-only; not retroactive. supabase_admin defaults = residual risk only. Migration 017 untouched.'
+        'GLOBAL ALTER DEFAULT PRIVILEGES FOR ROLE postgres (+ current session): REVOKE EXECUTE on FUNCTIONS from PUBLIC, anon, authenticated. Forward-only. IN SCHEMA revoke is a PG no-op for removing PUBLIC EXECUTE — not used. supabase_admin FOR ROLE not required. Migration 017 untouched.'
       )
     on conflict (version) do update
     set name = excluded.name,
@@ -163,10 +258,9 @@ commit;
 
 -- ============================================================
 -- Notes:
--- * Existing functions unchanged by this migration (forward-only).
--- * New SECURITY DEFINER functions should SET search_path = '' and
---   schema-qualify refs; CI enforces that for new/modified migrations
---   only (legacy grandfathered).
--- * Residual: supabase_admin default ACL may still grant EXECUTE to
---   clients for objects created as that role — outside package control.
+-- * Existing functions unchanged (forward-only).
+-- * Explicit post-CREATE REVOKE/GRANT remains mandatory (CI).
+-- * Supporting aclexplode(coalesce(proacl, acldefault(...))) is misleading
+--   when proacl IS NULL (always shows hardwired PUBLIC EXECUTE). Prefer
+--   has_function_privilege + non-null proacl after correct GLOBAL defaults.
 -- ============================================================

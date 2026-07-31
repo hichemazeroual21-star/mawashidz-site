@@ -43,10 +43,32 @@ const verify = readFileSync(verifyPath, 'utf8');
 assert.match(sql, /forward-looking only|FORWARD-ONLY/i);
 assert.match(sql, /does NOT retroactively|does not retroactively/i);
 assert.match(sql, /Migration 017/i);
-assert.match(
-  sql,
-  /alter default privileges for role postgres in schema public/i,
+assert.match(sql, /GLOBAL/i);
+assert.match(sql, /hardwired PUBLIC EXECUTE|IN SCHEMA/i);
+
+// Must use GLOBAL revoke for postgres (no IN SCHEMA on the revoke lines)
+const postgresRevokes = [
+  ...sql.matchAll(
+    /alter\s+default\s+privileges\s+for\s+role\s+postgres\s+revoke\s+execute\s+on\s+functions\s+from\s+\w+/gi,
+  ),
+];
+assert.ok(
+  postgresRevokes.length >= 3,
+  'expected GLOBAL ALTER DEFAULT PRIVILEGES FOR ROLE postgres REVOKE lines',
 );
+assert.ok(
+  postgresRevokes.every((m) => !/in\s+schema/i.test(m[0])),
+  'postgres REVOKE defaults must not use IN SCHEMA',
+);
+
+// Must NOT use the known-noop form as an active statement
+assert.ok(
+  !/alter\s+default\s+privileges\s+for\s+role\s+postgres\s+in\s+schema\s+public\s+revoke/i.test(
+    sql,
+  ),
+  'must not use IN SCHEMA REVOKE for postgres (PG no-op for PUBLIC EXECUTE)',
+);
+
 assert.match(sql, /revoke execute on functions from public/i);
 assert.match(sql, /revoke execute on functions from anon/i);
 assert.match(sql, /revoke execute on functions from authenticated/i);
@@ -57,18 +79,19 @@ assert.ok(
 assert.match(sql, /residual/i);
 assert.match(sql, /'018'/);
 assert.match(sql, /mdz_schema_migrations/);
-assert.ok(
-  !/create\s+(or\s+replace\s+)?function/i.test(sql),
-  '018 itself should not create functions (defaults only)',
-);
+assert.match(sql, /mdz018_mig_probe/);
+assert.match(sql, /defaclnamespace\s*=\s*0/);
 
 // verify kit contains required evidence queries
 assert.match(verify, /pg_default_acl/);
 assert.match(verify, /aclexplode/);
 assert.match(verify, /has_function_privilege/);
+assert.match(verify, /E7b_primary/);
 assert.match(verify, /mdz018_probe_default_privs/);
 assert.match(verify, /rollback/i);
 assert.match(verify, /RESIDUAL/);
+assert.match(verify, /defaclnamespace\s*=\s*0/);
+assert.match(verify, /proacl_is_null/);
 
 // --- CI guard: unsafe fails, safe passes ---
 assert.ok(existsSync(unsafePath));
@@ -87,7 +110,7 @@ assert.ok(
 const safeErrs = checkSql(readFileSync(safePath, 'utf8'), 'safe_fixture');
 assert.deepEqual(safeErrs, [], `safe must pass, got: ${safeErrs.join('; ')}`);
 
-// --- Guard run on repo: 018 enforced, no false fail on 018 (no functions) ---
+// --- Guard run on repo: 018 enforced, no false fail on 018 ---
 const { enforced, errors } = runGuard();
 assert.ok(
   enforced.includes('018_function_default_privileges.sql'),
@@ -99,6 +122,6 @@ assert.ok(
 );
 assert.deepEqual(errors, [], `guard must pass on current repo: ${errors.join('; ')}`);
 
-console.log('  ✓ migration 018 default privileges package + CI guard fixtures hold');
+console.log('  ✓ migration 018 GLOBAL default privileges fix + CI guard fixtures hold');
 console.log('  ✓ Migration 017 was not modified by this package');
 console.log('  ✓ Broader platform status remains NO GO (this package only)');
