@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - chatgpt/pkg-e2-credential-storage-containment
+  pull_request:
+    branches:
+      - main
 
 permissions:
   contents: write
