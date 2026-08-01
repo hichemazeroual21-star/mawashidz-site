@@ -299,6 +299,15 @@ for (const w of widths) {
   check('registration: registration id MDZ-REG-2026 displayed', /MDZ-REG-\d{4}-\d{6}/.test(confirmState.html));
   check('registration: admin email attempted via EmailJS stub', confirmState.emailSends >= 1, `sends=${confirmState.emailSends}`);
   await page.screenshot({ path: `${SHOTS}/register-success-390.png` });
+  await page.setViewport({ width: 1366, height: 900, isMobile: true, hasTouch: true });
+  await new Promise(r => setTimeout(r, 1600));
+  const successDesktop = await page.evaluate(() => ({
+    overflow: document.documentElement.scrollWidth > window.innerWidth + 1,
+    idColumns: getComputedStyle(document.querySelector('.success-id-grid')).gridTemplateColumns.split(' ').length,
+  }));
+  check('registration success@w1366: no horizontal overflow', successDesktop.overflow === false);
+  check('registration success@w1366: identifiers use two columns', successDesktop.idColumns === 2, `cols=${successDesktop.idColumns}`);
+  await page.screenshot({ path: `${SHOTS}/register-success-1366.png` });
 
   // verify Supabase payloads
   const signup = supabaseRequests.find(r => r.url.includes('/auth/v1/signup') && r.method === 'POST');
@@ -540,6 +549,15 @@ for (const lang of I18N_LANGS) {
   check('admin dash modal@w390: no page overflow', dash.overflow === false);
   check('admin dash modal@w390: touch-sized actions', dash.actionH >= 40, `h=${dash.actionH}`);
   await page.screenshot({ path: `${SHOTS}/admin-modal-390.png` });
+  await page.setViewport({ width: 1366, height: 900, isMobile: true, hasTouch: true });
+  await new Promise(r => setTimeout(r, 200));
+  const dashDesktop = await page.evaluate(() => ({
+    overflow: document.documentElement.scrollWidth > window.innerWidth + 1,
+    statColumns: getComputedStyle(document.querySelector('#adminDashContent .dash-stats')).gridTemplateColumns.split(' ').length,
+  }));
+  check('admin dash modal@w1366: no page overflow', dashDesktop.overflow === false);
+  check('admin dash modal@w1366: four statistic columns', dashDesktop.statColumns === 4, `cols=${dashDesktop.statColumns}`);
+  await page.screenshot({ path: `${SHOTS}/admin-modal-1366.png` });
   await page.close();
 }
 
