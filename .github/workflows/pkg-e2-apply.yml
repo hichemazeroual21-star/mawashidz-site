@@ -8,6 +8,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: pkg-e2-one-shot
+  cancel-in-progress: false
+
 jobs:
   apply-and-verify:
     if: github.actor != 'github-actions[bot]'
