@@ -1,0 +1,48 @@
+name: PKG-E2 one-shot containment
+
+on:
+  push:
+    branches:
+      - chatgpt/pkg-e2-credential-storage-containment
+
+permissions:
+  contents: write
+
+jobs:
+  apply-and-verify:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: chatgpt/pkg-e2-credential-storage-containment
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install dependencies
+        run: npm install
+      - name: Apply credential-storage containment
+        run: python3 scripts/apply-pkg-e2-containment.py
+      - name: Synchronize deployment artifact
+        run: npm run build
+      - name: Run security and unit gates
+        run: |
+          npm run test:unit
+          npm run test:security
+          node tests/security-review-registration.test.mjs
+          npm run verify:public
+      - name: Remove one-shot automation
+        run: |
+          rm scripts/apply-pkg-e2-containment.py
+          rm .github/workflows/pkg-e2-apply.yml
+      - name: Commit verified package
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --check
+          git commit -m "fix(security): contain registration credentials from local storage"
+          git push origin HEAD:chatgpt/pkg-e2-credential-storage-containment
