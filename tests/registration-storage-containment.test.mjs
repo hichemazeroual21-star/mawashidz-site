@@ -57,4 +57,5 @@ const oldFailure = JSON.parse(storage.getItem('mdz_failed_registrations'));
 assert.deepEqual(oldSuccess, [{ email: 'a@example.com' }]);
 assert.deepEqual(oldFailure, [{ error: 'network' }]);
 
+// This test is part of test:unit so every final PR HEAD re-proves E2 containment.
 console.log('  ✓ registration credential storage containment');
