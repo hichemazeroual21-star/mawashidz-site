@@ -1,0 +1,670 @@
+/**
+ * MawashiDZ authenticated + registration surfaces.
+ * Loaded after the legacy inline layers so these scoped rules are the final
+ * visual source of truth for account, operator and registration UI.
+ */
+
+:root {
+  --mdz-warm: #ad514b;
+  --mdz-warm-strong: #863b37;
+  --mdz-warm-soft: rgba(173, 81, 75, 0.11);
+  --mdz-warm-line: rgba(173, 81, 75, 0.28);
+  --mdz-auth-canvas: #f2f5f2;
+  --mdz-auth-card: #ffffff;
+  --mdz-auth-line: rgba(18, 49, 38, 0.12);
+  --mdz-auth-shadow: 0 28px 80px rgba(7, 36, 25, 0.22);
+}
+
+/* Account, wilaya and platform administration shells */
+#accountModal,
+#managerDashModal,
+#adminDashModal {
+  padding: clamp(10px, 2vw, 24px);
+  background: rgba(5, 18, 12, 0.62);
+  backdrop-filter: blur(14px) saturate(115%);
+}
+
+#accountModal .modal-box,
+#managerDashModal .modal-box,
+#adminDashModal .modal-box {
+  width: min(1080px, calc(100vw - 28px));
+  max-height: min(94svh, 980px);
+  padding: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  color: var(--mdz-text-primary, #12201a);
+  background:
+    radial-gradient(circle at 94% -10%, rgba(196, 163, 90, 0.13), transparent 28%),
+    linear-gradient(180deg, #fbfcfb 0%, var(--mdz-auth-canvas) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.58);
+  border-radius: 28px;
+  box-shadow: var(--mdz-auth-shadow);
+  scrollbar-color: rgba(15, 107, 76, 0.34) transparent;
+}
+
+#accountModal .modal-box { width: min(880px, calc(100vw - 28px)); }
+
+#accountModal .modal-top,
+#managerDashModal .modal-top,
+#adminDashModal .modal-top {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  min-height: 70px;
+  margin: 0;
+  padding: 14px 20px;
+  gap: 16px;
+  background: rgba(251, 252, 251, 0.93);
+  border-bottom: 1px solid var(--mdz-auth-line);
+  border-radius: 28px 28px 0 0;
+  backdrop-filter: blur(18px) saturate(135%);
+}
+
+#accountModal .modal-top::after,
+#managerDashModal .modal-top::after,
+#adminDashModal .modal-top::after {
+  content: "";
+  position: absolute;
+  inset-inline-start: 20px;
+  bottom: -1px;
+  width: 54px;
+  height: 3px;
+  border-radius: 99px;
+  background: linear-gradient(90deg, var(--mdz-warm), var(--mdz-brand-accent, #c4a35a));
+}
+
+#accountModal .modal-top h2,
+#managerDashModal .modal-top h2,
+#adminDashModal .modal-top h2 {
+  margin: 0;
+  color: #153528;
+  font-family: var(--mdz-font, "IBM Plex Sans Arabic", sans-serif);
+  font-size: clamp(1.05rem, 2.4vw, 1.3rem);
+  font-weight: 750;
+  letter-spacing: -0.018em;
+}
+
+.mdz-modal-close {
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  color: #26483a;
+  background: #eef3ef;
+  border: 1px solid rgba(18, 49, 38, 0.11);
+  border-radius: 14px;
+  font: 700 1.08rem/1 var(--mdz-font, sans-serif);
+  cursor: pointer;
+  transition: background 160ms ease, border-color 160ms ease, color 160ms ease, transform 80ms ease;
+}
+
+.mdz-modal-close:hover {
+  color: var(--mdz-warm-strong);
+  background: var(--mdz-warm-soft);
+  border-color: var(--mdz-warm-line);
+}
+
+.mdz-modal-close:active { transform: scale(0.97); }
+.mdz-modal-close:focus-visible { outline: none; box-shadow: var(--mdz-shadow-focus); }
+
+#accountContent,
+#managerDashContent,
+#adminDashContent {
+  padding: clamp(15px, 2.6vw, 26px);
+  font-family: var(--mdz-font, "IBM Plex Sans Arabic", sans-serif);
+}
+
+/* Dashboard hero and identity */
+#accountContent .member-hero,
+#managerDashContent .dash-hero,
+#adminDashContent .dash-hero {
+  isolation: isolate;
+  min-height: 154px;
+  padding: clamp(20px, 3vw, 30px);
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 24px;
+  color: #fff;
+  box-shadow: 0 18px 40px rgba(7, 40, 27, 0.16);
+}
+
+#accountContent .member-hero,
+#managerDashContent .dash-hero.manager {
+  background:
+    radial-gradient(circle at 8% 10%, rgba(196, 163, 90, 0.22), transparent 28%),
+    linear-gradient(135deg, #0c3526 0%, #10553b 58%, #176647 100%);
+}
+
+#adminDashContent .dash-hero.admin {
+  background:
+    radial-gradient(circle at 8% 5%, rgba(173, 81, 75, 0.48), transparent 31%),
+    radial-gradient(circle at 94% 10%, rgba(196, 163, 90, 0.18), transparent 28%),
+    linear-gradient(135deg, #11271f 0%, #0c4934 62%, #126044 100%);
+}
+
+#accountContent .member-hero::before,
+#managerDashContent .dash-hero::before,
+#adminDashContent .dash-hero::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset-inline-end: -54px;
+  bottom: -82px;
+  width: 220px;
+  height: 220px;
+  border: 36px solid rgba(255, 255, 255, 0.045);
+  border-radius: 50%;
+}
+
+#managerDashContent .dash-hero h3,
+#adminDashContent .dash-hero h3 {
+  margin: 0 0 8px;
+  color: #fff;
+  font-size: clamp(1.18rem, 3vw, 1.55rem);
+  font-weight: 760;
+  letter-spacing: -0.02em;
+}
+
+#managerDashContent .dash-hero p,
+#adminDashContent .dash-hero p { max-width: 660px; color: rgba(255, 255, 255, 0.82); }
+
+#accountContent .member-id-chip,
+#managerDashContent .dash-source,
+#adminDashContent .dash-source {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(8px);
+}
+
+#accountContent .member-status-pill {
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.13);
+  color: #fff;
+}
+
+/* Tabs and profile cards */
+#accountContent .acct-tabs {
+  gap: 4px;
+  margin: 0 0 16px;
+  padding: 6px;
+  overflow-x: auto;
+  border: 1px solid var(--mdz-auth-line);
+  border-radius: 17px;
+  background: rgba(255, 255, 255, 0.76);
+  box-shadow: 0 3px 14px rgba(8, 42, 29, 0.045);
+}
+
+#accountContent .acct-tab {
+  min-height: 42px;
+  padding: 8px 14px;
+  border: 0;
+  border-radius: 11px;
+  background: transparent;
+  color: #50665b;
+  white-space: nowrap;
+}
+
+#accountContent .acct-tab.on {
+  color: #fff;
+  background: linear-gradient(145deg, #0d5a3e, #11744f);
+  box-shadow: 0 8px 18px rgba(13, 90, 62, 0.18), inset 0 -3px 0 rgba(173, 81, 75, 0.72);
+}
+
+#accountContent .member-data-grid { gap: 12px; }
+#accountContent .member-data {
+  position: relative;
+  min-height: 88px;
+  padding: 16px;
+  overflow: hidden;
+  background: linear-gradient(165deg, #fff 0%, #f9fbf9 100%);
+  border: 1px solid var(--mdz-auth-line);
+  border-radius: 17px;
+  box-shadow: 0 6px 20px rgba(8, 42, 29, 0.045);
+}
+
+#accountContent .member-data::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0;
+  top: 16px;
+  bottom: 16px;
+  width: 3px;
+  border-radius: 99px;
+  background: linear-gradient(180deg, var(--mdz-brand-primary, #0f6b4c), var(--mdz-warm));
+}
+
+#accountContent .member-data small { color: #64776d; font-size: 0.78rem; font-weight: 650; }
+#accountContent .member-data b { color: #183a2c; font-size: 0.96rem; overflow-wrap: anywhere; }
+
+#accountContent .acct-progress-step {
+  min-height: 82px;
+  border: 1px solid var(--mdz-auth-line);
+  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.76);
+}
+
+#accountContent .acct-progress-step.active {
+  border-color: rgba(15, 107, 76, 0.35);
+  background: rgba(15, 107, 76, 0.08);
+  box-shadow: inset 0 -3px 0 var(--mdz-warm);
+}
+
+#accountContent .invite-panel {
+  margin-top: 15px;
+  padding: 16px;
+  color: #183a2c;
+  background:
+    radial-gradient(circle at 95% 0%, var(--mdz-warm-soft), transparent 30%),
+    #fff;
+  border: 1px solid var(--mdz-auth-line);
+  border-radius: 18px;
+  box-shadow: 0 8px 24px rgba(8, 42, 29, 0.05);
+}
+
+#accountContent .invite-label { color: #5f7167; font-weight: 700; }
+#accountContent .invite-code {
+  color: #0d5a3e;
+  background: #f0f5f1;
+  border-color: rgba(15, 107, 76, 0.25);
+}
+
+#accountContent .invite-actions button {
+  min-height: 44px;
+  color: #173c2d;
+  background: #fff;
+  border: 1px solid var(--mdz-auth-line);
+  border-radius: 12px;
+}
+
+#accountContent .invite-actions button:hover { background: #eef5f0; border-color: rgba(15, 107, 76, 0.28); }
+
+/* Operator statistics, controls, queue and review actions */
+#managerDashContent .dash-stats,
+#adminDashContent .dash-stats { gap: 12px; margin: 15px 0 18px; }
+
+#managerDashContent .dash-stats article,
+#adminDashContent .dash-stats article {
+  position: relative;
+  min-height: 116px;
+  display: grid;
+  align-content: center;
+  padding: 17px 14px;
+  overflow: hidden;
+  text-align: start;
+  background: linear-gradient(165deg, #fff 0%, #f8faf8 100%);
+  border: 1px solid var(--mdz-auth-line);
+  border-radius: 18px;
+  box-shadow: 0 8px 26px rgba(8, 42, 29, 0.055);
+}
+
+#managerDashContent .dash-stats article::before,
+#adminDashContent .dash-stats article::before {
+  content: "";
+  position: absolute;
+  inset-inline: 14px;
+  top: 0;
+  height: 3px;
+  border-radius: 0 0 99px 99px;
+  background: linear-gradient(90deg, var(--mdz-brand-primary, #0f6b4c), var(--mdz-brand-accent, #c4a35a));
+}
+
+#adminDashContent .dash-stats article:nth-child(4n)::before { background: var(--mdz-warm); }
+#managerDashContent .dash-stats strong,
+#adminDashContent .dash-stats strong { color: #143d2d; font-size: clamp(1.55rem, 4vw, 2rem); font-weight: 760; }
+#managerDashContent .dash-stats span,
+#adminDashContent .dash-stats span { color: #607369; font-size: 0.82rem; font-weight: 650; }
+
+#managerDashContent .mdz-panel,
+#adminDashContent .mdz-panel,
+#accountContent .mdz-panel,
+#managerDashContent .dash-card,
+#adminDashContent .dash-card {
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid var(--mdz-auth-line);
+  border-radius: 20px;
+  box-shadow: 0 8px 28px rgba(8, 42, 29, 0.05);
+}
+
+#managerDashContent .mdz-ops-toolbar,
+#managerDashContent .mdz-ops-filters,
+#adminDashContent .mdz-ops-toolbar,
+#adminDashContent .mdz-ops-filters {
+  position: static;
+  background: transparent;
+}
+
+#managerDashContent .mdz-field,
+#adminDashContent .mdz-field,
+#accountContent .mdz-field { gap: 7px; }
+
+#managerDashContent .mdz-field > span,
+#adminDashContent .mdz-field > span,
+#accountContent .mdz-field > span,
+#managerDashContent .mdz-field,
+#adminDashContent .mdz-field,
+#accountContent .mdz-field { color: #385448; font-weight: 650; }
+
+#managerDashContent .mdz-input,
+#managerDashContent .mdz-select,
+#managerDashContent .mdz-textarea,
+#adminDashContent .mdz-input,
+#adminDashContent .mdz-select,
+#adminDashContent .mdz-textarea,
+#accountContent .mdz-input,
+#accountContent .mdz-select,
+#accountContent .mdz-textarea {
+  min-height: 48px;
+  padding: 11px 13px;
+  color: #173126;
+  background: #fff;
+  border: 1px solid rgba(18, 49, 38, 0.17);
+  border-radius: 13px;
+  box-shadow: 0 1px 2px rgba(8, 42, 29, 0.035);
+}
+
+#managerDashContent .mdz-input:focus,
+#managerDashContent .mdz-select:focus,
+#managerDashContent .mdz-textarea:focus,
+#adminDashContent .mdz-input:focus,
+#adminDashContent .mdz-select:focus,
+#adminDashContent .mdz-textarea:focus,
+#accountContent .mdz-input:focus,
+#accountContent .mdz-select:focus,
+#accountContent .mdz-textarea:focus {
+  border-color: #2a8060;
+  box-shadow: 0 0 0 4px rgba(42, 128, 96, 0.13);
+}
+
+#managerDashContent .mdz-btn,
+#adminDashContent .mdz-btn,
+#accountContent .mdz-btn {
+  min-height: 44px;
+  border-radius: 12px;
+  font-weight: 700;
+}
+
+#managerDashContent .mdz-btn-primary,
+#adminDashContent .mdz-btn-primary,
+#accountContent .mdz-btn-primary {
+  color: #fff;
+  background: linear-gradient(145deg, #0d5a3e, #11744f);
+  border-color: #0d5a3e;
+  box-shadow: 0 8px 20px rgba(13, 90, 62, 0.18);
+}
+
+#managerDashContent .mdz-btn-ghost,
+#adminDashContent .mdz-btn-ghost,
+#accountContent .mdz-btn-ghost {
+  color: #234739;
+  background: #fff;
+  border-color: var(--mdz-auth-line);
+}
+
+#managerDashContent .mdz-btn-ghost:hover,
+#adminDashContent .mdz-btn-ghost:hover,
+#accountContent .mdz-btn-ghost:hover { background: #edf3ef; border-color: rgba(15, 107, 76, 0.25); }
+
+#managerDashContent [data-review-action="rejected"],
+#adminDashContent [data-review-action="rejected"],
+#managerDashContent .mdz-btn-danger,
+#adminDashContent .mdz-btn-danger {
+  color: var(--mdz-warm-strong);
+  background: var(--mdz-warm-soft);
+  border-color: var(--mdz-warm-line);
+  box-shadow: none;
+}
+
+#managerDashContent .dash-table-wrap,
+#adminDashContent .dash-table-wrap {
+  border-color: var(--mdz-auth-line);
+  border-radius: 17px;
+  box-shadow: 0 6px 22px rgba(8, 42, 29, 0.04);
+}
+
+#managerDashContent .dash-table thead th,
+#adminDashContent .dash-table thead th { background: #edf2ee; color: #2b493d; }
+#managerDashContent .dash-table td,
+#adminDashContent .dash-table td { border-bottom-color: rgba(18, 49, 38, 0.075); }
+#managerDashContent .mdz-ops-divider,
+#adminDashContent .mdz-ops-divider { background: linear-gradient(90deg, transparent, var(--mdz-warm-line), var(--mdz-auth-line), transparent); }
+
+/* Drawer account and privileged destinations remain visibility-gated by JS/user_roles. */
+#drawer .mdz-drawer-auth {
+  gap: 7px;
+  margin: 12px 0;
+  padding: 10px;
+  background: #f5f8f5;
+  border: 1px solid var(--mdz-auth-line);
+  border-radius: 18px;
+}
+
+#drawer .mdz-drawer-link {
+  position: relative;
+  min-height: 48px;
+  padding: 12px 14px;
+  border-color: transparent;
+  border-radius: 13px;
+  box-shadow: none;
+}
+
+#drawer .mdz-drawer-link:hover { border-color: var(--mdz-auth-line); transform: translateY(-1px); }
+#drawerMgrDashLink,
+#drawerAdminDashLink {
+  border-inline-start: 3px solid var(--mdz-warm) !important;
+  background: linear-gradient(120deg, var(--mdz-warm-soft), #fff 42%) !important;
+  color: #203f33 !important;
+}
+
+#drawerAdminDashLink { font-weight: 760; }
+#drawer .mdz-drawer-link-danger { background: transparent; border-color: var(--mdz-warm-line); }
+
+/* Registration fields and success state */
+#registerModal .tab.on { box-shadow: 0 8px 20px rgba(16, 94, 65, 0.2), inset 0 -3px 0 rgba(173, 81, 75, 0.78); }
+
+#registerModal .field input:user-invalid,
+#registerModal .field select:user-invalid,
+#registerModal .field textarea:user-invalid {
+  border-color: var(--mdz-warm);
+  box-shadow: 0 0 0 4px var(--mdz-warm-soft);
+}
+
+#registerModal .confirm-card.is-error {
+  color: #713431;
+  background: #fff7f6;
+  border: 1px solid var(--mdz-warm-line);
+  border-inline-start: 4px solid var(--mdz-warm);
+  border-radius: 16px;
+}
+
+#registerConfirm.premium-success {
+  isolation: isolate;
+  margin: 4px 0 0;
+  padding: clamp(20px, 4vw, 30px);
+  color: #fff;
+  background:
+    radial-gradient(circle at 5% 8%, rgba(173, 81, 75, 0.55), transparent 28%),
+    radial-gradient(circle at 94% 2%, rgba(196, 163, 90, 0.22), transparent 30%),
+    linear-gradient(145deg, #10281f 0%, #0d3e2d 54%, #12573e 100%);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 24px;
+  box-shadow: 0 24px 54px rgba(7, 35, 24, 0.25);
+}
+
+#registerConfirm.premium-success::before {
+  z-index: -1;
+  width: 210px;
+  height: 210px;
+  left: -78px;
+  top: -94px;
+  background: transparent;
+  border: 34px solid rgba(255, 255, 255, 0.045);
+}
+
+#registerConfirm .success-mark {
+  width: 52px;
+  height: 52px;
+  margin-bottom: 15px;
+  color: #fff;
+  background: linear-gradient(145deg, var(--mdz-warm), #c16a61);
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  box-shadow: 0 10px 24px rgba(82, 26, 22, 0.24);
+}
+
+#registerConfirm .success-title { color: #fff; font-size: clamp(1.2rem, 4vw, 1.5rem); font-weight: 760; }
+#registerConfirm .success-copy { max-width: 620px; color: rgba(255, 255, 255, 0.82); font-weight: 550; }
+
+#registerConfirm .success-id-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 17px;
+}
+
+#registerConfirm .success-id {
+  min-width: 0;
+  display: grid;
+  gap: 5px;
+  margin: 0;
+  padding: 13px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.09);
+  backdrop-filter: blur(8px);
+}
+
+#registerConfirm .success-id-label { color: rgba(255, 255, 255, 0.66); font-size: 0.76rem; font-weight: 650; }
+#registerConfirm .success-id-value {
+  color: #fff;
+  font-family: var(--mdz-mono, ui-monospace, monospace);
+  font-size: 0.92rem;
+  font-weight: 750;
+  overflow-wrap: anywhere;
+}
+
+#registerConfirm .auth-status {
+  margin-top: 12px;
+  padding: 12px 14px;
+  color: #fff0bf;
+  background: rgba(196, 163, 90, 0.12);
+  border: 1px solid rgba(196, 163, 90, 0.25);
+  border-radius: 14px;
+}
+
+#registerConfirm .auth-status.ok {
+  color: #dcf9e9;
+  background: rgba(78, 196, 135, 0.12);
+  border-color: rgba(104, 213, 156, 0.24);
+}
+
+#registerConfirm .success-warn {
+  color: #fff1cf;
+  background: rgba(173, 81, 75, 0.16);
+  border: 1px solid rgba(231, 151, 143, 0.24);
+}
+
+#registerConfirm .invite-panel {
+  margin-top: 12px;
+  padding: 15px;
+  background: rgba(4, 20, 14, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 17px;
+}
+
+#registerConfirm .invite-label { color: rgba(255, 255, 255, 0.7); }
+#registerConfirm .invite-code {
+  color: #f5e4ae;
+  background: rgba(0, 0, 0, 0.16);
+  border-color: rgba(245, 228, 174, 0.28);
+}
+
+#registerConfirm .invite-actions button {
+  min-height: 44px;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.17);
+  border-radius: 12px;
+}
+
+#registerConfirm .invite-actions button:hover { background: rgba(255, 255, 255, 0.16); }
+#registerConfirm .success-mail {
+  margin-top: 12px;
+  padding-top: 12px;
+  color: rgba(255, 255, 255, 0.76);
+  border-top: 1px solid rgba(255, 255, 255, 0.11);
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 760px) {
+  #accountModal,
+  #managerDashModal,
+  #adminDashModal { align-items: flex-end; padding: 0; }
+
+  #accountModal .modal-box,
+  #managerDashModal .modal-box,
+  #adminDashModal .modal-box {
+    width: 100%;
+    max-height: 96svh;
+    border-inline: 0;
+    border-bottom: 0;
+    border-radius: 25px 25px 0 0;
+  }
+
+  #accountModal .modal-top,
+  #managerDashModal .modal-top,
+  #adminDashModal .modal-top {
+    min-height: 64px;
+    padding: 10px 14px;
+    border-radius: 25px 25px 0 0;
+  }
+
+  #accountModal .modal-top::after,
+  #managerDashModal .modal-top::after,
+  #adminDashModal .modal-top::after { inset-inline-start: 14px; }
+
+  #accountContent,
+  #managerDashContent,
+  #adminDashContent { padding: 14px; }
+
+  #accountContent .member-hero,
+  #managerDashContent .dash-hero,
+  #adminDashContent .dash-hero { min-height: 138px; padding: 19px; border-radius: 20px; }
+
+  #managerDashContent .dash-stats,
+  #adminDashContent .dash-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+
+  #managerDashContent .dash-stats article,
+  #adminDashContent .dash-stats article { min-height: 104px; padding: 14px 12px; text-align: center; }
+
+  #managerDashContent .mdz-panel,
+  #adminDashContent .mdz-panel,
+  #accountContent .mdz-panel { padding: 15px; border-radius: 18px; }
+
+  #managerDashContent .mdz-ops-toolbar,
+  #adminDashContent .mdz-ops-toolbar { align-items: stretch !important; }
+
+  #managerDashContent .mdz-ops-toolbar > *,
+  #adminDashContent .mdz-ops-toolbar > * { width: 100%; }
+
+  #managerDashContent .mdz-ops-filters,
+  #adminDashContent .mdz-ops-filters { display: grid; grid-template-columns: 1fr; }
+
+  #managerDashContent .mdz-ops-filters .mdz-field,
+  #adminDashContent .mdz-ops-filters .mdz-field { width: 100%; min-width: 0 !important; }
+
+  #accountContent .member-data-grid { grid-template-columns: 1fr; }
+  #registerConfirm .success-id-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 390px) {
+  #managerDashContent .dash-stats article,
+  #adminDashContent .dash-stats article { min-height: 96px; }
+  #registerConfirm.premium-success { padding: 18px; border-radius: 20px; }
+  #registerConfirm .invite-actions { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mdz-modal-close,
+  #drawer .mdz-drawer-link { transition: none; }
+}

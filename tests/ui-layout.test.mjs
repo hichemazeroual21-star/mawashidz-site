@@ -277,10 +277,13 @@ for (const w of widths) {
     const cardStyle = getComputedStyle(c);
     const copyStyle = getComputedStyle(c.querySelector('.success-copy'));
     const copyRgba = copyStyle.color.match(/[\d.]+/g)?.map(Number) || [];
+    const modalBox = document.querySelector('#registerModal .modal-box');
     return {
       visible: c.style.display === 'block',
       html: c.innerHTML,
       cls: c.className,
+      modalScrollTop: modalBox?.scrollTop || 0,
+      successMarkVisible: Boolean(c.querySelector('.success-mark')?.getBoundingClientRect().top >= modalBox?.getBoundingClientRect().top),
       emailSends: window.__emailSends || 0,
       backgroundImage: cardStyle.backgroundImage,
       backgroundColor: cardStyle.backgroundColor,
@@ -289,6 +292,7 @@ for (const w of widths) {
     };
   });
   check('registration: success card shown', confirmState.visible && confirmState.cls.includes('premium-success'));
+  check('registration: success resets modal scroll to reveal full confirmation', confirmState.modalScrollTop <= 1 && confirmState.successMarkVisible, `scrollTop=${confirmState.modalScrollTop}`);
   check('registration: success card keeps dark branded surface', confirmState.backgroundImage !== 'none' && !confirmState.backgroundColor.includes('237, 248, 241'), `${confirmState.backgroundImage} / ${confirmState.backgroundColor}`);
   check('registration: success copy remains readable on dark surface', confirmState.copyIsLight, confirmState.copyColor);
   check('registration: sequential member id MDZ-V-000001 displayed', confirmState.html.includes('MDZ-V-000001'));
@@ -535,6 +539,7 @@ for (const lang of I18N_LANGS) {
   check('admin dash modal@w390: opens', dash.open === true);
   check('admin dash modal@w390: no page overflow', dash.overflow === false);
   check('admin dash modal@w390: touch-sized actions', dash.actionH >= 40, `h=${dash.actionH}`);
+  await page.screenshot({ path: `${SHOTS}/admin-modal-390.png` });
   await page.close();
 }
 

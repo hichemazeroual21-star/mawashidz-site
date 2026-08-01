@@ -193,6 +193,20 @@ const dsCss = read('assets/mdz-design-system.css');
 assert.match(dsCss, /\.mdz-drawer-link-primary/);
 assert.match(dsCss, /\.mdz-drawer-link-danger/);
 
+// MDZ-CE-003 — final, scoped authenticated surfaces + warm identity accent
+const authCss = read('assets/mdz-auth-surfaces.css');
+assert.match(indexSrc, /assets\/mdz-auth-surfaces\.css/);
+assert.match(authCss, /--mdz-warm:\s*#ad514b/);
+assert.match(authCss, /#adminDashContent \.dash-hero\.admin/);
+assert.match(authCss, /#managerDashContent \.dash-stats article/);
+assert.match(authCss, /#accountContent \.member-data/);
+assert.match(authCss, /#registerConfirm\.premium-success/);
+assert.match(indexSrc, /class="success-id-grid"/);
+assert.match(indexSrc, /function escapeMarkup/);
+assert.match(indexSrc, /dash\.escapeHtml\(safeText\(profile\.full_name/);
+assert.match(indexSrc, /class="[^"]*mdz-drawer-link-privileged[^"]*"[^>]*id="drawerMgrDashLink"/);
+assert.match(indexSrc, /class="[^"]*mdz-drawer-link-privileged[^"]*"[^>]*id="drawerAdminDashLink"/);
+
 // MDZ-CE-002 — review queue hierarchy inside modal
 assert.match(indexSrc, /\.dash-table\s+\.col-name/);
 assert.match(indexSrc, /\.dash-table\s+thead\s+th[\s\S]*?position:\s*sticky/);
@@ -201,4 +215,4 @@ assert.match(dashSrc, /scope="col"/);
 assert.match(dashSrc, /class="col-name"/);
 assert.match(dashSrc, /class="col-actions"/);
 
-console.log('  ✓ MDZ-CE-001 / CE-002 continuous excellence gates');
+console.log('  ✓ MDZ-CE-001 / CE-002 / CE-003 continuous excellence gates');

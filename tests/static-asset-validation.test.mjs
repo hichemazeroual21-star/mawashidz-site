@@ -32,6 +32,7 @@ assert.doesNotMatch(
   'inline page styles must not override the shared --mdz-line design token',
 );
 const rootDesignSystemBeforeBuild = readFileSync(join(root, 'assets/mdz-design-system.css'), 'utf8');
+const rootAuthSurfacesBeforeBuild = readFileSync(join(root, 'assets/mdz-auth-surfaces.css'), 'utf8');
 const publicDesignSystemBeforeBuild = join(root, 'public/assets/mdz-design-system.css');
 assert.ok(existsSync(publicDesignSystemBeforeBuild), 'public design-system CSS must be committed');
 assert.equal(
@@ -39,6 +40,7 @@ assert.equal(
   rootDesignSystemBeforeBuild,
   'root and public design-system CSS must be committed in sync before build',
 );
+assert.match(rootHtmlBeforeBuild, /assets\/mdz-auth-surfaces\.css/, 'final auth-surface CSS must be referenced');
 assert.match(
   rootHtmlBeforeBuild,
   new RegExp(`assets/i18n(?:-content)?\\.js\\?v=${appVersion.replace(/\./g, '\\.')}`, 'g'),
@@ -82,6 +84,12 @@ assert.match(html, new RegExp(`assets/i18n\\.js\\?v=${buildInfo.version.replace(
 assert.equal(readFileSync(join(root, 'index.html'), 'utf8'), html, 'root index.html must match public/index.html after build');
 assert.ok(existsSync(join(publicRoot, 'js/password-recovery.mjs')), 'password-recovery module must be synced');
 assert.ok(existsSync(join(publicRoot, 'js/exchange-pagination.mjs')), 'exchange-pagination module must be synced');
+assert.ok(existsSync(join(publicRoot, 'assets/mdz-auth-surfaces.css')), 'authenticated surface CSS must be synced');
+assert.equal(
+  readFileSync(join(publicRoot, 'assets/mdz-auth-surfaces.css'), 'utf8'),
+  rootAuthSurfacesBeforeBuild,
+  'authenticated surface CSS must be copied without drift',
+);
 assert.match(html, /resetPasswordModal/, 'reset password modal must ship in public index');
 assert.match(html, /review_registration_status|wireDashboardReviewActions/, 'admin review wiring must ship');
 const payloadBlock = html.match(/const payload=\{[\s\S]*?founding_terms_accepted:checked\(form,'founder_terms'\)\s*\}/);

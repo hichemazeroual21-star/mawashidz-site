@@ -97,7 +97,7 @@ export function renderAccountTabs(t, active = 'profile') {
 
 export function renderInvitePanel(t, inviteCode, safeText) {
   const code = safeText(inviteCode, 32) || '—';
-  return `<div class="invite-panel"><div class="invite-label">${escapeHtml(t('succInviteLabel'))}</div><div class="invite-code" dir="ltr">${escapeHtml(code)}</div><div class="invite-actions"><button type="button" id="copyInviteCode">${escapeHtml(t('succCopyCode'))}</button><button type="button" id="shareInviteLink">${escapeHtml(t('succShareLink'))}</button></div></div>`;
+  return `<div class="invite-panel"><div class="invite-label">${escapeHtml(t('succInviteLabel'))}</div><div class="invite-code" dir="ltr">${escapeHtml(code)}</div><div class="invite-actions"><button class="mdz-btn mdz-btn-ghost" type="button" id="copyInviteCode">${escapeHtml(t('succCopyCode'))}</button><button class="mdz-btn mdz-btn-ghost" type="button" id="shareInviteLink">${escapeHtml(t('succShareLink'))}</button></div></div>`;
 }
 
 export function renderAccountPanel(t, profile, tab, helpers) {
