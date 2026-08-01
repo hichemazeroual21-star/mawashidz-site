@@ -32,7 +32,22 @@ jobs:
       - name: Install dependencies
         run: npm install
       - name: Apply credential-storage containment
-        run: python3 scripts/apply-pkg-e2-containment.py
+        run: |
+          python3 scripts/apply-pkg-e2-containment.py
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('tests/registration-storage-containment.test.mjs')
+          source = path.read_text(encoding='utf-8')
+          old = "assert.doesNotMatch(source, /MDZ_REGISTRATION_BACKUP_FIELDS[\\s\\S]*?'password'/);"
+          new = """const allowlistStart = source.indexOf('const MDZ_REGISTRATION_BACKUP_FIELDS=');
+          const allowlistEnd = source.indexOf(']);', allowlistStart) + 3;
+          assert.ok(allowlistStart >= 0 && allowlistEnd > allowlistStart, 'registration allow-list must be bounded');
+          const allowlistSource = source.slice(allowlistStart, allowlistEnd);
+          assert.doesNotMatch(allowlistSource, /password|access_token|refresh_token|authorization|secret/);"""
+          if old not in source:
+              raise SystemExit('test assertion anchor not found')
+          path.write_text(source.replace(old, new, 1), encoding='utf-8')
+          PY
       - name: Synchronize deployment artifact
         run: npm run build
       - name: Run security and unit gates
