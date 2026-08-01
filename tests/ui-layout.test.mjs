@@ -12,6 +12,7 @@ fs.mkdirSync(SHOTS, { recursive: true });
 // ---- tiny static server ----
 const MIME = {
   '.html': 'text/html; charset=utf-8',
+  '.css': 'text/css; charset=utf-8',
   '.json': 'application/json',
   '.png': 'image/png',
   '.js': 'text/javascript; charset=utf-8',
@@ -97,11 +98,37 @@ for (const w of widths) {
   const layout = await page.evaluate(() => {
     const q = s => document.querySelector(s);
     const r = el => { const b = el.getBoundingClientRect(); return { l: b.left, r: b.right, t: b.top, b: b.bottom, w: b.width, h: b.height }; };
-    const menu = q('.top .menu-btn'), reg = q('.top .actions .btn.primary'), brand = q('.top .brand');
+    const menu = q('.top .menu-btn'), reg = q('#headerRegisterBtn'), brand = q('.top .brand');
     const login = q('#headerLoginBtn');
     const name = q('.top .brand-copy>span'), langs = q('.header-languages');
     const overlap = (a, b) => !(a.r <= b.l + 1 || b.r <= a.l + 1 || a.b <= b.t + 1 || b.b <= a.t + 1);
     const vis = el => el && getComputedStyle(el).display !== 'none' && el.getBoundingClientRect().width > 0;
+    const rgba = value => {
+      const parts = value.match(/[\d.]+/g)?.map(Number) || [];
+      return { r: parts[0] || 0, g: parts[1] || 0, b: parts[2] || 0, a: parts[3] ?? 1 };
+    };
+    const composite = (front, back) => ({
+      r: front.r * front.a + back.r * (1 - front.a),
+      g: front.g * front.a + back.g * (1 - front.a),
+      b: front.b * front.a + back.b * (1 - front.a),
+      a: 1,
+    });
+    const luminance = color => {
+      const channel = value => {
+        const n = value / 255;
+        return n <= 0.04045 ? n / 12.92 : ((n + 0.055) / 1.055) ** 2.4;
+      };
+      return 0.2126 * channel(color.r) + 0.7152 * channel(color.g) + 0.0722 * channel(color.b);
+    };
+    const contrast = (front, back) => {
+      const a = luminance(front), b = luminance(back);
+      return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+    };
+    const buttonContrast = el => {
+      const button = getComputedStyle(el), header = getComputedStyle(q('.top'));
+      const surface = composite(rgba(button.backgroundColor), rgba(header.backgroundColor));
+      return contrast(composite(rgba(button.color), surface), surface);
+    };
     const nameBox = name ? r(name) : null;
     return {
       docScrollW: document.documentElement.scrollWidth,
@@ -109,6 +136,9 @@ for (const w of widths) {
       menu: vis(menu) ? r(menu) : null,
       reg: vis(reg) ? r(reg) : null,
       login: vis(login) ? r(login) : null,
+      loginContrast: vis(login) ? buttonContrast(login) : 0,
+      registerContrast: vis(reg) ? buttonContrast(reg) : 0,
+      bellVisible: vis(q('#mdzNotifBell')),
       brand: vis(brand) ? r(brand) : null,
       langsVisible: vis(langs), langs: vis(langs) ? r(langs) : null,
       nameVisible: vis(name),
@@ -124,6 +154,9 @@ for (const w of widths) {
 
   check(`w${w}: no horizontal overflow`, layout.docScrollW <= layout.innerW + 1, `scrollW=${layout.docScrollW}`);
   check(`w${w}: brand name visible & not clipped`, layout.nameVisible && !layout.nameClipped);
+  check(`w${w}: visitor notification bell stays hidden`, !layout.bellVisible);
+  check(`w${w}: login text contrast >= 4.5:1`, layout.loginContrast >= 4.5, `contrast=${layout.loginContrast.toFixed(2)}`);
+  check(`w${w}: register text contrast >= 4.5:1`, layout.registerContrast >= 4.5, `contrast=${layout.registerContrast.toFixed(2)}`);
   if (w <= 760) {
     check(`w${w}: menu button at far LEFT`, layout.menu && layout.menu.l < 20, layout.menu ? `left=${Math.round(layout.menu.l)}` : 'missing');
     // Row 1: menu + brand. Register moved to row 2 → must sit below the menu row.
@@ -241,9 +274,23 @@ for (const w of widths) {
 
   const confirmState = await page.evaluate(() => {
     const c = document.getElementById('registerConfirm');
-    return { visible: c.style.display === 'block', html: c.innerHTML, cls: c.className, emailSends: window.__emailSends || 0 };
+    const cardStyle = getComputedStyle(c);
+    const copyStyle = getComputedStyle(c.querySelector('.success-copy'));
+    const copyRgba = copyStyle.color.match(/[\d.]+/g)?.map(Number) || [];
+    return {
+      visible: c.style.display === 'block',
+      html: c.innerHTML,
+      cls: c.className,
+      emailSends: window.__emailSends || 0,
+      backgroundImage: cardStyle.backgroundImage,
+      backgroundColor: cardStyle.backgroundColor,
+      copyColor: copyStyle.color,
+      copyIsLight: copyRgba.length >= 3 && copyRgba[0] >= 220 && copyRgba[1] >= 220 && copyRgba[2] >= 220 && (copyRgba[3] ?? 1) >= 0.8,
+    };
   });
   check('registration: success card shown', confirmState.visible && confirmState.cls.includes('premium-success'));
+  check('registration: success card keeps dark branded surface', confirmState.backgroundImage !== 'none' && !confirmState.backgroundColor.includes('237, 248, 241'), `${confirmState.backgroundImage} / ${confirmState.backgroundColor}`);
+  check('registration: success copy remains readable on dark surface', confirmState.copyIsLight, confirmState.copyColor);
   check('registration: sequential member id MDZ-V-000001 displayed', confirmState.html.includes('MDZ-V-000001'));
   check('registration: registration id MDZ-REG-2026 displayed', /MDZ-REG-\d{4}-\d{6}/.test(confirmState.html));
   check('registration: admin email attempted via EmailJS stub', confirmState.emailSends >= 1, `sends=${confirmState.emailSends}`);
@@ -401,7 +448,7 @@ for (const lang of I18N_LANGS) {
       const q = s => document.querySelector(s);
       const r = el => { const b = el.getBoundingClientRect(); return { l: b.left, r: b.right, t: b.top, b: b.bottom, w: b.width }; };
       const vis = el => el && getComputedStyle(el).display !== 'none' && el.getBoundingClientRect().width > 0;
-      const menu = q('.top .menu-btn'), reg = q('.top .actions .btn.primary'), brand = q('.top .brand');
+      const menu = q('.top .menu-btn'), reg = q('#headerRegisterBtn'), brand = q('.top .brand');
       const login = q('#headerLoginBtn');
       const name = q('.top .brand-copy>span');
       return {
@@ -460,7 +507,8 @@ for (const lang of I18N_LANGS) {
   check('exchange feed@w390: no horizontal overflow', before.overflow === false);
 
   await page.click('#exchangeShowMoreBtn');
-  await new Promise(r => setTimeout(r, 200));
+  // Cross at least one live-price tick: refreshes must not collapse the expanded page back to 10.
+  await new Promise(r => setTimeout(r, 1200));
   const after = await page.evaluate(() => {
     const rows = [...document.querySelectorAll('#exchangeTableBody tr')].filter(tr => tr.querySelectorAll('td').length >= 3);
     return { rowCount: rows.length };

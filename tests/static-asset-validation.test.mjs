@@ -26,6 +26,19 @@ const i18nSrc = readFileSync(join(root, 'assets/i18n.js'), 'utf8');
 const appVersion = i18nSrc.match(/MDZ_APP_VERSION\s*=\s*'([^']+)'/)?.[1];
 assert.ok(appVersion, 'MDZ_APP_VERSION must exist');
 const rootHtmlBeforeBuild = readFileSync(join(root, 'index.html'), 'utf8');
+assert.doesNotMatch(
+  rootHtmlBeforeBuild,
+  /:root\s*\{[^}]*--mdz-line\s*:/,
+  'inline page styles must not override the shared --mdz-line design token',
+);
+const rootDesignSystemBeforeBuild = readFileSync(join(root, 'assets/mdz-design-system.css'), 'utf8');
+const publicDesignSystemBeforeBuild = join(root, 'public/assets/mdz-design-system.css');
+assert.ok(existsSync(publicDesignSystemBeforeBuild), 'public design-system CSS must be committed');
+assert.equal(
+  readFileSync(publicDesignSystemBeforeBuild, 'utf8'),
+  rootDesignSystemBeforeBuild,
+  'root and public design-system CSS must be committed in sync before build',
+);
 assert.match(
   rootHtmlBeforeBuild,
   new RegExp(`assets/i18n(?:-content)?\\.js\\?v=${appVersion.replace(/\./g, '\\.')}`, 'g'),

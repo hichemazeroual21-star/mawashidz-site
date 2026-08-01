@@ -9,7 +9,13 @@ const PORT = 8793;
 const SHOTS = path.join(ROOT, 'tests/.artifacts/screenshots/i18n-layout');
 fs.mkdirSync(SHOTS, { recursive: true });
 
-const MIME = { '.html': 'text/html; charset=utf-8', '.json': 'application/json', '.js': 'application/javascript', '.mjs': 'text/javascript; charset=utf-8' };
+const MIME = {
+  '.html': 'text/html; charset=utf-8',
+  '.css': 'text/css; charset=utf-8',
+  '.json': 'application/json',
+  '.js': 'application/javascript',
+  '.mjs': 'text/javascript; charset=utf-8',
+};
 const server = http.createServer((req, res) => {
   let p = decodeURIComponent(req.url.split('?')[0]);
   if (p === '/') p = '/index.html';
@@ -76,7 +82,7 @@ for (const lang of LANGS) {
       const clipped = (el) => el && (el.scrollWidth > el.clientWidth + 1 || el.scrollHeight > el.clientHeight + 1);
 
       const menu = q('.top .menu-btn');
-      const reg = q('.top .actions .btn.primary');
+      const reg = q('#headerRegisterBtn');
       const login = q('#headerLoginBtn');
       const brand = q('.top .brand');
       const name = q('.top .brand-copy>span');
@@ -121,6 +127,12 @@ for (const lang of LANGS) {
         desktopOverflow: desktop ? desktop.scrollWidth > desktop.clientWidth + 2 : false,
         desktopW: desktop ? r(desktop).w : 0,
         heroTitleClipped: heroTitle ? clipped(heroTitle) : false,
+        heroTitleSize: heroTitle ? {
+          scrollW: heroTitle.scrollWidth,
+          clientW: heroTitle.clientWidth,
+          scrollH: heroTitle.scrollHeight,
+          clientH: heroTitle.clientHeight,
+        } : null,
         heroBtnOverflow: heroBtns.some((b) => b.scrollWidth > b.clientWidth + 2),
         newsFilterOverflow: newsFilters.some((b) => b.scrollWidth > b.clientWidth + 2),
         exchangeTabOverflow: exchangeTabs.some((b) => b.scrollWidth > b.clientWidth + 2),
@@ -137,7 +149,7 @@ for (const lang of LANGS) {
     check(`${prefix}: html dir stays rtl`, layout.htmlDir === 'rtl', layout.htmlDir);
     check(`${prefix}: body data-lang`, layout.lang === lang, layout.lang);
     check(`${prefix}: brand not clipped`, !layout.nameClipped);
-    check(`${prefix}: hero title not clipped`, !layout.heroTitleClipped);
+    check(`${prefix}: hero title not clipped`, !layout.heroTitleClipped, layout.heroTitleSize ? `scroll=${layout.heroTitleSize.scrollW}x${layout.heroTitleSize.scrollH} client=${layout.heroTitleSize.clientW}x${layout.heroTitleSize.clientH}` : 'missing');
     check(`${prefix}: hero buttons fit`, !layout.heroBtnOverflow);
     check(`${prefix}: news filters fit`, !layout.newsFilterOverflow);
     check(`${prefix}: exchange tabs fit`, !layout.exchangeTabOverflow);

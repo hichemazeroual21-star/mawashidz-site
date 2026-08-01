@@ -10,11 +10,13 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execSync } from 'node:child_process';
 import puppeteer from 'puppeteer-core';
+import { chromeExecutablePath, REPO_ROOT } from './helpers/puppeteer-env.mjs';
 
-const ROOT = process.cwd();
+const ROOT = REPO_ROOT;
 const PORT = 8792;
 const MIME = {
   '.html': 'text/html; charset=utf-8',
+  '.css': 'text/css; charset=utf-8',
   '.json': 'application/json',
   '.js': 'text/javascript; charset=utf-8',
   '.mjs': 'text/javascript; charset=utf-8',
@@ -44,7 +46,7 @@ function fail(name, detail) { results.failed.push({ name, detail }); console.err
 async function runScenario(name, { registrationsStatus = 201, emailThrows = false } = {}) {
   const supabaseCalls = [];
   const browser = await puppeteer.launch({
-    executablePath: '/usr/local/bin/google-chrome',
+    executablePath: chromeExecutablePath(),
     args: ['--no-sandbox', '--disable-dev-shm-usage', '--lang=ar'],
   });
   const page = await browser.newPage();

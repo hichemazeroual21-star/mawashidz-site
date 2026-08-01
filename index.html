@@ -1453,7 +1453,7 @@ footer .foot{align-items:start}
   border:1px solid #c8e2d2;
   border-radius:14px;
 }
-#registerModal .confirm-card{
+#registerModal .confirm-card:not(.premium-success){
   color:#155438;
   background:#edf8f1;
   border:1px solid #bddfc9;
@@ -1517,9 +1517,9 @@ footer .foot{align-items:start}
 /* ===== MawashiDZ v1.9.2 — بنية الهيدر النهائية (مصدر وحيد للتخطيط بدل طبقات الإصلاح السابقة) =====
    Desktop (>920px): شريط أفقي — العلامة يمينًا، الروابط، اللغات، ثم الأزرار يسارًا.
    Tablet (761–920px): نفس الشريط بدون قائمة اللغات.
-   Mobile (≤760px): شبكة من صفّين — [قائمة | سجّل الآن | ... | العلامة يمينًا] ثم اللغات وسط الصف الثاني. */
-:root{--mdz-header:#0b1711;--mdz-line:rgba(255,255,255,.12)}
-.top{position:sticky;top:0;z-index:1000;background:var(--mdz-header)!important;border-bottom:1px solid var(--mdz-line)!important;box-shadow:0 8px 24px rgba(0,0,0,.16)!important}
+   Mobile (≤760px): ثلاثة صفوف مدمجة — القائمة والعلامة، إجراءات الحساب، ثم اللغات. */
+:root{--mdz-header:#0b1711;--mdz-header-line:rgba(255,255,255,.12)}
+.top{position:sticky;top:0;z-index:1000;background:var(--mdz-header)!important;border-bottom:1px solid var(--mdz-header-line)!important;box-shadow:0 8px 24px rgba(0,0,0,.16)!important}
 /* تسلسل طبقات واضح: الهيدر 1000 < القائمة الجانبية 1200 < النوافذ 1300 < التنبيهات 1400.
    (كانت القائمة والنوافذ تُفتح خلف الهيدر فيختفي زر الإغلاق على الهاتف) */
 .drawer{z-index:1200}
@@ -1530,6 +1530,15 @@ footer .foot{align-items:start}
 .top .brand-copy>span{overflow:visible;text-overflow:clip}
 /* الأزرار لا تنضغط أبدًا؛ كانت تُسحق إلى 12px في المقاسات 941–1100px. */
 .top .actions,.top .menu-btn{flex-shrink:0}
+/* أزرار الهيدر فوق السطح الداكن تحتاج تباينًا مستقلًا عن أزرار الصفحات الفاتحة. */
+.top .actions .mdz-btn-ghost{
+  color:#fff;background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.24);
+}
+.top .actions .mdz-btn-ghost:hover{color:#fff;background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.38)}
+.top .actions .mdz-btn-primary{color:#fff;background:#0f7652;border-color:#16835b}
+.top .actions .mdz-btn-primary:hover{color:#fff;background:#0d6848;border-color:#16835b}
+.top .actions .mdz-bell{color:#fff;background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.24)}
+.top .actions .mdz-bell:hover{background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.38)}
 /* روابط سطح المكتب تظهر فقط عندما تتسع فعلًا (بدل 940px التي كانت تسبب فيض المحتوى). */
 @media(max-width:1100px){.desktop{display:none}}
 @media(min-width:1101px) and (max-width:1300px){
@@ -1554,19 +1563,24 @@ footer .foot{align-items:start}
   }
   /* actions تُرفع عناصرها لتصبح عناصر شبكة مباشرة (menu inside actions). */
   .top .actions{display:contents}
-  .top .actions .btn.ghost{display:none}
+  .top .actions .mdz-btn-ghost{display:none}
   /* صف 1: القائمة يسارًا + العلامة يمينًا. صف 2: دخول + تسجيل مجمّعان يسارًا. */
-  .top .actions .btn.ghost#headerLoginBtn{
+  .top .actions #headerLoginBtn:not([hidden]){
     display:inline-flex!important;
     grid-column:1;grid-row:2;justify-self:start;align-items:center;
     min-height:44px;padding:0 15px;margin:0;
     border-radius:14px;font-size:.82rem;white-space:nowrap;
     background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.28);
   }
-  .top .actions .btn.primary#headerRegisterBtn{
+  .top .actions #headerRegisterBtn{
     grid-column:2;grid-row:2;justify-self:start;
     min-height:44px;padding:0 17px;margin:0;
     border-radius:14px;font-size:.82rem;white-space:nowrap;
+  }
+  .top .actions #mdzNotifBell{grid-column:1;grid-row:2;justify-self:start}
+  .top .actions #headerLogoutBtn{
+    grid-column:2;grid-row:2;justify-self:start;
+    min-height:44px;padding:0 15px;margin:0;border-radius:14px;font-size:.82rem;white-space:nowrap;
   }
   .top .menu-btn{
     grid-column:1;grid-row:1;justify-self:start;
@@ -1602,7 +1616,7 @@ footer .foot{align-items:start}
 @media(max-width:390px){
   .top .nav{column-gap:6px}
   .top .menu-btn{width:44px;height:44px;font-size:1.3rem}
-  .top .actions .btn.primary{padding:0 10px;font-size:.8rem;min-height:44px}
+  .top .actions #headerRegisterBtn,.top .actions #headerLogoutBtn{padding:0 10px;font-size:.8rem;min-height:44px}
   .top .brand{gap:6px}
   .top .brand-logo{width:42px!important;height:42px!important;flex-basis:42px!important}
   .top .brand-copy>span{font-size:.86rem!important}
@@ -1612,7 +1626,7 @@ footer .foot{align-items:start}
 
 @media(max-width:350px){
   .top .menu-btn{width:42px;height:42px}
-  .top .actions .btn.primary{padding:0 8px;font-size:.74rem;min-height:42px}
+  .top .actions #headerRegisterBtn,.top .actions #headerLogoutBtn{padding:0 8px;font-size:.74rem;min-height:42px}
   .top .brand-logo{width:38px!important;height:38px!important;flex-basis:38px!important}
   .top .brand-copy>span{font-size:.78rem!important}
   .top .brand-tagline{font-size:.42rem!important;max-width:118px}
@@ -1628,6 +1642,10 @@ body[data-lang]:not([data-lang="ar"]) .hero-card h1{
 }
 body[data-lang]:not([data-lang="ar"]) .hero-title-main,
 body[data-lang]:not([data-lang="ar"]) .hero-title-sub{white-space:normal!important}
+@media(min-width:381px) and (max-width:430px){
+  /* المقاس الأوسط كان يترك آخر حروف العنوان العربي خارج صندوق الـHero ببضعة بكسلات. */
+  .hero-title-main{font-size:.82em}
+}
 @media(max-width:620px){
   body[data-lang]:not([data-lang="ar"]) .hero-card h1{
     line-height:1.2!important;padding-bottom:.18em!important;
@@ -3867,7 +3885,7 @@ function renderExchangeBoard(){
 
 function applyMarketSnapshot(data){
   mdzMarketSnapshot=data;
-  mdzExchangeLimit=mdzExchangePageSize;
+  /* Preserve the user's expanded row count while the one-second live ticker refreshes prices. */
   renderExchangeProductButtons();
   renderExchangeBoard();
   const status=document.getElementById('exchangeStatus');

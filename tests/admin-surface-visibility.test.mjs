@@ -18,6 +18,7 @@ const SHOTS = path.join(REPO_ROOT, 'tests/.artifacts/screenshots/admin-surface')
 fs.mkdirSync(SHOTS, { recursive: true });
 const MIME = {
   '.html': 'text/html; charset=utf-8',
+  '.css': 'text/css; charset=utf-8',
   '.json': 'application/json',
   '.js': 'text/javascript; charset=utf-8',
   '.mjs': 'text/javascript; charset=utf-8',
@@ -216,6 +217,39 @@ const matrix = [];
   check('member: login hidden', s.login === false);
   check('member: manager hidden', s.manager === false && s.drawerManager === false);
   check('member: admin hidden', s.admin === false && s.drawerAdmin === false);
+  await page.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true });
+  await settle(page, 250);
+  const mobileHeader = await page.evaluate(() => {
+    const box = (el) => {
+      if (!el || getComputedStyle(el).display === 'none') return null;
+      const r = el.getBoundingClientRect();
+      return { l: r.left, r: r.right, t: r.top, b: r.bottom };
+    };
+    const overlaps = (a, b) => a && b && !(a.r <= b.l + 1 || b.r <= a.l + 1 || a.b <= b.t + 1 || b.b <= a.t + 1);
+    const bell = box(document.getElementById('mdzNotifBell'));
+    const logout = box(document.getElementById('headerLogoutBtn'));
+    const login = box(document.getElementById('headerLoginBtn'));
+    const account = box(document.getElementById('headerAccountBtn'));
+    const menu = box(document.querySelector('.top .menu-btn'));
+    const brand = box(document.querySelector('.top .brand'));
+    return {
+      bell,
+      logout,
+      login,
+      account,
+      menu,
+      brand,
+      overflow: document.documentElement.scrollWidth > window.innerWidth + 1,
+      actionOverlap: overlaps(bell, logout),
+      chromeOverlap: overlaps(bell, brand) || overlaps(logout, brand) || overlaps(bell, menu) || overlaps(logout, menu),
+    };
+  });
+  check('member mobile: notification + logout visible', Boolean(mobileHeader.bell && mobileHeader.logout));
+  check('member mobile: login + desktop account actions stay hidden', !mobileHeader.login && !mobileHeader.account);
+  check('member mobile: auth actions stay below menu row', mobileHeader.bell?.t >= mobileHeader.menu?.b - 6 && mobileHeader.logout?.t >= mobileHeader.menu?.b - 6);
+  check('member mobile: no header action overlap', !mobileHeader.actionOverlap && !mobileHeader.chromeOverlap);
+  check('member mobile: no horizontal overflow', !mobileHeader.overflow);
+  await shootHeader(page, 'header-member-mobile');
   await page.close();
 }
 

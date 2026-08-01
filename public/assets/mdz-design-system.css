@@ -1,46 +1,98 @@
 /**
- * MawashiDZ Product Design System — Phase 1 quality elevation
- * Principles: calm trust, RTL-first, one action per surface, timeless (not trendy).
- * Authenticated chrome should feel closer to Stripe/Linear than a brochure template.
+ * MawashiDZ Product Design System — visual polish (CSS-only)
+ * Principles: calm trust, RTL-first, green+gold Algeria identity, timeless (not trendy).
+ * Authenticated chrome: Stripe/Linear calm; marketing: same brand, clearer hierarchy.
+ * Content/behavior preserved — visual tokens & presentation only.
  */
 
 :root {
-  /* Brand — livestock Algeria, serious green + warm ink (avoid purple AI cliché) */
-  --mdz-ink: #12201a;
-  --mdz-ink-soft: #3d4f46;
-  --mdz-muted: #6b7c73;
-  --mdz-line: rgba(18, 32, 26, 0.10);
-  --mdz-line-strong: rgba(18, 32, 26, 0.16);
+  /* ——— Semantic tokens (2026 polish) ——— */
+  --mdz-brand-primary: #0f6b4c;
+  --mdz-brand-primary-hover: #0a4f38;
+  --mdz-brand-primary-active: #084030;
+  --mdz-brand-primary-soft: rgba(15, 107, 76, 0.10);
+  --mdz-brand-accent: #c4a35a;
+  --mdz-brand-accent-hover: #b08f45;
+  --mdz-brand-accent-soft: rgba(196, 163, 90, 0.16);
+
+  --mdz-page-bg: #f4f6f4;
   --mdz-surface: #f7f8f6;
+  --mdz-surface-muted: #eef1ee;
   --mdz-surface-elevated: #ffffff;
+  --mdz-surface-dark: #0f3f2e;
   --mdz-surface-sunken: #eef1ee;
-  --mdz-brand: #0f6b4c;
-  --mdz-brand-strong: #0a4f38;
-  --mdz-brand-soft: rgba(15, 107, 76, 0.10);
-  --mdz-accent: #c4a35a;
+
+  --mdz-text-primary: #12201a;
+  --mdz-text-secondary: #3d4f46;
+  --mdz-text-muted: #5c6b63;
+  --mdz-text-on-dark: rgba(255, 255, 255, 0.94);
+  --mdz-text-on-brand: #ffffff;
+
+  --mdz-border: rgba(18, 32, 26, 0.10);
+  --mdz-border-strong: rgba(18, 32, 26, 0.16);
+  --mdz-border-focus: rgba(15, 107, 76, 0.45);
+
+  --mdz-success: #027a48;
+  --mdz-success-soft: rgba(2, 122, 72, 0.12);
+  --mdz-warning: #b54708;
+  --mdz-warning-soft: rgba(181, 71, 8, 0.12);
   --mdz-danger: #b42318;
   --mdz-danger-soft: rgba(180, 35, 24, 0.10);
-  --mdz-warn: #b54708;
-  --mdz-success: #027a48;
   --mdz-info: #175cd3;
+  --mdz-info-soft: rgba(23, 92, 211, 0.10);
 
-  --mdz-radius-sm: 8px;
-  --mdz-radius: 12px;
-  --mdz-radius-lg: 18px;
+  --mdz-radius-sm: 12px;
+  --mdz-radius-md: 16px;
+  --mdz-radius-lg: 22px;
+  --mdz-radius-xl: 24px;
+  --mdz-radius-pill: 999px;
+
   --mdz-shadow-sm: 0 1px 2px rgba(18, 32, 26, 0.06);
-  --mdz-shadow: 0 8px 24px rgba(18, 32, 26, 0.08);
+  --mdz-shadow-md: 0 8px 24px rgba(18, 32, 26, 0.08);
   --mdz-shadow-lg: 0 18px 48px rgba(18, 32, 26, 0.12);
+  --mdz-shadow-focus: 0 0 0 3px rgba(15, 107, 76, 0.28);
 
-  --mdz-font: "IBM Plex Sans Arabic", "Segoe UI", Tahoma, sans-serif;
-  --mdz-mono: "IBM Plex Mono", ui-monospace, monospace;
   --mdz-space-1: 4px;
   --mdz-space-2: 8px;
   --mdz-space-3: 12px;
   --mdz-space-4: 16px;
   --mdz-space-5: 24px;
   --mdz-space-6: 32px;
-  --mdz-focus: 0 0 0 3px rgba(15, 107, 76, 0.28);
-  --mdz-motion: 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  --mdz-space-8: 48px;
+  --mdz-space-10: 64px;
+  --mdz-space-12: 80px;
+
+  --mdz-transition-fast: 120ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  --mdz-transition-base: 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  /* ——— Backward-compatible aliases (existing product chrome) ——— */
+  --mdz-ink: var(--mdz-text-primary);
+  --mdz-ink-soft: var(--mdz-text-secondary);
+  --mdz-muted: var(--mdz-text-muted);
+  --mdz-line: var(--mdz-border);
+  --mdz-line-strong: var(--mdz-border-strong);
+  --mdz-brand: var(--mdz-brand-primary);
+  --mdz-brand-strong: var(--mdz-brand-primary-hover);
+  --mdz-brand-soft: var(--mdz-brand-primary-soft);
+  --mdz-accent: var(--mdz-brand-accent);
+  --mdz-warn: var(--mdz-warning);
+  --mdz-radius: var(--mdz-radius-md);
+  --mdz-shadow: var(--mdz-shadow-md);
+  --mdz-focus: var(--mdz-shadow-focus);
+  --mdz-motion: var(--mdz-transition-base);
+
+  --mdz-font: "IBM Plex Sans Arabic", "Segoe UI", Tahoma, sans-serif;
+  --mdz-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  /* Map brochure tokens when design-system loads (index may redefine later) */
+  --g: var(--mdz-brand-primary-hover);
+  --g2: var(--mdz-brand-primary);
+  --mint: var(--mdz-brand-primary-soft);
+  --gold: var(--mdz-brand-accent);
+  --ink: var(--mdz-text-primary);
+  --muted: var(--mdz-text-muted);
+  --line: var(--mdz-border);
+  --danger: var(--mdz-danger);
 }
 
 .mdz-product {
@@ -62,17 +114,17 @@
   font-size: 1.35rem;
   font-weight: 750;
   letter-spacing: -0.02em;
-  line-height: 1.25;
+  line-height: 1.35;
 }
 
 .mdz-product .mdz-subtitle {
   margin: var(--mdz-space-2) 0 0;
   color: var(--mdz-ink-soft);
   font-size: 0.95rem;
-  line-height: 1.55;
+  line-height: 1.65;
 }
 
-/* Tabs — underline IA, not candy pills */
+/* Tabs — underline IA */
 .mdz-tabs {
   display: flex;
   gap: var(--mdz-space-1);
@@ -91,6 +143,7 @@
   font-weight: 650;
   font-size: 0.9rem;
   padding: var(--mdz-space-3) var(--mdz-space-3);
+  min-height: 44px;
   cursor: pointer;
   white-space: nowrap;
   position: relative;
@@ -109,9 +162,13 @@
   background: var(--mdz-brand);
   border-radius: 2px;
 }
-.mdz-tab:focus-visible { outline: none; box-shadow: var(--mdz-focus); border-radius: var(--mdz-radius-sm); }
+.mdz-tab:focus-visible {
+  outline: none;
+  box-shadow: var(--mdz-focus);
+  border-radius: var(--mdz-radius-sm);
+}
 
-/* Buttons */
+/* Product buttons */
 .mdz-btn {
   appearance: none;
   border: 1px solid transparent;
@@ -119,17 +176,32 @@
   font: inherit;
   font-weight: 700;
   font-size: 0.9rem;
-  padding: 0.65rem 1rem;
+  padding: 0.7rem 1.1rem;
+  min-height: 44px;
   cursor: pointer;
-  transition: background var(--mdz-motion), border-color var(--mdz-motion), transform 80ms ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  line-height: 1.25;
+  transition:
+    background var(--mdz-motion),
+    border-color var(--mdz-motion),
+    box-shadow var(--mdz-motion),
+    transform 80ms ease;
 }
 .mdz-btn:active { transform: translateY(1px); }
 .mdz-btn:focus-visible { outline: none; box-shadow: var(--mdz-focus); }
 .mdz-btn-primary {
   background: var(--mdz-brand);
-  color: #fff;
+  color: var(--mdz-text-on-brand);
+  box-shadow: var(--mdz-shadow-sm);
 }
-.mdz-btn-primary:hover { background: var(--mdz-brand-strong); }
+.mdz-btn-primary:hover {
+  background: var(--mdz-brand-strong);
+  box-shadow: var(--mdz-shadow-md);
+}
+.mdz-btn-primary:active { background: var(--mdz-brand-primary-active); }
 .mdz-btn-ghost {
   background: transparent;
   border-color: var(--mdz-line-strong);
@@ -140,25 +212,39 @@
   background: var(--mdz-danger);
   color: #fff;
 }
-.mdz-btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+.mdz-btn-danger:hover { filter: brightness(0.95); }
+.mdz-btn:disabled,
+.mdz-btn[disabled] {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
 
 /* Fields */
 .mdz-field { display: grid; gap: var(--mdz-space-2); margin-bottom: var(--mdz-space-3); }
 .mdz-field > span { font-size: 0.8rem; font-weight: 700; color: var(--mdz-ink-soft); }
 .mdz-input, .mdz-select, .mdz-textarea {
   width: 100%;
+  min-height: 44px;
   border: 1px solid var(--mdz-line-strong);
   border-radius: var(--mdz-radius-sm);
   background: var(--mdz-surface-elevated);
-  padding: 0.7rem 0.8rem;
+  padding: 0.7rem 0.85rem;
   font: inherit;
   color: var(--mdz-ink);
   transition: border-color var(--mdz-motion), box-shadow var(--mdz-motion);
 }
-.mdz-input:focus, .mdz-select:focus, .mdz-textarea:focus {
+.mdz-input:focus, .mdz-select:focus, .mdz-textarea:focus,
+.mdz-input:focus-visible, .mdz-select:focus-visible, .mdz-textarea:focus-visible {
   outline: none;
   border-color: var(--mdz-brand);
   box-shadow: var(--mdz-focus);
+}
+.mdz-input:disabled, .mdz-select:disabled, .mdz-textarea:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: var(--mdz-surface-muted);
 }
 .mdz-textarea { min-height: 96px; resize: vertical; }
 
@@ -174,7 +260,7 @@
   padding: var(--mdz-space-5);
   border-radius: var(--mdz-radius-lg);
   background: linear-gradient(160deg, #0f3f2e 0%, #145c42 55%, #1a6b4d 100%);
-  color: #fff;
+  color: var(--mdz-text-on-dark);
   margin-bottom: var(--mdz-space-4);
 }
 .mdz-hero-quiet .mdz-chip {
@@ -182,7 +268,7 @@
   direction: ltr;
   background: rgba(255,255,255,0.14);
   border: 1px solid rgba(255,255,255,0.18);
-  border-radius: 999px;
+  border-radius: var(--mdz-radius-pill);
   padding: 0.2rem 0.65rem;
   font-size: 0.75rem;
   font-weight: 700;
@@ -191,26 +277,32 @@
   margin: var(--mdz-space-3) 0 var(--mdz-space-2);
   font-size: 1.4rem;
   letter-spacing: -0.02em;
+  line-height: 1.35;
 }
-.mdz-hero-quiet p { margin: 0; opacity: 0.88; font-size: 0.92rem; }
+.mdz-hero-quiet p { margin: 0; opacity: 0.9; font-size: 0.92rem; line-height: 1.6; }
 
 .mdz-status {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  border-radius: 999px;
-  padding: 0.2rem 0.65rem;
+  border-radius: var(--mdz-radius-pill);
+  padding: 0.25rem 0.7rem;
   font-size: 0.75rem;
   font-weight: 750;
   background: var(--mdz-surface-sunken);
   color: var(--mdz-ink-soft);
 }
-.mdz-status.is-pending { background: #fff4e5; color: var(--mdz-warn); }
-.mdz-status.is-approved, .mdz-status.is-active, .mdz-status.is-open { background: #e8f7ef; color: var(--mdz-success); }
-.mdz-status.is-rejected, .mdz-status.is-suspended, .mdz-status.is-closed { background: var(--mdz-danger-soft); color: var(--mdz-danger); }
-.mdz-status.is-in_review, .mdz-status.is-waiting_for_member, .mdz-status.is-escalated { background: #eef4ff; color: var(--mdz-info); }
+.mdz-status.is-pending { background: var(--mdz-warning-soft); color: var(--mdz-warning); }
+.mdz-status.is-approved, .mdz-status.is-active, .mdz-status.is-open {
+  background: var(--mdz-success-soft); color: var(--mdz-success);
+}
+.mdz-status.is-rejected, .mdz-status.is-suspended, .mdz-status.is-closed {
+  background: var(--mdz-danger-soft); color: var(--mdz-danger);
+}
+.mdz-status.is-in_review, .mdz-status.is-waiting_for_member, .mdz-status.is-escalated {
+  background: var(--mdz-info-soft); color: var(--mdz-info);
+}
 
-/* Inbox / tickets */
 .mdz-toolbar {
   display: flex;
   flex-wrap: wrap;
@@ -239,7 +331,12 @@
 }
 .mdz-item header strong { font-size: 0.95rem; }
 .mdz-item time, .mdz-meta { color: var(--mdz-muted); font-size: 0.78rem; }
-.mdz-item p { margin: var(--mdz-space-2) 0 0; color: var(--mdz-ink-soft); line-height: 1.5; font-size: 0.9rem; }
+.mdz-item p {
+  margin: var(--mdz-space-2) 0 0;
+  color: var(--mdz-ink-soft);
+  line-height: 1.6;
+  font-size: 0.9rem;
+}
 
 .mdz-empty {
   text-align: center;
@@ -249,7 +346,7 @@
   background: var(--mdz-surface);
 }
 .mdz-empty strong { display: block; margin-bottom: var(--mdz-space-2); font-size: 1rem; }
-.mdz-empty p { margin: 0 0 var(--mdz-space-4); color: var(--mdz-muted); font-size: 0.9rem; }
+.mdz-empty p { margin: 0 0 var(--mdz-space-4); color: var(--mdz-muted); font-size: 0.9rem; line-height: 1.6; }
 .mdz-error {
   border-style: solid;
   border-color: rgba(180, 35, 24, 0.25);
@@ -269,12 +366,11 @@
   100% { background-position: 0 0; }
 }
 
-/* Dialog */
 .mdz-dialog-backdrop {
   position: fixed;
   inset: 0;
   background: rgba(12, 20, 16, 0.48);
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(3px);
   z-index: 12000;
   display: grid;
   place-items: center;
@@ -295,8 +391,13 @@
   from { opacity: 0; transform: translateY(8px) scale(0.98); }
   to { opacity: 1; transform: none; }
 }
-.mdz-dialog h3 { margin: 0 0 var(--mdz-space-2); font-size: 1.1rem; }
-.mdz-dialog p { margin: 0 0 var(--mdz-space-4); color: var(--mdz-ink-soft); font-size: 0.92rem; line-height: 1.5; }
+.mdz-dialog h3 { margin: 0 0 var(--mdz-space-2); font-size: 1.1rem; line-height: 1.35; }
+.mdz-dialog p {
+  margin: 0 0 var(--mdz-space-4);
+  color: var(--mdz-ink-soft);
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
 .mdz-dialog-actions {
   display: flex;
   justify-content: flex-end;
@@ -304,21 +405,23 @@
   margin-top: var(--mdz-space-4);
 }
 
-/* Header bell */
 .mdz-bell {
   position: relative;
   appearance: none;
   border: 1px solid var(--mdz-line-strong);
   background: var(--mdz-surface-elevated);
-  border-radius: 999px;
-  width: 40px;
-  height: 40px;
+  border-radius: var(--mdz-radius-pill);
+  width: 44px;
+  height: 44px;
   cursor: pointer;
   display: inline-grid;
   place-items: center;
   color: var(--mdz-ink);
+  transition: background var(--mdz-motion), border-color var(--mdz-motion);
 }
+.mdz-bell:hover { background: var(--mdz-surface-sunken); }
 .mdz-bell:focus-visible { outline: none; box-shadow: var(--mdz-focus); }
+.mdz-bell[hidden] { display: none !important; }
 .mdz-bell-badge {
   position: absolute;
   top: -2px;
@@ -326,7 +429,7 @@
   min-width: 18px;
   height: 18px;
   padding: 0 5px;
-  border-radius: 999px;
+  border-radius: var(--mdz-radius-pill);
   background: var(--mdz-danger);
   color: #fff;
   font-size: 0.65rem;
@@ -337,7 +440,6 @@
 }
 .mdz-bell-badge[hidden] { display: none !important; }
 
-/* Operator queue split */
 .mdz-split {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
@@ -373,7 +475,7 @@
   .mdz-ops-mount.is-thread-open .mdz-ops-list { display: none; }
   .mdz-ops-thread .mdz-btn,
   .mdz-ops-list .ops-ticket-open {
-    min-height: 40px;
+    min-height: 44px;
   }
 }
 
@@ -381,21 +483,24 @@
   appearance: none;
   border: 1px solid var(--mdz-line-strong);
   background: transparent;
-  border-radius: 999px;
-  padding: 0.35rem 0.75rem;
+  border-radius: var(--mdz-radius-pill);
+  padding: 0.4rem 0.8rem;
+  min-height: 36px;
   font: inherit;
   font-size: 0.8rem;
   font-weight: 700;
   color: var(--mdz-ink-soft);
   cursor: pointer;
+  transition: background var(--mdz-motion), border-color var(--mdz-motion), color var(--mdz-motion);
 }
+.mdz-filter-chip:hover { background: var(--mdz-surface-sunken); }
+.mdz-filter-chip:focus-visible { outline: none; box-shadow: var(--mdz-focus); }
 .mdz-filter-chip.on {
   background: var(--mdz-brand-soft);
   border-color: transparent;
   color: var(--mdz-brand-strong);
 }
 
-/* Account / ops product shell — denser within modal constraint (MDZ-UI-008) */
 #accountModal .modal-card,
 #managerDashModal .modal-card,
 #adminDashModal .modal-card {
@@ -421,14 +526,13 @@
   font-size: 0.8rem;
   font-weight: 700;
 }
-.mdz-btn-sm { padding: 0.4rem 0.7rem; font-size: 0.8rem; }
+.mdz-btn-sm { padding: 0.45rem 0.75rem; font-size: 0.8rem; min-height: 36px; }
 .mdz-ops-mount { margin-top: var(--mdz-space-5); }
 body.mdz-font-ready,
 .mdz-product {
   font-family: var(--mdz-font);
 }
 
-/* CE-001 — drawer auth chrome on DS */
 .drawer .panel {
   font-family: var(--mdz-font);
 }
@@ -443,6 +547,7 @@ body.mdz-font-ready,
 .mdz-drawer-link {
   display: block;
   padding: 0.75rem 1rem;
+  min-height: 44px;
   border-radius: var(--mdz-radius-sm);
   border: 1px solid var(--mdz-line-strong);
   background: var(--mdz-surface-elevated);
@@ -450,7 +555,7 @@ body.mdz-font-ready,
   font-weight: 700;
   font-size: 0.9rem;
   text-align: inherit;
-  transition: background var(--mdz-motion), border-color var(--mdz-motion);
+  transition: background var(--mdz-motion), border-color var(--mdz-motion), box-shadow var(--mdz-motion);
 }
 .mdz-drawer-link:hover {
   background: var(--mdz-surface-sunken);
@@ -474,7 +579,6 @@ body.mdz-font-ready,
 }
 .mdz-drawer-link[hidden] { display: none !important; }
 
-/* CE-002 — review queue hierarchy helpers (shared with index dash CSS) */
 .mdz-product .dash-table thead th {
   background: var(--mdz-surface-sunken);
 }
@@ -482,9 +586,293 @@ body.mdz-font-ready,
   background: var(--mdz-brand-soft);
 }
 
+/* ==========================================================================
+   Marketing / brochure polish
+   Loaded before inline index.html styles — use justified !important only where
+   cascade would otherwise ignore these visual refinements.
+   Does not change content, IDs, handlers, or visibility logic.
+   ========================================================================== */
+
+body {
+  text-rendering: optimizeLegibility;
+}
+
+/* Buttons — unify brochure .btn family */
+.btn {
+  border-radius: var(--mdz-radius-sm) !important;
+  min-height: 44px !important;
+  padding: 0.7rem 1.15rem !important;
+  font-weight: 750 !important;
+  letter-spacing: 0.01em !important;
+  box-shadow: var(--mdz-shadow-sm) !important;
+  transition:
+    background var(--mdz-transition-base),
+    color var(--mdz-transition-base),
+    border-color var(--mdz-transition-base),
+    box-shadow var(--mdz-transition-base),
+    transform 80ms ease !important;
+}
+.btn:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: var(--mdz-shadow-md) !important;
+}
+.btn:active {
+  transform: translateY(0) !important;
+  box-shadow: var(--mdz-shadow-sm) !important;
+}
+.btn:focus-visible {
+  outline: none !important;
+  box-shadow: var(--mdz-shadow-focus) !important;
+}
+.btn:disabled,
+.btn[disabled] {
+  opacity: 0.55 !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+.btn.primary {
+  background: var(--mdz-brand-primary) !important;
+  color: var(--mdz-text-on-brand) !important;
+}
+.btn.primary:hover {
+  background: var(--mdz-brand-primary-hover) !important;
+  color: var(--mdz-text-on-brand) !important;
+}
+.btn.ghost {
+  background: var(--mdz-brand-primary-soft) !important;
+  color: var(--mdz-brand-primary-hover) !important;
+  border: 1px solid transparent !important;
+}
+.btn.ghost:hover {
+  background: rgba(15, 107, 76, 0.16) !important;
+}
+.btn.light {
+  background: #fff !important;
+  color: var(--mdz-brand-primary-hover) !important;
+  border: 1px solid var(--mdz-border-strong) !important;
+}
+.btn.light:hover {
+  background: var(--mdz-surface) !important;
+}
+.menu-btn,
+.close {
+  min-width: 44px !important;
+  min-height: 44px !important;
+  border-radius: var(--mdz-radius-sm) !important;
+}
+.menu-btn:focus-visible,
+.close:focus-visible {
+  outline: none !important;
+  box-shadow: var(--mdz-shadow-focus) !important;
+}
+
+.feedback-fab {
+  background: var(--mdz-brand-accent) !important;
+  color: #1f2b24 !important;
+  border-radius: var(--mdz-radius-pill) !important;
+  min-height: 48px !important;
+  padding: 14px 18px !important;
+  font-weight: 800 !important;
+  box-shadow: var(--mdz-shadow-md) !important;
+  transition: background var(--mdz-transition-base), transform 80ms ease !important;
+}
+.feedback-fab:hover {
+  background: var(--mdz-brand-accent-hover) !important;
+  transform: translateY(-1px) !important;
+}
+.feedback-fab:focus-visible {
+  outline: none !important;
+  box-shadow: var(--mdz-shadow-focus) !important;
+}
+
+/* Cards */
+.card,
+.stat,
+.pulse-box,
+.news-item,
+.manager,
+.feature-step,
+.security-card,
+.eid-card,
+.module-card,
+.public-card,
+.trust-card,
+.how-card,
+.progress-card,
+.benefit-card,
+.referral-card,
+.qr-access-card,
+.council-card {
+  border-radius: var(--mdz-radius-xl) !important;
+  border-color: var(--mdz-border) !important;
+  box-shadow: var(--mdz-shadow-sm) !important;
+}
+.card,
+.module-card,
+.public-card,
+.trust-card,
+.how-card,
+.benefit-card,
+.referral-card,
+.security-card,
+.eid-card,
+.qr-access-card,
+.council-card {
+  padding: 1.25rem 1.35rem !important;
+  background: var(--mdz-surface-elevated) !important;
+}
+.card h3,
+.module-card h3,
+.trust-card h3,
+.how-card h3,
+.benefit-card h3 {
+  line-height: 1.4 !important;
+  margin-top: 0.65rem !important;
+}
+.card p,
+.module-card p,
+.trust-card p,
+.how-card p,
+.benefit-card p,
+.security-card p {
+  color: var(--mdz-text-muted) !important;
+  line-height: 1.75 !important;
+}
+.icon {
+  border-radius: var(--mdz-radius-md) !important;
+  background: var(--mdz-brand-primary-soft) !important;
+}
+
+/* Forms (marketing + generic) */
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="hidden"]),
+select,
+textarea {
+  border-radius: var(--mdz-radius-sm) !important;
+  min-height: 44px !important;
+  border-color: var(--mdz-border-strong) !important;
+  transition: border-color var(--mdz-transition-base), box-shadow var(--mdz-transition-base) !important;
+}
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="hidden"]):focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: none !important;
+  border-color: var(--mdz-brand-primary) !important;
+  box-shadow: var(--mdz-shadow-focus) !important;
+}
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="hidden"]):not(:disabled):not(:focus):hover,
+select:not(:disabled):not(:focus):hover,
+textarea:not(:disabled):not(:focus):hover {
+  border-color: rgba(18, 32, 26, 0.24) !important;
+}
+textarea {
+  min-height: 96px !important;
+  line-height: 1.6 !important;
+}
+label {
+  line-height: 1.45 !important;
+}
+
+/* Navigation / drawer / modal shells */
+.top {
+  backdrop-filter: blur(8px);
+}
+.drawer .panel {
+  border-radius: var(--mdz-radius-lg) 0 0 var(--mdz-radius-lg) !important;
+  box-shadow: var(--mdz-shadow-lg) !important;
+}
+.modal-card,
+.modal-box,
+.panel {
+  border-radius: var(--mdz-radius-lg) !important;
+}
+.toast {
+  border-radius: var(--mdz-radius-md) !important;
+  box-shadow: var(--mdz-shadow-md) !important;
+}
+.tab {
+  min-height: 44px !important;
+  transition: color var(--mdz-transition-base), background var(--mdz-transition-base) !important;
+}
+.tab:focus-visible {
+  outline: none !important;
+  box-shadow: var(--mdz-shadow-focus) !important;
+}
+
+/* Hero / section rhythm (visual only) */
+.hero h1,
+.hero .head h1 {
+  line-height: 1.25 !important;
+  letter-spacing: -0.02em !important;
+}
+.hero p {
+  line-height: 1.7 !important;
+  max-width: 42rem;
+}
+.section,
+.wrap {
+  scroll-margin-top: 5rem;
+}
+
+/* Responsive polish */
+@media (max-width: 620px) {
+  .hero h1,
+  .hero .head h1 {
+    font-size: clamp(1.55rem, 7vw, 2rem) !important;
+    line-height: 1.3 !important;
+  }
+  .hero p {
+    font-size: 0.95rem !important;
+  }
+  .hero-actions .btn,
+  .btn {
+    width: 100%;
+    min-height: 48px !important;
+  }
+  .card,
+  .module-card,
+  .trust-card,
+  .how-card,
+  .benefit-card {
+    padding: 1.1rem 1.15rem !important;
+  }
+  .feedback-fab {
+    left: 12px !important;
+    bottom: 12px !important;
+    padding: 12px 14px !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  .card:hover,
+  .module-card:hover,
+  .trust-card:hover,
+  .how-card:hover,
+  .benefit-card:hover {
+    box-shadow: var(--mdz-shadow-md) !important;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .mdz-btn, .mdz-tab, .mdz-item, .mdz-skeleton, .mdz-dialog, .mdz-dialog-backdrop {
+  .mdz-btn,
+  .mdz-tab,
+  .mdz-item,
+  .mdz-skeleton,
+  .mdz-dialog,
+  .mdz-dialog-backdrop,
+  .mdz-drawer-link,
+  .mdz-filter-chip,
+  .mdz-bell,
+  .btn,
+  .feedback-fab,
+  .tab,
+  .card,
+  .module-card {
     animation: none !important;
     transition: none !important;
+  }
+  .btn:hover,
+  .feedback-fab:hover {
+    transform: none !important;
   }
 }
