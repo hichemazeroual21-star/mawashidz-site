@@ -24,6 +24,17 @@ jobs:
         run: |
           npm run build
           npm run verify:public
+      - name: PKG-E2 browser storage evidence
+        env:
+          EVIDENCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: npm run test:storage-browser
+      - name: Upload PKG-E2 browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pkg-e2-browser-evidence-${{ github.event.pull_request.head.sha || github.sha }}
+          path: tests/.artifacts/pkg-e2/
+          if-no-files-found: error
       - name: Security tests
         run: |
           npm run test:security

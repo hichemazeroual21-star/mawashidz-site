@@ -2581,10 +2581,75 @@ $$('.tab').forEach(t=>t.onclick=()=>setRole(t.dataset.role));
 updateRoleFields($('#roleInput')?.value||'breeder');
 
 function getRows(key){try{return JSON.parse(localStorage.getItem(key)||'[]')}catch{return[]}}
+const MDZ_REGISTRATION_BACKUP_SCHEMA=Object.freeze({
+  registration_id:'string',member_id:'string',member_id_sequential:'boolean',member_invite_code:'string',
+  first_name:'string',last_name:'string',full_name:'string',birth_date:'string',phone:'string',email:'string',whatsapp:'string',
+  wilaya:'string',daira:'string',commune:'string',user_type:'string',role:'string',is_verified:'boolean',
+  privacy_accepted:'boolean',founding_terms_accepted:'boolean',invited_by:'string',referral_code:'string',bio:'string',
+  livestock_count:'string',breeder_activity:'string',vet_license:'string',clinic_name:'string',vet_specialty:'string',
+  vet_experience_years:'string',graduation_year:'string',coverage:'string',vet_services:'string_array',accept_requests:'boolean',
+  accept_qr:'boolean',business_name:'string',feed_types:'string',delivery:'string',buyer_interest:'string',buyer_delivery:'string',
+  qualification:'string',management_experience:'string',manager_plan:'string',ambassador_plan:'string',
+  partner_business:'string',partnership_type:'string',status:'string',failure_code:'failure_code',createdAt:'string'
+});
+const MDZ_REGISTRATION_STORAGE_KEYS=Object.freeze(['mdz_registrations','mdz_failed_registrations']);
+const MDZ_REGISTRATION_FAILURE_CODES=new Set(['auth_failed','network_failed','rate_limited','registration_failed']);
+function normalizeRegistrationBackupValue(type,value){
+  if(type==='boolean') return typeof value==='boolean'?value:undefined;
+  if(type==='string_array'){
+    if(!Array.isArray(value)) return undefined;
+    return value.filter(item=>typeof item==='string').slice(0,24).map(item=>item.slice(0,240));
+  }
+  if(type==='failure_code'){
+    const code=String(value||'');
+    return MDZ_REGISTRATION_FAILURE_CODES.has(code)?code:'registration_failed';
+  }
+  if(type==='string'){
+    if(typeof value!=='string'&&typeof value!=='number') return undefined;
+    return String(value).slice(0,2000);
+  }
+  return undefined;
+}
+function buildRegistrationBackup(...sources){
+  const merged=Object.assign({},...sources.filter(Boolean));
+  const backup={};
+  for(const [key,type] of Object.entries(MDZ_REGISTRATION_BACKUP_SCHEMA)){
+    if(!Object.prototype.hasOwnProperty.call(merged,key)) continue;
+    const value=normalizeRegistrationBackupValue(type,merged[key]);
+    if(value!==undefined) backup[key]=value;
+  }
+  return backup;
+}
+function normalizeRegistrationBackupRows(value){
+  if(!Array.isArray(value)) return [];
+  return value
+    .filter(row=>row&&typeof row==='object'&&!Array.isArray(row))
+    .map(row=>buildRegistrationBackup(row))
+    .filter(row=>Object.keys(row).length>0);
+}
+function scrubRegistrationBackupStorage(storage=localStorage){
+  for(const key of MDZ_REGISTRATION_STORAGE_KEYS){
+    try{
+      const rawValue=storage.getItem(key);
+      if(!rawValue) continue;
+      const parsed=JSON.parse(rawValue);
+      const cleaned=normalizeRegistrationBackupRows(parsed);
+      const encoded=JSON.stringify(cleaned);
+      if(encoded!==rawValue) storage.setItem(key,encoded);
+    }catch(error){
+      storage.setItem(key,'[]');
+      console.warn(`Malformed registration backup reset for ${key}`);
+    }
+  }
+}
 function saveRow(key,row){
   try{
-    const rows=getRows(key);
-    rows.push({...row,createdAt:new Date().toISOString()});
+    const registrationBackup=MDZ_REGISTRATION_STORAGE_KEYS.includes(key);
+    const rows=registrationBackup?normalizeRegistrationBackupRows(getRows(key)):getRows(key);
+    const safeRow=MDZ_REGISTRATION_STORAGE_KEYS.includes(key)
+      ? buildRegistrationBackup(row)
+      : row;
+    rows.push({...safeRow,createdAt:new Date().toISOString()});
     // نحتفظ بآخر 100 سجل فقط حتى لا يمتلئ تخزين الهاتف ويُظهر خطأً كاذبًا بعد نجاح التسجيل.
     localStorage.setItem(key,JSON.stringify(rows.slice(-100)));
     return true;
@@ -2592,6 +2657,16 @@ function saveRow(key,row){
     console.warn('Local backup skipped:',error);
     return false;
   }
+}
+scrubRegistrationBackupStorage();
+
+function registrationFailureCode(error){
+  const status=Number(error?.status||error?.statusCode||0);
+  const code=String(error?.code||error?.name||'').toLowerCase();
+  if(status===429||code.includes('rate')) return 'rate_limited';
+  if(status===400||status===401||status===403||code.includes('auth')) return 'auth_failed';
+  if(code==='aborterror'||code==='typeerror'||code.includes('network')) return 'network_failed';
+  return 'registration_failed';
 }
 
 
@@ -2786,13 +2861,14 @@ $('#registerForm').addEventListener('submit', async e=>{
       emailData:{...payload,...ids,registration_id:ids.registrationId,member_id:ids.memberId,role_label:registrationRoleLabel(raw.role),member_invite_code:ids.memberInviteCode,invited_by:extra.invited_by}
     });
     if(!pipelineResult.success){
+      saveRow('mdz_failed_registrations',buildRegistrationBackup(raw,extra,{failure_code:registrationFailureCode(pipelineResult.error)}));
       showRegistrationError(confirmBox,pipelineResult.error?.message||t('authErrGeneric'));
       restoreSubmit();
       return;
     }
     if(pipelineResult.authResult?.access_token||pipelineResult.authResult?.session) saveSession(pipelineResult.authResult.session||pipelineResult.authResult);
     ids.memberId=pipelineResult.memberId||ids.memberId;
-    try{saveRow('mdz_registrations',{...raw,...extra,status:t('statusPending'),member_id:ids.memberId})}catch(err){console.warn(err)}
+    try{saveRow('mdz_registrations',buildRegistrationBackup(raw,extra,{status:t('statusPending'),member_id:ids.memberId}))}catch(err){console.warn(err)}
     renderRegistrationSuccess({confirmBox,ids,email,hasSession:Boolean(getSession()?.access_token),warnings:[pipelineResult.registrationWarning,pipelineResult.emailWarning].filter(Boolean)});
     document.getElementById('registerModal')?.classList.add('is-success');
     document.getElementById('openAccountAfterSignup')?.addEventListener('click',()=>openAccount());
@@ -2801,7 +2877,7 @@ $('#registerForm').addEventListener('submit', async e=>{
     updateAuthChrome();
   }catch(error){
     console.error('Registration pipeline error',error);
-    saveRow('mdz_failed_registrations',{...raw,...extra,error:String(error)});
+    saveRow('mdz_failed_registrations',buildRegistrationBackup(raw,extra,{failure_code:registrationFailureCode(error)}));
     showToast(t('authErrGeneric'));
     restoreSubmit();
   }finally{restoreSubmit()}
