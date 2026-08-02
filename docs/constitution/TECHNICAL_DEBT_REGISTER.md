@@ -11,7 +11,7 @@ Lightweight living list. Add items when shipping shortcuts. Clear when fixed.
 | TD-005 | Open INSERT policies | Early public forms | Spam/abuse | Phase 0.6 — length checks + phone rate guard | **Mitigated** |
 | TD-006 | No CI workflow | Not yet added | Regressions | Phase 0.5 — `.github/workflows/ci.yml` | **Closed** |
 | TD-007 | `docs/database-schema.md` incomplete | Docs lag | Wrong mental model | Phase 0.7 — expanded | **Closed** |
-| TD-008 | Audit log missing on main | Parallel work | No forensic trail | Phase 0.4 — migration 008 | **Closed** |
+| TD-008 | Audit subsystem absent in production despite repository migration | Database drift / partial migration history | No forensic trail | Migration 020 + live verification | **Reopened — 020 pending production apply** |
 | TD-009 | Role alias sprawl (`manager` / `wilaya_mgr`) | Historical naming | Authz bugs | Phase 1 | Open |
 | TD-010 | Dual product vs constitution roadmaps | Parallel docs | Confusion | Constitution ROADMAP | **Closed** |
 | TD-011 | `registrations.status` missing from old setup | Legacy schema | Dashboard/RPC break | Phase 0 — setup + 009 | **Closed** |
@@ -22,7 +22,7 @@ Lightweight living list. Add items when shipping shortcuts. Clear when fixed.
 | TD-016 | No operator Support Center UI | Phase 1 MVP | Ops half missing | Manager/admin queue UI | **Closed** |
 | TD-017 | Notification deep links unused | Phase 1 MVP | Dead links | Hash + Open handlers + `#admin-dash` | **Closed** |
 | TD-018 | Probeable SECURITY DEFINER helpers | Phase 1 MVP | Info disclosure | No-arg helpers in 012 | **Closed** |
-| TD-019 | Manager review audit gap | Phase 1 MVP | Forensic hole | Audit all reviews in 012 | **Closed** |
+| TD-019 | Manager review audit calls a missing production writer | Audit subsystem absent in production | Forensic hole | Migration 020 + one authorized live audit smoke | **Reopened — 020 pending production apply** |
 | TD-020 | Prototype UI (prompt, enums) | Phase 1 MVP | Trust/UX | Dialog only; `window.prompt` removed from reject | **Closed** |
 | TD-021 | Modal-hosted product shell | Static-site architecture | Not workspace-class IA | Full Smart Workspace = Future after Phase 2–3; light shell only if Board prompts | Open |
 | TD-022 | No live RLS integration tests | Static SQL tests only | False confidence | Phase 1 follow-up | Open |
