@@ -223,7 +223,11 @@ async function registrationProbe({ name, signupStatus, suffix }) {
     } else {
       assert.equal(storage.mdz_registrations.length, 0);
       assert.equal(storage.mdz_failed_registrations.length, 1);
-      assert.equal(storage.mdz_failed_registrations[0].failure_code, 'registration_failed');
+      assert.equal(
+        storage.mdz_failed_registrations[0].failure_code,
+        'auth_failed',
+        `${name}: a rejected Auth signup must persist only the bounded auth failure category`,
+      );
     }
     await page.screenshot({ path: path.join(ARTIFACT_DIR, `${name}.png`), fullPage: true });
     return { scenario: name, storage, credentialPaths: forbidden };
