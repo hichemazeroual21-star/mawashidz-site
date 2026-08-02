@@ -278,7 +278,7 @@ begin
   loop
     select pg_get_functiondef(to_regprocedure(v_signature)) into v_definition;
     if position('mdz_audit_admin_action' in v_definition) = 0
-       or position('EXCEPTION' in upper(v_definition)) > 0 then
+       or v_definition ~* 'exception[[:space:]]+when' then
       raise exception '022 abort: fail-closed audit post-condition failed: %', v_signature;
     end if;
   end loop;

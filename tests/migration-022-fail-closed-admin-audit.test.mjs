@@ -40,7 +40,7 @@ assert.doesNotMatch(
   /exception\s+when\s+others/i,
   '022 must not swallow generic audit failures',
 );
-assert.match(migration, /position\('EXCEPTION' in upper\(v_definition\)\) > 0/i);
+assert.match(migration, /v_definition\s+~\*\s+'exception\[\[:space:\]\]\+when'/i);
 assert.match(migration, /'022',[\s\S]*?'fail_closed_admin_audit'/i);
 
 assert.match(verify, /references_audit_writer/i);

@@ -25,10 +25,10 @@ with target_functions(signature) as (
     end as missing_writer_not_swallowed
     ,case
       when to_regprocedure(signature) is null then null
-      else position(
-        'EXCEPTION'
-        in upper(pg_get_functiondef(to_regprocedure(signature)))
-      ) = 0
+      else not (
+        pg_get_functiondef(to_regprocedure(signature))
+        ~* 'exception[[:space:]]+when'
+      )
     end as no_exception_handler
     ,case
       when to_regprocedure(signature) is null then null
