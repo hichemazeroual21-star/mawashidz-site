@@ -24,9 +24,11 @@ a{text-decoration:none;color:inherit}.wrap{width:min(1180px,92%);margin:auto}
 .desktop{display:flex;gap:18px;font-weight:800;color:#42564a}.desktop a:hover{color:var(--g2)}
 .actions{display:flex;gap:8px}.btn{border:0;border-radius:13px;padding:12px 16px;font-weight:900;cursor:pointer}.primary{background:var(--g);color:#fff}.ghost{background:var(--mint);color:var(--g)}
 .menu-btn{width:46px;height:46px;border:0;border-radius:13px;background:var(--mint);font-size:1.45rem;cursor:pointer}
-.drawer{position:fixed;inset:0;z-index:100;display:none}.drawer.open{display:block}.shade{position:absolute;inset:0;background:#0008}.panel{position:absolute;right:0;top:0;width:min(380px,88%);height:100%;background:#fff;padding:22px;overflow:auto}
-.panel-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}.close{border:0;background:#eee;border-radius:10px;width:40px;height:40px;font-size:1.2rem}
-.menu-grid{display:grid;gap:8px}.menu-grid a{padding:14px;border-radius:13px;font-weight:850;background:#f5f8f6}.menu-grid a:hover{background:var(--mint)}
+.drawer{position:fixed;inset:0;z-index:100;display:none}.drawer.open{display:block}.shade{position:absolute;inset:0;background:#0009;backdrop-filter:blur(3px)}.panel{position:absolute;right:0;top:0;width:min(420px,92%);height:100%;background:#fff;padding:22px;overflow-y:auto;overflow-x:hidden}
+.panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0;margin-bottom:16px}.panel-head .brand{min-width:0;max-width:calc(100% - 54px);overflow:hidden}.panel-head .brand-copy{min-width:0;overflow:hidden}.panel-head .brand-copy>span,.panel-head .brand-tagline{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.close{flex:0 0 44px;border:1px solid #dbe5de;background:#f3f7f4;color:var(--g);border-radius:12px;width:44px;height:44px;font-size:1.2rem;cursor:pointer}
+.drawer-intro{padding:16px;margin-bottom:14px;border-radius:16px;background:linear-gradient(145deg,#123d2b,#1f6a48);color:#fff}.drawer-intro h2{margin:0 0 5px;font-size:1.08rem}.drawer-intro p{margin:0;color:#e1eee6;font-size:.86rem;line-height:1.65}
+.menu-grid{display:grid;gap:16px}.drawer-group{display:grid;gap:7px}.drawer-group-title{margin:0;padding-inline:4px;color:#66786d;font-size:.75rem;font-weight:950;letter-spacing:.02em}.drawer-links{display:grid;gap:7px}.drawer-links>a{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 14px;border:1px solid #e0e9e3;border-radius:13px;font-weight:850;background:#f7faf8;transition:.18s ease}.drawer-links>a::after{content:"‹";color:#769083;font-size:1.25rem;line-height:1}.drawer-links>a:hover,.drawer-links>a:focus-visible{background:var(--mint);border-color:#bfd5c6;outline:none}.drawer-links>a.drawer-primary{background:#e5f3ea;border-color:#c4ddce;color:#0f5f40}.drawer-links>a.drawer-primary::after{color:#0f5f40}.drawer-group .mdz-drawer-auth{margin:0;padding:10px;border-radius:15px}.drawer-group .mdz-drawer-auth a::after{content:none}
+body[data-lang]:not([data-lang="ar"]) .drawer-intro,body[data-lang]:not([data-lang="ar"]) .drawer-group{direction:ltr;text-align:left;unicode-bidi:plaintext}body[data-lang]:not([data-lang="ar"]) .drawer-links>a::after{content:"›"}
 .hero{min-height:650px;display:flex;align-items:center;background:linear-gradient(145deg,#101713 0%,#18261f 45%,#07100c 100%)}
 .hero-card{max-width:680px;color:#fff;padding:46px 0}.eyebrow{display:inline-block;padding:8px 12px;border-radius:999px;background:#ffffff20;border:1px solid #ffffff40;font-weight:900}
 h1{font-size:clamp(2.5rem,6vw,5.3rem);line-height:1.05;margin:18px 0}.gold{color:#e6c665}.hero p{font-size:1.22rem;line-height:1.9;color:#e8f0eb}.hero-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:24px}
@@ -1158,8 +1160,8 @@ footer .foot a:hover{color:#e2c77e}
 #bioField[hidden]{display:none!important}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-<script src="assets/i18n.js?v=1.10.1"></script>
-<script src="assets/i18n-content.js?v=1.10.1"></script>
+<script src="assets/i18n.js?v=1.11.0"></script>
+<script src="assets/i18n-content.js?v=1.11.0"></script>
 <script src="assets/algeria-location-normalize.js"></script>
 
 <style id="mdz-v10-responsive-hero-footer">
@@ -1621,6 +1623,7 @@ body[data-lang]:not([data-lang="ar"]) .hero-card h1{
 body[data-lang]:not([data-lang="ar"]) .hero-title-main,
 body[data-lang]:not([data-lang="ar"]) .hero-title-sub{white-space:normal!important}
 @media(max-width:620px){
+  .hero-title-main{white-space:normal!important}
   body[data-lang]:not([data-lang="ar"]) .hero-card h1{
     line-height:1.2!important;padding-bottom:.18em!important;
     font-size:clamp(1.75rem,8.2vw,2.55rem)!important;
@@ -1646,8 +1649,8 @@ body[data-lang]:not([data-lang="ar"]) .hero-title-sub{white-space:normal!importa
 <header class="top">
  <div class="wrap nav">
   <a class="brand" href="#home"><img class="brand-logo" src="data:image/png;base64,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" alt="شعار مواشي ديزاد" aria-label="شعار مواشي ديزاد"><span class="brand-copy"><span>MawashiDZ</span><small class="brand-tagline" data-i18n="brandTagline">المنصة الرقمية الموثوقة لقطاع المواشي في الجزائر</small></span></a>
-  <nav class="desktop">
-   <a href="#founding-launch" data-i18n="navFounders">المؤسسون</a><a href="#mdz-passport" data-i18n="navPassport">هوية MDZ</a><a href="#market" data-i18n="navMarket">السوق</a><a href="#exchange" data-i18n="navExchange">مرصد الأسعار</a><a href="#how" data-i18n="navHow">كيف تعمل؟</a><a href="#trust-public" data-i18n="navTrust">الثقة</a><a href="#services" data-i18n="navServices">الخدمات</a><a href="#news" data-i18n="navNews">الأخبار</a><a href="#managers" data-i18n="navManagers">مدراء الولايات</a>
+  <nav class="desktop" aria-label="التنقل الرئيسي">
+   <a href="#market" data-i18n="navMarket">السوق</a><a href="#exchange" data-i18n="navExchange">مرصد الأسعار</a><a href="#how" data-i18n="navHow">كيف تعمل؟</a><a href="#trust-public" data-i18n="navTrust">الثقة</a><a href="#news" data-i18n="navNews">الأخبار</a>
   </nav>
 
   <div class="header-languages" aria-label="Languages">
@@ -1667,33 +1670,54 @@ body[data-lang]:not([data-lang="ar"]) .hero-title-sub{white-space:normal!importa
    <button class="mdz-btn mdz-btn-ghost" type="button" id="headerMgrDashBtn" onclick="openManagerDashboard()" hidden data-i18n="headerMgrDash">لوحة الولاية</button>
    <button class="mdz-btn mdz-btn-ghost" type="button" id="headerAdminDashBtn" onclick="openAdminDashboard()" hidden data-i18n="headerAdminDash">لوحة الإدارة</button>
    <button class="mdz-btn mdz-btn-primary" type="button" id="headerLogoutBtn" onclick="logoutAccount()" hidden data-i18n="btnLogout">تسجيل الخروج</button>
-   <button class="menu-btn" onclick="toggleMenu(true)" data-i18n-aria="menuLabel" aria-label="القائمة">☰</button>
+   <button class="menu-btn" id="menuButton" type="button" onclick="toggleMenu(true)" data-i18n-aria="menuLabel" aria-label="القائمة" aria-controls="drawer" aria-expanded="false">☰</button>
   </div>
  </div>
 </header>
 
-<div class="drawer" id="drawer">
- <div class="shade" onclick="toggleMenu(false)"></div>
- <aside class="panel">
+<div class="drawer" id="drawer" aria-hidden="true">
+ <div class="shade" onclick="toggleMenu(false)" aria-hidden="true"></div>
+ <aside class="panel" role="dialog" aria-modal="true" aria-labelledby="drawerTitle">
   <div class="panel-head"><div class="brand"><img class="brand-logo" src="data:image/png;base64,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" alt="شعار مواشي ديزاد" aria-label="شعار مواشي ديزاد"><span class="brand-copy"><span>MawashiDZ</span><small class="brand-tagline" data-i18n="brandTagline">المنصة الرقمية الموثوقة لقطاع المواشي في الجزائر</small></span></div><button class="close" onclick="toggleMenu(false)">✕</button></div>
-  <div class="menu-grid">
-   <a href="#home" onclick="toggleMenu(false)" data-i18n="drawerHome">الرئيسية</a><a href="#founding-launch" onclick="toggleMenu(false)" data-i18n="drawerFounding">التسجيل المؤسس</a>
-   <a href="#market" onclick="toggleMenu(false)" data-i18n="drawerMarket">سوق المواشي</a>
-   <a href="#exchange" onclick="toggleMenu(false)" data-i18n="drawerExchange">مرصد الأسعار</a>
-   <a href="#services" onclick="toggleMenu(false)" data-i18n="drawerServices">البياطرة والأعلاف</a>
-   <a href="#news" onclick="toggleMenu(false)" data-i18n="drawerNews">الأخبار والأسعار</a>
-   <a href="#managers" onclick="toggleMenu(false)" data-i18n="drawerManagers">مدراء الولايات</a>
-   <a href="#how" onclick="toggleMenu(false)" data-i18n="drawerHow"><span data-i18n="howTitle">كيف تعمل المنصة؟</span></a><a href="#trust-public" onclick="toggleMenu(false)" data-i18n="drawerTrust"><span data-i18n="trustTitle">الثقة والشفافية</span></a><a href="#animal-life" onclick="toggleMenu(false)" data-i18n="drawerAnimal">هوية الحيوان وQR</a><a href="#eid" onclick="toggleMenu(false)" data-i18n="drawerEid">قسم الأضاحي</a><a href="#identity" onclick="toggleMenu(false)" data-i18n="drawerIdentity">بطاقات الأعضاء</a>
-   <div class="mdz-drawer-auth" role="group" aria-label="Account">
-    <a class="mdz-drawer-link" href="#login" id="drawerLoginLink" onclick="toggleMenu(false);openLogin();return false" data-i18n="drawerLogin">تسجيل الدخول</a>
-    <a class="mdz-drawer-link mdz-drawer-link-primary" href="#register" id="drawerRegisterLink" onclick="toggleMenu(false);openRegister();return false" data-i18n="btnRegister">سجّل الآن</a>
-    <a class="mdz-drawer-link" href="#account" id="drawerAccountLink" onclick="toggleMenu(false);openAccount();return false" hidden data-i18n="btnProfile">حسابي</a>
-    <a class="mdz-drawer-link" href="#manager-dash" id="drawerMgrDashLink" onclick="toggleMenu(false);openManagerDashboard();return false" hidden data-i18n="headerMgrDash">لوحة الولاية</a>
-    <a class="mdz-drawer-link" href="#admin-dash" id="drawerAdminDashLink" onclick="toggleMenu(false);openAdminDashboard();return false" hidden data-i18n="headerAdminDash">لوحة الإدارة</a>
-    <a class="mdz-drawer-link mdz-drawer-link-danger" href="#logout" id="drawerLogoutLink" onclick="toggleMenu(false);logoutAccount();return false" hidden data-i18n="btnLogout">تسجيل الخروج</a>
+  <div class="drawer-intro"><h2 id="drawerTitle" data-i18n="drawerTitle">دليلك إلى مواشي ديزاد</h2><p data-i18n="drawerIntro">اختر المسار الذي تحتاجه؛ أبقينا الصفحة الرئيسية مختصرة ووضعنا التفاصيل هنا.</p></div>
+  <nav class="menu-grid" aria-label="التنقل الكامل">
+   <div class="drawer-group">
+    <h3 class="drawer-group-title" data-i18n="drawerGroupMarket">السوق والخدمات</h3>
+    <div class="drawer-links">
+     <a class="drawer-primary" href="#market" onclick="toggleMenu(false)" data-i18n="drawerMarket">سوق المواشي</a>
+     <a href="#exchange" onclick="toggleMenu(false)" data-i18n="drawerExchange">مرصد الأسعار</a>
+     <a href="#services" onclick="toggleMenu(false)" data-i18n="drawerServices">البياطرة والأعلاف</a>
+     <a href="#news" onclick="toggleMenu(false)" data-i18n="drawerNews">الأخبار الرسمية</a>
+    </div>
    </div>
-   <a href="#contact" onclick="toggleMenu(false)" data-i18n="drawerContact">اتصل بنا</a>
-  </div>
+   <div class="drawer-group">
+    <h3 class="drawer-group-title" data-i18n="drawerGroupTrust">الثقة وطريقة العمل</h3>
+    <div class="drawer-links">
+     <a href="#how" onclick="toggleMenu(false)" data-i18n="drawerHow">كيف تعمل المنصة؟</a>
+     <a href="#trust-public" onclick="toggleMenu(false)" data-i18n="drawerTrust">الثقة والشفافية</a>
+    </div>
+   </div>
+   <div class="drawer-group">
+    <h3 class="drawer-group-title" data-i18n="drawerGroupCommunity">المجتمع والدعم</h3>
+    <div class="drawer-links">
+     <a href="#home" onclick="toggleMenu(false)" data-i18n="drawerHome">الرئيسية</a>
+     <a href="#founding-launch" onclick="toggleMenu(false)" data-i18n="drawerFounding">التسجيل المؤسس</a>
+     <a href="#managers" onclick="toggleMenu(false)" data-i18n="drawerManagers">مدراء الولايات</a>
+     <a href="#contact" onclick="toggleMenu(false)" data-i18n="drawerContact">اتصل بنا</a>
+    </div>
+   </div>
+   <div class="drawer-group">
+    <h3 class="drawer-group-title" data-i18n="drawerGroupAccount">الحساب</h3>
+    <div class="mdz-drawer-auth drawer-links" role="group" aria-label="Account">
+     <a class="mdz-drawer-link" href="#login" id="drawerLoginLink" onclick="toggleMenu(false);openLogin();return false" data-i18n="drawerLogin">تسجيل الدخول</a>
+     <a class="mdz-drawer-link mdz-drawer-link-primary" href="#register" id="drawerRegisterLink" onclick="toggleMenu(false);openRegister();return false" data-i18n="btnRegister">سجّل الآن</a>
+     <a class="mdz-drawer-link" href="#account" id="drawerAccountLink" onclick="toggleMenu(false);openAccount();return false" hidden data-i18n="btnProfile">حسابي</a>
+     <a class="mdz-drawer-link" href="#manager-dash" id="drawerMgrDashLink" onclick="toggleMenu(false);openManagerDashboard();return false" hidden data-i18n="headerMgrDash">لوحة الولاية</a>
+     <a class="mdz-drawer-link" href="#admin-dash" id="drawerAdminDashLink" onclick="toggleMenu(false);openAdminDashboard();return false" hidden data-i18n="headerAdminDash">لوحة الإدارة</a>
+     <a class="mdz-drawer-link mdz-drawer-link-danger" href="#logout" id="drawerLogoutLink" onclick="toggleMenu(false);logoutAccount();return false" hidden data-i18n="btnLogout">تسجيل الخروج</a>
+    </div>
+   </div>
+  </nav>
  </aside>
 </div>
 
@@ -1706,7 +1730,7 @@ body[data-lang]:not([data-lang="ar"]) .hero-title-sub{white-space:normal!importa
    <p id="heroDescription" data-i18n="heroDescription">منصة موحّدة تربط الموالين والأطباء البيطريين وتجار الأعلاف والمشترين، بهوية موثقة وتجربة بسيطة من الهاتف.</p>
    <div class="hero-actions">
     <button class="btn light" id="heroJoin" onclick="openRegister()" data-i18n="heroJoin">سجّل كعضو مؤسس</button>
-    <a class="btn primary" id="heroNews" href="#services" data-i18n="heroExplore">اكتشف المنصة</a>
+    <a class="btn primary" id="heroNews" href="#market" data-i18n="heroExplore">ادخل إلى السوق</a>
    </div><div class="mobile-only-note" id="heroNote" data-i18n="heroNote">تسجيل مجاني وآمن — أقل من دقيقتين</div>
   </div>
  </div>
@@ -1743,102 +1767,11 @@ body[data-lang]:not([data-lang="ar"]) .hero-title-sub{white-space:normal!importa
  </div>
 </section>
 
-<section id="founding-benefits">
- <div class="wrap">
-  <div class="head"><div><h2><span data-i18n="benTitle">مزايا الأعضاء المؤسسين</span></h2><p><span data-i18n="benDesc">المزايا مرتبطة بقبول الحساب والنشاط الحقيقي، وليست بمجرد إدخال رقم هاتف.</span></p></div></div>
-  <div class="benefit-grid">
-   <article class="benefit-card"><span class="phase-tag"><span data-i18n="ben1Tag">موال مؤسس</span></span><h3><span data-i18n="ben1Title">هوية وQR ومكانة مبكرة</span></h3><p><span data-i18n="ben1P">حساب وملف مهني مجاني، شارة مؤسس، أولوية التوثيق والظهور، وعدد أولي من QR مجانًا وفق السياسة عند بدء الإصدار.</span></p></article>
-   <article class="benefit-card"><span class="phase-tag"><span data-i18n="ben2Tag">بيطري مؤسس</span></span><h3><span data-i18n="ben2Title">صفحة مهنية وفرص خدمات</span></h3><p><span data-i18n="ben2P">صفحة مهنية مجانية، أولوية الظهور داخل المنطقة، استقبال الطلبات، والمشاركة في برنامج التوثيق وQR بعد الاعتماد.</span></p></article>
-   <article class="benefit-card"><span class="phase-tag"><span data-i18n="ben3Tag">شريك مبكر</span></span><h3><span data-i18n="ben3Title">تاجر أعلاف أو مدير ولاية</span></h3><p><span data-i18n="ben3P">ظهور مبكر، مسار شراكة أو ترقية، أدوات متابعة، ومكافآت مرتبطة بالجودة والإنجاز الحقيقي.</span></p></article>
-  </div>
- </div>
-</section>
-
-<section id="referrals" class="eid">
- <div class="wrap">
-  <div class="head"><div><h2><span data-i18n="refTitle">برنامج الدعوات والمكافآت</span></h2><p><span data-i18n="refDesc">كل عضو يحصل على كود إحالة. لا تحتسب الدعوة إلا بعد قبول الحساب والتحقق من أنه حقيقي.</span></p></div></div>
-  <div class="referral-grid">
-   <article class="referral-card"><h3><span data-i18n="ref1Title">رابط أو كود خاص</span></h3><span class="referral-code">MDZ-XXXX</span><p><span data-i18n="ref1P">يسجل العضو الجديد عبر الكود، فيظهر مصدر الإحالة داخل النظام.</span></p></article>
-   <article class="referral-card"><h3><span data-i18n="ref2Title">مكافآت الموال</span></h3><p><span data-i18n="ref2P">QR إضافية، أولوية دعم، شارات سفراء ومزايا تصاعدية حسب عدد الموالين المقبولين وجودة الإحالات.</span></p></article>
-   <article class="referral-card"><h3><span data-i18n="ref3Title">مسار التقدير</span></h3><p><span data-i18n="ref3P">عضو مؤسس ← سفير ← سفير مؤسس ← باني مواشي ديزاد. وقد يُرشح المتميز للمجلس الاستشاري، دون عضوية تلقائية.</span></p></article>
-  </div>
-  <div class="launch-note" style="margin-top:16px"><span data-i18n="refNote">عدد الدعوات وحده لا يكفي للترقية؛ تُراجع النزاهة، الخبرة، السمعة، النشاط وجودة المساهمة.</span></div>
- </div>
-</section>
-
-<section id="advisory-public">
- <div class="wrap">
-  <div class="head"><div><h2><span data-i18n="advTitle">المجلس الاستشاري</span></h2><p><span data-i18n="advDesc">مجلس صغير من أصحاب الخبرة يساعد في تطوير المنصة، دون إدارة التشغيل اليومي.</span></p></div></div>
-  <div class="council-grid">
-   <article class="council-card"><h3><span data-i18n="adv1Title">خبرة ميدانية</span></h3><p><span data-i18n="adv1P">موالون وبياطرة وأصحاب خبرة حقيقية ينقلون تحديات القطاع واحتياجاته.</span></p></article>
-   <article class="council-card"><h3><span data-i18n="adv2Title">تطوير منظم</span></h3><p><span data-i18n="adv2P">مراجعة الأفكار والسياسات وتقديم توصيات مستقلة في الصحة والتقنية والقانون والتشغيل.</span></p></article>
-   <article class="council-card"><h3><span data-i18n="adv3Title">فرصة للمتميزين</span></h3><p><span data-i18n="adv3P">قد تتم دعوة الأعضاء الأكثر كفاءة وتأثيرًا للمساهمة في المجلس أو لجان متخصصة مستقبلًا.</span></p></article>
-  </div>
- </div>
-</section>
-
-<section id="site-qr" class="security">
- <div class="wrap">
-  <div class="head"><div><h2><span data-i18n="qrTitle">الدخول السريع إلى المنصة عبر QR</span></h2><p><span data-i18n="qrDesc">مصمم للاستعمال في البطاقات والمنشورات والقرى والمناطق التي تكون فيها الشبكة ضعيفة.</span></p></div></div>
-  <div class="qr-panel">
-   <img src="data:image/png;base64,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" alt="QR موقع مواشي ديزاد">
-   <div class="copy">
-    <h3><span data-i18n="qrH3">امسح الرمز وادخل مباشرة</span></h3>
-    <p><span data-i18n="qrP1">يوضع هذا الرمز على بطاقات الموالين والبياطرة، المنشورات ونقاط التسجيل. ويكتب تحته أيضًا عنوان الموقع ورقم تسلسلي حتى يبقى قابلًا للاستعمال عند تعذر قراءة الرمز.</span></p>
-    <p data-i18n-html="qrP2Html"><b>مهم:</b> QR العام يفتح الموقع، أما QR العضو والحيوان فيفتحان صفحة التحقق الخاصة بهما عند تفعيل النظام.</p>
-   </div>
-  </div>
- </div>
-</section>
 
 
-<section id="mdz-passport" class="mdz-passport">
- <div class="wrap">
-  <div class="head">
-   <div>
-    <span class="passport-kicker" data-i18n="passKicker">قريبًا — جواز حيوان رقمي (عرض توضيحي)</span>
-    <h2><span data-i18n="passTitle">هوية رقمية موثقة ترافق الحيوان طوال حياته</span></h2>
-    <p><span data-i18n="passDesc">رمز MDZ واحد يربط الحيوان بمالكه، وطبيبه البيطري، وآخر فحص، واللقاحات والعلاجات وسجل نقل الملكية — داخل المنصة أو عند البيع خارجها.</span></p>
-   </div>
-  </div>
-  <div class="passport-grid">
-   <article class="passport-card">
-    <span class="passport-icon">🩺</span>
-    <h3><span data-i18n="pass1Title">مرجع الطبيب البيطري</span></h3>
-    <p><span data-i18n="pass1P">يمسح الطبيب الرمز ليتعرف على الحيوان الصحيح، ثم يسجل الفحص، التشخيص، اللقاح، العلاج، فترة الانتظار والموعد القادم. كل تقرير يحمل اسم الطبيب وتاريخه ولا يغيّره الموال.</span></p>
-   </article>
-   <article class="passport-card">
-    <span class="passport-icon">🐑</span>
-    <h3><span data-i18n="pass2Title">لوحة متابعة للموال</span></h3>
-    <p><span data-i18n="pass2P">يتابع الموال آخر فحص، اللقاحات القادمة، الوزن، الولادات والتنبيهات. ويمكنه عرض صفحة التحقق للمشتري حتى لو تم البيع خارج MawashiDZ.</span></p>
-   </article>
-   <article class="passport-card">
-    <span class="passport-icon">✓</span>
-    <h3><span data-i18n="pass3Title">ثقة واضحة للمشتري</span></h3>
-    <p><span data-i18n="pass3P">يرى المشتري حالة التوثيق، آخر فحص بيطري، اللقاحات المسجلة وهوية الطبيب الموثق، دون كشف بيانات خاصة لا يحتاج إليها.</span></p>
-   </article>
-  </div>
-  <div class="passport-demo">
-   <div class="passport-id">
-    <span>MDZ Animal ID</span>
-    <strong>MDZ-DZ-16-000184</strong>
-    <small data-i18n="passDemoSmall">رقم دائم لا يتكرر حتى بعد انتقال الملكية</small>
-   </div>
-   <div class="passport-status">
-    <span class="verified-chip" data-i18n="passDemoChip">عرض توضيحي — موثق بيطريًا (Demo)</span>
-    <h3 data-i18n="passDemoLastCheck">آخر فحص: 14 يوليو 2026</h3>
-    <p data-i18n="passDemoP">لقاح موثق — الطبيب: حساب مهني معتمد — موعد المتابعة القادم ظاهر للمالك.</p>
-   </div>
-  </div>
-  <div class="passport-principles">
-   <strong data-i18n="passRulesTitle">قواعد الثقة في MDZ:</strong>
-   <span data-i18n="passRule1">لا يمكن للموال إعلان «ملقح» دون تسجيل الطبيب</span>
-   <span data-i18n="passRule2">التصحيح يضاف كسجل جديد ولا يمحو التاريخ</span>
-   <span data-i18n="passRule3">نقل الملكية بموافقة الطرفين</span>
-   <span data-i18n="passRule4">تعطيل الرمز عند الفقد أو السرقة أو النفوق</span>
-  </div>
- </div>
-</section>
+
+
+
 
 <section id="market">
  <div class="wrap">
@@ -1947,77 +1880,10 @@ body[data-lang]:not([data-lang="ar"]) .hero-title-sub{white-space:normal!importa
  </div>
 </section>
 
-<section id="animal-life">
- <div class="wrap">
-  <div class="head"><div><h2><span data-i18n="lifeTitle">دورة حياة الحيوان داخل المنصة</span></h2><p><span data-i18n="lifeDesc">نظام تدريجي يحافظ على السجل، يسهل نقل الملكية، ويصعّب استعمال الحيوان المبلغ عنه أو المنزوع الهوية.</span></p></div></div>
-  <div class="life-grid">
-   <article class="feature-step"><div class="n">1</div><span class="phase-tag"><span data-i18n="life1Tag">قريب</span></span><h3><span data-i18n="life1Title">التسجيل الأولي</span></h3><p><span data-i18n="life1P">الموال يضيف البيانات والصور، ويُنشأ معرف فريد للحيوان بحالة «غير موثق».</span></p></article>
-   <article class="feature-step"><div class="n">2</div><span class="phase-tag"><span data-i18n="life2Tag">مرحلة التوثيق</span></span><h3><span data-i18n="life2Title">الفحص والـQR</span></h3><p><span data-i18n="life2P">البيطري يؤكد البيانات الصحية، ومسؤول التوثيق يفعّل الرمز والحلقة.</span></p></article>
-   <article class="feature-step"><div class="n">3</div><span class="phase-tag"><span data-i18n="life3Tag">لاحقاً</span></span><h3><span data-i18n="life3Title">نقل الملكية</span></h3><p><span data-i18n="life3P">طلب من البائع، قبول من المشتري، وسجل محفوظ دون حذف التاريخ السابق.</span></p></article>
-   <article class="feature-step"><div class="n">4</div><span class="phase-tag"><span data-i18n="life4Tag">لاحقاً</span></span><h3><span data-i18n="life4Title">البيع النهائي</span></h3><p><span data-i18n="life4P">يتغير الوضع إلى «خرج من التداول» ويبقى الرمز للأرشيف والتتبع.</span></p></article>
-   <article class="feature-step"><div class="n">5</div><span class="phase-tag"><span data-i18n="life5Tag">حماية</span></span><h3><span data-i18n="life5Title">الإبلاغ عن السرقة</span></h3><p><span data-i18n="life5P">تجميد النقل والبيع، وإظهار تحذير عند فحص الرمز بعد مراجعة البلاغ.</span></p></article>
-   <article class="feature-step"><div class="n">6</div><span class="phase-tag"><span data-i18n="life6Tag">سجل دائم</span></span><h3><span data-i18n="life6Title">لا حذف نهائي</span></h3><p><span data-i18n="life6P">الحالات الحساسة تُؤرشف ولا تُمحى، لضمان المراجعة والمحاسبة.</span></p></article>
-  </div>
- </div>
-</section>
-<section id="eid" class="eid">
- <div class="wrap">
-  <div class="head"><div><h2><span data-i18n="eidTitle">الاستعداد لقسم أضاحي العيد</span></h2><p><span data-i18n="eidDesc">نهيئ البنية من الآن، لكن الإطلاق يكون بعد اكتمال التسجيل والتوثيق والاستقرار.</span></p></div></div>
-  <div class="eid-grid">
-   <article class="eid-card"><h3><span data-i18n="eid1Title">إضافة أضحية</span></h3><p><span data-i18n="eid1P">صور، ولاية، بلدية، سلالة، عمر، وزن تقريبي، سعر، توصيل وحالة التوثيق.</span></p></article>
-   <article class="eid-card"><h3><span data-i18n="eid2Title">بحث سهل للزبون</span></h3><p><span data-i18n="eid2P">فلترة حسب الولاية، السعر، الوزن، السلالة، التوصيل و«أضحية موثقة».</span></p></article>
-   <article class="eid-card"><h3><span data-i18n="eid3Title">المرحلة الأولى</span></h3><p><span data-i18n="eid3P">التواصل المباشر بين الزبون والموال، ثم البيع المحمي بعد الجاهزية القانونية والتقنية.</span></p></article>
-  </div>
- </div>
-</section>
-<section id="security" class="security sensitive-hidden">
- <div class="wrap">
-  <div class="head"><div><h2><span data-i18n="afTitle">نظام الثقة ومكافحة الغش</span></h2><p><span data-i18n="afDesc">لا نعتمد على نزاهة شخص واحد؛ النظام نفسه يوزع الصلاحيات ويسجل كل قرار.</span></p></div></div>
-  <div class="security-grid">
-   <article class="security-card"><div class="icon">🔐</div><b><span data-i18n="af1Title">أقل صلاحية ممكنة</span></b><p><span data-i18n="af1P">كل دور يرى وينفذ فقط ما يحتاجه: البيطري للصحة، مدير الولاية لولايته، والإدارة للحالات الوطنية.</span></p></article>
-   <article class="security-card"><div class="icon">🧾</div><b><span data-i18n="af2Title">سجل تدقيق غير قابل للمحو</span></b><p><span data-i18n="af2P">من عدّل؟ ماذا غيّر؟ متى؟ ولماذا؟ كل عملية حساسة مسجلة للمراجعة.</span></p></article>
-   <article class="security-card"><div class="icon">👥</div><b><span data-i18n="af3Title">موافقة مزدوجة</span></b><p><span data-i18n="af3P">إصدار دفعات QR، رفع بلاغ سرقة، أو تغيير صلاحية حساسة يحتاج مراجعة ثانية.</span></p></article>
-  </div>
- </div>
-</section>
 
 
-<section id="identity">
- <div class="wrap"><div class="head"><div><h2><span data-i18n="idTitle">مركز الهوية الرقمية للأعضاء</span></h2><p><span data-i18n="idDesc">البطاقة تُصدر بعد الاعتماد، وتعرض للعامة فقط المعلومات الضرورية للتحقق.</span></p></div></div>
- <div class="identity-grid">
-  <article class="module-card"><span class="mini"><span data-i18n="id1Tag">موال</span></span><h3><span data-i18n="id1Title">بطاقة الموال</span></h3><p><span data-i18n="id1P">رقم عضوية، ولاية، شارة توثيق وQR يفتح الملف العام دون كشف الوثائق أو العنوان الدقيق.</span></p></article>
-  <article class="module-card"><span class="mini"><span data-i18n="id2Tag">بيطري</span></span><h3><span data-i18n="id2Title">بطاقة البيطري</span></h3><p><span data-i18n="id2P">هوية مهنية موثقة، خدمات ومناطق تغطية، مع صفحة تحقق مستقلة.</span></p></article>
-  <article class="module-card"><span class="mini"><span data-i18n="id3Tag">الإصدار</span></span><h3><span data-i18n="id3Title">حالة البطاقة</span></h3><p><span data-i18n="id3P">قيد المراجعة ← معتمدة ← جاهزة للطباعة ← مطبوعة ← مشحونة ← مستلمة.</span></p></article>
- </div></div>
-</section>
-<section id="diaspora" class="eid">
- <div class="wrap"><div class="head"><div><h2><span data-i18n="diasTitle">الأضاحي للجالية والعمل الخيري</span></h2><p><span data-i18n="diasDesc">خدمة مرحلية لشراء الأضحية للعائلة أو التصدق بها عبر جهات موثوقة.</span></p></div></div>
- <div class="diaspora-grid">
-  <article class="module-card"><h3><span data-i18n="dias1Title">لعائلتي في الجزائر</span></h3><p><span data-i18n="dias1P">اختيار الولاية والأضحية والتوصيل، مع صور حديثة وتقييم الموال وحالة التوثيق.</span></p></article>
-  <article class="module-card"><h3><span data-i18n="dias2Title">أضحيتي صدقة</span></h3><p><span data-i18n="dias2P">تُفعّل لاحقاً عبر جمعيات قليلة تخضع للتدقيق، ولا تُقبل أي جمعية تلقائياً.</span></p></article>
-  <article class="module-card"><h3><span data-i18n="dias3Title">مراحل آمنة</span></h3><p><span data-i18n="dias3P">تواصل مباشر أولاً، ثم حجز، ثم دفع محمي وتأكيد التسليم بعد الجاهزية القانونية.</span></p></article>
- </div></div>
-</section>
 
-<section id="ratings">
- <div class="wrap">
-  <div class="head"><div><h2><span data-i18n="ratTitle">نظام السمعة والتقييم</span></h2><p><span data-i18n="ratDesc">تظهر للعامة النتيجة العامة والشارات فقط، بينما تبقى طريقة الاحتساب التفصيلية داخلية لحماية نزاهة النظام.</span></p></div></div>
-  <div class="rating-grid">
-   <article class="module-card"><h3><span data-i18n="rat1Title">تقييمات مرتبطة بتعامل حقيقي</span></h3><p><span data-i18n="rat1P">لا تُقبل التقييمات العشوائية أو غير المرتبطة بخدمة أو معاملة موثقة.</span></p></article>
-   <article class="module-card"><h3><span data-i18n="rat2Title">شارات واضحة</span></h3><p><span data-i18n="rat2P">مثل: حساب موثق، بيطري موثق، موال موثوق، وشريك معتمد.</span></p></article>
-   <article class="module-card"><h3><span data-i18n="rat3Title">مراجعة المخالفات</span></h3><p><span data-i18n="rat3P">قد تُعلّق الشارة أو التقييم عند وجود شكوى جدية إلى حين استكمال المراجعة.</span></p></article>
-  </div>
- </div>
-</section>
 
-<section id="tracking" class="security">
- <div class="wrap"><div class="head"><div><h2><span data-i18n="trackTitle">تتبع الطلب والتوصيل</span></h2><p><span data-i18n="trackDesc">نعمل على تطوير تتبع الطلبات والتوصيل تدريجيًا داخل المنصة.</span></p></div></div>
- <div class="tracking-grid">
-  <article class="module-card"><h3><span data-i18n="track1Title">رقم الطلب</span></h3><p>MDZ-ORD-000154</p><div class="timeline"><div class="time-item"><i class="dot"></i><span data-i18n="trackT1">تم تأكيد الطلب</span></div><div class="time-item"><i class="dot"></i><span data-i18n="trackT2">تم تجهيز الأضحية</span></div><div class="time-item"><i class="dot"></i><span data-i18n="trackT3">خرجت للتوصيل</span></div><div class="time-item"><i class="dot"></i><span data-i18n="trackT4">تم التسليم</span></div></div></article>
-  <article class="module-card"><h3><span data-i18n="track2Title">إثبات التسليم</span></h3><p><span data-i18n="track2P">رمز تأكيد للمستلم، وقت التسليم، وسجل حالة واضح للمغترب والعائلة.</span></p></article>
-  <article class="module-card"><h3><span data-i18n="track3Title">شركاء النقل</span></h3><p><span data-i18n="track3P">كل شركة أو مندوب له توثيق وتقييم، ويُوقف عند تكرار المخالفات.</span></p></article>
- </div></div>
-</section>
 
 <section id="managers">
  <div class="wrap">
@@ -2031,10 +1897,6 @@ body[data-lang]:not([data-lang="ar"]) .hero-title-sub{white-space:normal!importa
 </section>
 
 
-<section id="advertising">
- <div class="wrap"><div class="head"><div><h2><span data-i18n="adTitle">الإشهار والشراكات المهنية</span></h2><p><span data-i18n="adDesc">إعلانات موثقة وواضحة فقط، مع استهداف حسب الولاية والموسم.</span></p></div></div>
- <div class="cards"><article class="card"><h3><span data-i18n="ad1Title">شركات الأعلاف</span></h3><p><span data-i18n="ad1P">حملات ومنتجات وعروض مع وسم «إعلان مدفوع».</span></p></article><article class="card"><h3><span data-i18n="ad2Title">الخدمات البيطرية</span></h3><p><span data-i18n="ad2P">صفحات مهنية وإعلانات خدمات بعد التحقق.</span></p></article><article class="card"><h3><span data-i18n="ad3Title">النقل والمعدات</span></h3><p><span data-i18n="ad3P">شركاء معتمدون وتقييمات مرتبطة بالطلبات الفعلية.</span></p></article></div></div>
-</section>
 
 
 <section id="security-rewards" class="security-rewards-section">
@@ -2502,7 +2364,18 @@ function safeText(value,max=2000){ return String(value||'').trim().slice(0,max);
 function checked(form,name){ const el=form.querySelector(`[name="${name}"]`); return Boolean(el && el.checked); }
 function selectedValues(form,name){ return [...form.querySelectorAll(`[name="${name}"]:checked`)].map(x=>x.value); }
 
-function toggleMenu(v){$('#drawer').classList.toggle('open',v)}
+function toggleMenu(v){
+ const drawer=$('#drawer'),button=$('#menuButton'),open=Boolean(v);
+ drawer.classList.toggle('open',open);
+ drawer.setAttribute('aria-hidden',String(!open));
+ button?.setAttribute('aria-expanded',String(open));
+ document.body.style.overflow=open?'hidden':'';
+ if(open) requestAnimationFrame(()=>drawer.querySelector('.close')?.focus());
+ else if(drawer.contains(document.activeElement)&&document.activeElement?.classList.contains('close')) button?.focus();
+}
+document.addEventListener('keydown',event=>{
+ if(event.key==='Escape'&&$('#drawer')?.classList.contains('open')) toggleMenu(false);
+});
 function openRegister(role='breeder'){
  closeAll();
  const modal=$('#registerModal');

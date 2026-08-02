@@ -432,7 +432,55 @@ for (const lang of I18N_LANGS) {
   }
 }
 
-// ================= TEST 7: honest market-data unavailable state =================
+// ================= TEST 7: grouped drawer on mobile =================
+{
+  const page = await newPage();
+  await page.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true });
+  await page.goto(`http://localhost:${PORT}/`, { waitUntil: 'networkidle2', timeout: 30000 });
+  await page.evaluate(() => { setMawashiLanguage('de'); document.getElementById('menuButton')?.click(); });
+  await new Promise(r => setTimeout(r, 250));
+  const openState = await page.evaluate(() => {
+    const drawer = document.getElementById('drawer');
+    const panel = drawer?.querySelector('.panel');
+    const rect = panel?.getBoundingClientRect();
+    return {
+      open: drawer?.classList.contains('open'),
+      hidden: drawer?.getAttribute('aria-hidden'),
+      expanded: document.getElementById('menuButton')?.getAttribute('aria-expanded'),
+      groups: drawer?.querySelectorAll('.drawer-group').length,
+      panelFits: !!rect && rect.left >= 0 && rect.right <= window.innerWidth + 1,
+      panelNoHorizontalScroll: !!panel && panel.scrollWidth <= panel.clientWidth + 1,
+      itemsFit: !!panel && [...drawer.querySelectorAll('.drawer-intro, .drawer-group')].every(item => {
+        const itemRect = item.getBoundingClientRect();
+        return itemRect.left >= rect.left - 1 && itemRect.right <= rect.right + 1;
+      }),
+      bodyLocked: document.body.style.overflow === 'hidden',
+      focusOnClose: document.activeElement?.classList.contains('close'),
+      closeLabel: drawer?.querySelector('.close')?.getAttribute('aria-label'),
+      overflow: document.documentElement.scrollWidth > window.innerWidth + 1,
+    };
+  });
+  check('drawer@w390: opens accessibly', openState.open && openState.hidden === 'false' && openState.expanded === 'true' && openState.closeLabel === 'Menü schließen');
+  check('drawer@w390: four groups fit viewport', openState.groups === 4 && openState.panelFits && openState.panelNoHorizontalScroll && openState.itemsFit && !openState.overflow);
+  check('drawer@w390: locks page and moves focus', openState.bodyLocked && openState.focusOnClose);
+  await page.screenshot({ path: `${SHOTS}/drawer-de-390.png` });
+  await page.keyboard.press('Escape');
+  const closeState = await page.evaluate(() => ({
+    open: document.getElementById('drawer')?.classList.contains('open'),
+    hidden: document.getElementById('drawer')?.getAttribute('aria-hidden'),
+    expanded: document.getElementById('menuButton')?.getAttribute('aria-expanded'),
+    bodyUnlocked: document.body.style.overflow === '',
+    focusReturned: document.activeElement?.id === 'menuButton',
+  }));
+  check('drawer@w390: Escape closes and restores focus', !closeState.open && closeState.hidden === 'true' && closeState.expanded === 'false' && closeState.bodyUnlocked && closeState.focusReturned);
+  await page.evaluate(() => { setMawashiLanguage('ar'); document.getElementById('menuButton')?.click(); });
+  await new Promise(r => setTimeout(r, 150));
+  await page.screenshot({ path: `${SHOTS}/drawer-ar-390.png` });
+  await page.keyboard.press('Escape');
+  await page.close();
+}
+
+// ================= TEST 8: honest market-data unavailable state =================
 {
   const page = await newPage();
   await page.setViewport({ width: 390, height: 900, isMobile: true, hasTouch: true });
@@ -453,7 +501,7 @@ for (const lang of I18N_LANGS) {
     };
   });
   check('market gate: unavailable state visible', marketState.unavailableVisible === true);
-  check('market gate: unavailable state explains verification', /موثق|verified/i.test(marketState.unavailableText), marketState.unavailableText);
+  check('market gate: unavailable state explains verification', /موثق|verified|verifiziert|vérifi/i.test(marketState.unavailableText), marketState.unavailableText);
   check('market gate: status is not live', !/مباشر|live/i.test(marketState.statusText), marketState.statusText);
   check('market gate: refresh remains available', marketState.refreshVisible === true);
   check('market gate: no synthetic price rows', marketState.syntheticRows === 0, `rows=${marketState.syntheticRows}`);
