@@ -1,11 +1,24 @@
 #!/usr/bin/env node
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { PGlite } from '@electric-sql/pglite';
+import {
+  bind021LiveEvidence,
+  parseCsv,
+} from '../scripts/bind-021-live-evidence.mjs';
 
 const root = process.cwd();
 const migration = await readFile(`${root}/supabase/migrations/022_fail_closed_admin_audit.sql`, 'utf8');
+const migration021 = await readFile(
+  `${root}/supabase/migrations/021_reconcile_email_rpc_privileges.sql`,
+  'utf8',
+);
 const attestation = await readFile(`${root}/supabase/migrations/022_fail_closed_admin_audit.verify.sql`, 'utf8');
+const preflight021 = await readFile(
+  `${root}/docs/runbooks/sql/021_preflight_snapshot.sql`,
+  'utf8',
+);
 const evidence021 = await readFile(
   `${root}/docs/runbooks/sql/021_reconcile_email_rpc_privileges.live-evidence.sql`,
   'utf8',
@@ -25,20 +38,49 @@ const enginePreflight = await readFile(
 const runbook = await readFile(`${root}/docs/runbooks/SEC01_PRODUCTION_ACCEPTANCE_AR.md`, 'utf8');
 
 assert.doesNotMatch(
+  preflight021,
+  /^\s*(begin|commit|do|insert|update|delete|create|alter|drop|grant|revoke|truncate)\b/im,
+  '021 preflight must remain read-only',
+);
+assert.doesNotMatch(
   evidence021,
   /^\s*(begin|commit|do|insert|update|delete|create|alter|drop|grant|revoke|truncate)\b/im,
   '021 live evidence must remain read-only',
 );
 for (const field of [
+  'baseline_snapshot_sha256',
+  'baseline_json',
+  'baseline_bind_literal',
+  'baseline_sha256_bind_literal',
+  'automated_restore_sql',
+  'MANUAL_FORWARD_REPAIR_REQUIRED',
+  'source_sha256',
+  'definition_sha256',
+  'READY_016_CONTAINED',
+]) {
+  assert.match(preflight021, new RegExp(field, 'i'));
+}
+for (const field of [
   'captured_at_utc',
   'server_version_num',
   'server_encoding',
+  'cluster_system_identifier',
+  'expected_supabase_project_ref',
+  'external_anchor_bound',
+  'anchor_ci_run_url',
   'session_user_name',
   'current_user_name',
   'expected_identity_args',
   'raw_proacl',
   'expanded_execute_acl_supporting',
   'ledger_applied_at_utc',
+  'baseline_source_sha256',
+  'actual_source_sha256',
+  'baseline_snapshot_integrity',
+  'oid_unchanged',
+  'body_unchanged',
+  'definition_unchanged',
+  'BLOCK_BASELINE_NOT_BOUND',
   'OK_ATTESTED',
 ]) {
   assert.match(evidence021, new RegExp(field, 'i'));
@@ -300,6 +342,120 @@ await db.exec(`
     to authenticated with grant option;
 `);
 
+const preflight021Results = await db.query(preflight021);
+assert.equal(preflight021Results.rows.length, 1);
+assert.equal(preflight021Results.rows[0]?.preflight_result, 'READY_016_CONTAINED');
+assert.equal(preflight021Results.rows[0]?.expected_016_containment, true);
+assert.equal(preflight021Results.rows[0]?.ledger_021_rows, 0);
+assert.equal(preflight021Results.rows[0]?.snapshot_is_read_only, true);
+assert.match(preflight021Results.rows[0]?.baseline_snapshot_sha256, /^[a-f0-9]{64}$/);
+assert.equal(preflight021Results.rows[0]?.automated_restore_sql, null);
+assert.equal(
+  preflight021Results.rows[0]?.recovery_mode,
+  'MANUAL_FORWARD_REPAIR_REQUIRED',
+);
+
+await db.exec(`
+  grant execute on function public.mdz_claim_email_outbox(integer, text)
+    to unexpected_rpc_caller;
+`);
+const hostilePreflight021 = await db.query(preflight021);
+assert.equal(
+  hostilePreflight021.rows[0]?.preflight_result,
+  'STOP_UNEXPECTED_PREFLIGHT_DRIFT',
+  '021 preflight must stop on an unexpected direct grantee before apply',
+);
+await db.exec(`
+  revoke execute on function public.mdz_claim_email_outbox(integer, text)
+    from unexpected_rpc_caller;
+`);
+
+await db.exec(`
+  create function public.mdz_notify_user(uuid) returns bigint
+  language sql as $$ select 0::bigint $$;
+`);
+const overloadedPreflight021 = await db.query(preflight021);
+assert.equal(
+  overloadedPreflight021.rows[0]?.preflight_result,
+  'STOP_UNEXPECTED_PREFLIGHT_DRIFT',
+  '021 preflight must stop on an unreviewed overload before apply',
+);
+await db.exec(`drop function public.mdz_notify_user(uuid);`);
+
+const unboundEvidence021 = await db.query(evidence021);
+assert.deepEqual(
+  unboundEvidence021.rows.map((row) => row.overall_result),
+  Array(4).fill('BLOCK_BASELINE_NOT_BOUND'),
+  'the post-apply verifier must not attest without the raw preflight snapshot',
+);
+
+const baseline021 = preflight021Results.rows[0]?.baseline_json;
+const baseline021Json = typeof baseline021 === 'string'
+  ? baseline021
+  : JSON.stringify(baseline021);
+const csvEscape = (value) => {
+  const text = value === null || value === undefined
+    ? ''
+    : typeof value === 'object' ? JSON.stringify(value) : String(value);
+  return `"${text.replaceAll('"', '""')}"`;
+};
+const preflightHeaders = Object.keys(preflight021Results.rows[0]);
+const exportedPreflightCsv = `${preflightHeaders.map(csvEscape).join(',')}\n${
+  preflightHeaders.map((field) => csvEscape(preflight021Results.rows[0][field])).join(',')
+}\n`;
+const parsedPreflightRecord = parseCsv(exportedPreflightCsv);
+const migration021Sha256 = createHash('sha256').update(migration021).digest('hex');
+const candidateBinding021 = bind021LiveEvidence(evidence021, parsedPreflightRecord, {
+  migration021Sha256,
+  migration021Text: migration021,
+});
+assert.doesNotMatch(candidateBinding021.publicAnchorReceiptText, /cluster_system_identifier/);
+assert.doesNotMatch(candidateBinding021.publicAnchorReceiptText, /baseline_json/);
+assert.match(candidateBinding021.publicAnchorReceiptText, /baseline_snapshot_sha256/);
+const candidateBeforeAnchor021 = await db.query(candidateBinding021.sql);
+assert.ok(candidateBeforeAnchor021.rows.every((row) =>
+  row.overall_result === 'BLOCK_EXTERNAL_ANCHOR_NOT_BOUND'
+));
+const externalAnchor021 = {
+  commit_sha: 'a'.repeat(40),
+  ci_run_url: 'https://github.com/hichemazeroual21-star/mawashidz-site/actions/runs/123456789',
+  ci_observed_at_utc: preflight021Results.rows[0]?.captured_at_utc,
+};
+const finalBinding021 = bind021LiveEvidence(evidence021, parsedPreflightRecord, {
+  migration021Sha256,
+  migration021Text: migration021,
+  anchor: externalAnchor021,
+});
+assert.equal(
+  finalBinding021.publicAnchorReceiptText,
+  candidateBinding021.publicAnchorReceiptText,
+  'binding the external anchor must not rewrite the already anchored public receipt',
+);
+const boundEvidence021 = finalBinding021.sql;
+const guardedApply021 = finalBinding021.guardedApplySql;
+assert.match(guardedApply021, /pg_advisory_xact_lock/i);
+assert.match(guardedApply021, /share row exclusive/i);
+assert.match(guardedApply021, /guarded apply precondition/i);
+assert.match(guardedApply021, /guarded apply postcondition/i);
+assert.equal(
+  finalBinding021.manifest.migration_021_sha256,
+  migration021Sha256,
+);
+assert.notEqual(boundEvidence021, evidence021, 'the verifier template must bind exactly once');
+const boundBeforeApply021 = await db.query(boundEvidence021);
+assert.ok(boundBeforeApply021.rows.every((row) =>
+  row.overall_result === 'FAIL_LEDGER_NOT_APPLIED'
+));
+assert.ok(boundBeforeApply021.rows.every((row) =>
+  row.function_check_result === 'PRECHECK_MATCH_LEDGER_PENDING'
+));
+assert.doesNotMatch(
+  JSON.stringify(boundBeforeApply021.rows),
+  /OK_ATTESTED/,
+  'no attestation word may appear before the 021 ledger exists',
+);
+assert.ok(boundBeforeApply021.rows.every((row) => row.ledger_rows === 0));
+
 const engineGate = await db.query(enginePreflight);
 assert.equal(engineGate.rows[0]?.check_result, 'OK_ENGINE_MAJOR_MATCH');
 assert.equal(engineGate.rows[0]?.engine_major_matches, true);
@@ -320,14 +476,91 @@ await db.exec(`
 `);
 
 await db.exec(`
-  insert into public.mdz_schema_migrations(version, name, notes)
-  values (
-    '021',
-    'reconcile_email_rpc_privileges',
-    'PGlite acceptance fixture for the read-only 021 evidence query.'
-  );
+  grant execute on function public.mdz_claim_email_outbox(integer, text)
+    to unexpected_rpc_caller;
 `);
-const evidence021Results = await db.query(evidence021);
+let guardedDriftError021 = '';
+try {
+  await db.exec(guardedApply021);
+} catch (error) {
+  guardedDriftError021 = String(error?.message ?? error);
+}
+await db.exec('rollback;');
+assert.match(guardedDriftError021, /guarded apply precondition: baseline drift/i);
+const ledgerAfterBlockedGuard021 = await db.query(`
+  select count(*)::integer as rows
+  from public.mdz_schema_migrations where version = '021'
+`);
+assert.equal(ledgerAfterBlockedGuard021.rows[0]?.rows, 0);
+await db.exec(`
+  revoke execute on function public.mdz_claim_email_outbox(integer, text)
+    from unexpected_rpc_caller;
+`);
+
+await db.exec(guardedApply021);
+const repeatedPreflight021 = await db.query(preflight021);
+assert.equal(
+  repeatedPreflight021.rows[0]?.preflight_result,
+  'STOP_021_LEDGER_ALREADY_EXISTS',
+  'preflight must stop instead of proposing a repeated 021 application',
+);
+const forgedPostApplySnapshot = JSON.parse(
+  repeatedPreflight021.rows[0]?.baseline_json,
+);
+forgedPostApplySnapshot.ledger_021_rows = 0;
+forgedPostApplySnapshot.preflight_result = 'READY_016_CONTAINED';
+const forgedPostApplyCanonicalResult = await db.query(`
+  select $mdz021$${JSON.stringify(forgedPostApplySnapshot)}$mdz021$::jsonb::text
+    as snapshot_text
+`);
+const forgedPostApplyJson = forgedPostApplyCanonicalResult.rows[0]?.snapshot_text;
+const forgedPostApplySha256 = createHash('sha256')
+  .update(forgedPostApplyJson)
+  .digest('hex');
+const forgedPostApplyRecord = {
+  ...parsedPreflightRecord,
+  captured_at_utc: forgedPostApplySnapshot.captured_at_utc,
+  ledger_021_rows: '0',
+  preflight_result: 'READY_016_CONTAINED',
+  baseline_json: forgedPostApplyJson,
+  baseline_snapshot_sha256: forgedPostApplySha256,
+};
+assert.throws(
+  () => bind021LiveEvidence(evidence021, forgedPostApplyRecord, {
+    migration021Sha256,
+    migration021Text: migration021,
+    anchor: externalAnchor021,
+  }),
+  /captured after the external CI anchor/,
+  'the approved binder must reject a baseline manufactured after 021',
+);
+const adversariallyBoundPostApply021 = evidence021
+  .replace(
+    'null::jsonb as snapshot, -- MDZ_021_BIND_BASELINE_JSON_HERE',
+    `$mdz021$${forgedPostApplyJson}$mdz021$::jsonb as snapshot, -- MDZ_021_BIND_BASELINE_JSON_HERE`,
+  )
+  .replace(
+    'null::text as expected_snapshot_sha256, -- MDZ_021_BIND_BASELINE_SHA256_HERE',
+    `'${forgedPostApplySha256}'::text as expected_snapshot_sha256, -- MDZ_021_BIND_BASELINE_SHA256_HERE`,
+  )
+  .replace(
+    'null::text as anchor_commit_sha, -- MDZ_021_BIND_ANCHOR_COMMIT_SHA_HERE',
+    `'${externalAnchor021.commit_sha}'::text as anchor_commit_sha, -- MDZ_021_BIND_ANCHOR_COMMIT_SHA_HERE`,
+  )
+  .replace(
+    'null::text as anchor_ci_run_url, -- MDZ_021_BIND_ANCHOR_CI_RUN_URL_HERE',
+    `'${externalAnchor021.ci_run_url}'::text as anchor_ci_run_url, -- MDZ_021_BIND_ANCHOR_CI_RUN_URL_HERE`,
+  )
+  .replace(
+    'null::timestamptz as anchor_ci_observed_at_utc -- MDZ_021_BIND_ANCHOR_CI_TIME_HERE',
+    `'${externalAnchor021.ci_observed_at_utc}'::timestamptz as anchor_ci_observed_at_utc -- MDZ_021_BIND_ANCHOR_CI_TIME_HERE`,
+  );
+const forgedPostApplyResults = await db.query(adversariallyBoundPostApply021);
+assert.ok(forgedPostApplyResults.rows.every((row) =>
+  row.overall_result === 'FAIL_ANCHOR_ORDER'
+));
+assert.doesNotMatch(JSON.stringify(forgedPostApplyResults.rows), /OK_ATTESTED/);
+const evidence021Results = await db.query(boundEvidence021);
 assert.equal(evidence021Results.rows.length, 4);
 assert.deepEqual(
   evidence021Results.rows.map((row) => row.function_check_result),
@@ -337,12 +570,139 @@ assert.deepEqual(
   evidence021Results.rows.map((row) => row.overall_result),
   ['OK_ATTESTED', 'OK_ATTESTED', 'OK_ATTESTED', 'OK_ATTESTED'],
 );
+assert.ok(evidence021Results.rows.every((row) => row.body_unchanged === true));
+assert.ok(evidence021Results.rows.every((row) => row.definition_unchanged === true));
+assert.ok(evidence021Results.rows.every((row) =>
+  row.baseline_snapshot_sha256 === preflight021Results.rows[0]?.baseline_snapshot_sha256
+));
+
+assert.throws(
+  () => bind021LiveEvidence(evidence021, parsedPreflightRecord, {
+    migration021Sha256,
+    migration021Text: migration021,
+    anchor: {
+      ...externalAnchor021,
+      ci_observed_at_utc: new Date(
+        new Date(externalAnchor021.ci_observed_at_utc).getTime() + 31 * 60 * 1000,
+      ).toISOString(),
+    },
+  }),
+  /older than the 30-minute anchor window/,
+);
+
+await db.exec('set quote_all_identifiers = on;');
+const quoteGucDrift021 = await db.query(boundEvidence021);
+assert.ok(quoteGucDrift021.rows.every((row) =>
+  row.overall_result === 'FAIL_DEPARSE_CONTEXT_MISMATCH'
+));
+await db.exec('set quote_all_identifiers = off;');
+await db.exec('set search_path = pg_catalog, public;');
+const searchPathDrift021 = await db.query(boundEvidence021);
+assert.ok(searchPathDrift021.rows.every((row) =>
+  row.overall_result === 'FAIL_DEPARSE_CONTEXT_MISMATCH'
+));
+await db.exec('set search_path = public;');
+
+const mismatchedContextBaseline = structuredClone(
+  typeof baseline021 === 'string' ? JSON.parse(baseline021) : baseline021,
+);
+mismatchedContextBaseline.database_name = 'not_the_live_database';
+const mismatchedContextJsonRaw = JSON.stringify(mismatchedContextBaseline);
+const canonicalMismatchedContext = await db.query(`
+  select $mdz021$${mismatchedContextJsonRaw}$mdz021$::jsonb::text as snapshot_text
+`);
+const mismatchedContextJson = canonicalMismatchedContext.rows[0]?.snapshot_text;
+const tamperedRecord021 = {
+  ...parsedPreflightRecord,
+  baseline_json: mismatchedContextJson,
+};
+assert.throws(
+  () => bind021LiveEvidence(
+    evidence021,
+    tamperedRecord021,
+    { migration021Sha256, migration021Text: migration021, anchor: externalAnchor021 },
+  ),
+  /does not match its saved SHA-256/,
+  'the binder must reject a CSV whose baseline JSON and saved digest diverge',
+);
+const mismatchedContextSha256 = createHash('sha256')
+  .update(mismatchedContextJson)
+  .digest('hex');
+const contextMismatchedEvidence021 = bind021LiveEvidence(
+  evidence021,
+  {
+    ...tamperedRecord021,
+    database_name: 'not_the_live_database',
+    baseline_snapshot_sha256: mismatchedContextSha256,
+  },
+  { migration021Sha256, migration021Text: migration021, anchor: externalAnchor021 },
+).sql;
+const mismatchedContextResults = await db.query(contextMismatchedEvidence021);
+assert.ok(mismatchedContextResults.rows.every((row) =>
+  row.overall_result === 'FAIL_CONTEXT_MISMATCH'
+), JSON.stringify(mismatchedContextResults.rows));
+
+const wrongClusterBaseline = structuredClone(
+  typeof baseline021 === 'string' ? JSON.parse(baseline021) : baseline021,
+);
+wrongClusterBaseline.cluster_system_identifier = (
+  BigInt(wrongClusterBaseline.cluster_system_identifier) + 1n
+).toString();
+const wrongClusterCanonicalResult = await db.query(`
+  select $mdz021$${JSON.stringify(wrongClusterBaseline)}$mdz021$::jsonb::text
+    as snapshot_text
+`);
+const wrongClusterJson = wrongClusterCanonicalResult.rows[0]?.snapshot_text;
+const wrongClusterSha256 = createHash('sha256').update(wrongClusterJson).digest('hex');
+const wrongClusterEvidence021 = bind021LiveEvidence(
+  evidence021,
+  {
+    ...parsedPreflightRecord,
+    cluster_system_identifier: wrongClusterBaseline.cluster_system_identifier,
+    baseline_json: wrongClusterJson,
+    baseline_snapshot_sha256: wrongClusterSha256,
+  },
+  { migration021Sha256, migration021Text: migration021, anchor: externalAnchor021 },
+).sql;
+const wrongClusterResults021 = await db.query(wrongClusterEvidence021);
+assert.ok(wrongClusterResults021.rows.every((row) =>
+  row.overall_result === 'FAIL_CLUSTER_ID_MISMATCH'
+));
+
+await db.exec(`
+  create or replace function public.mdz_claim_email_outbox(
+    p_limit integer,
+    p_worker_id text
+  ) returns integer
+  language sql as $$ select 1 $$;
+`);
+const bodyDriftEvidence021 = await db.query(boundEvidence021);
+assert.equal(
+  bodyDriftEvidence021.rows.find((row) =>
+    row.expected_signature === 'public.mdz_claim_email_outbox(integer,text)'
+  )?.function_check_result,
+  'FAIL',
+  '021 evidence must reject a body changed after the preflight snapshot',
+);
+assert.ok(bodyDriftEvidence021.rows.every((row) => row.overall_result === 'FAIL'));
+assert.doesNotMatch(JSON.stringify(bodyDriftEvidence021.rows), /OK_ATTESTED/);
+await db.exec(`
+  create or replace function public.mdz_claim_email_outbox(
+    p_limit integer,
+    p_worker_id text
+  ) returns integer
+  language sql as $$ select 0 $$;
+`);
+const restoredBodyEvidence021 = await db.query(boundEvidence021);
+assert.ok(restoredBodyEvidence021.rows.every((row) =>
+  row.overall_result === 'OK_ATTESTED'
+));
 
 await db.exec(`
   grant execute on function public.mdz_claim_email_outbox(integer, text)
     to unexpected_rpc_caller;
 `);
-const hostileEvidence021 = await db.query(evidence021);
+const hostileEvidence021 = await db.query(boundEvidence021);
 assert.equal(
   hostileEvidence021.rows.find((row) =>
     row.expected_signature === 'public.mdz_claim_email_outbox(integer,text)'
@@ -351,6 +711,7 @@ assert.equal(
   '021 evidence must reject an unexpected direct EXECUTE grantee',
 );
 assert.ok(hostileEvidence021.rows.every((row) => row.overall_result === 'FAIL'));
+assert.doesNotMatch(JSON.stringify(hostileEvidence021.rows), /OK_ATTESTED/);
 await db.exec(`
   revoke execute on function public.mdz_claim_email_outbox(integer, text)
     from unexpected_rpc_caller;
@@ -360,7 +721,7 @@ await db.exec(`
   create function public.mdz_notify_user(uuid) returns bigint
   language sql as $$ select 0::bigint $$;
 `);
-const overloadedEvidence021 = await db.query(evidence021);
+const overloadedEvidence021 = await db.query(boundEvidence021);
 assert.equal(
   overloadedEvidence021.rows.find((row) =>
     row.expected_signature === 'public.mdz_notify_user(uuid,text,text,text,jsonb,text)'
@@ -369,6 +730,30 @@ assert.equal(
   '021 evidence must reject an unexpected overload',
 );
 await db.exec(`drop function public.mdz_notify_user(uuid);`);
+
+await db.exec(`
+  drop function public.mdz_claim_email_outbox(integer, text);
+  create function public.mdz_claim_email_outbox(
+    p_limit integer,
+    p_worker_id text
+  ) returns integer
+  language sql as $$ select 0 $$;
+  revoke all on function public.mdz_claim_email_outbox(integer, text)
+    from public, anon, authenticated;
+  grant execute on function public.mdz_claim_email_outbox(integer, text)
+    to service_role;
+`);
+const recreatedFunctionEvidence021 = await db.query(boundEvidence021);
+assert.equal(
+  recreatedFunctionEvidence021.rows.find((row) =>
+    row.expected_signature === 'public.mdz_claim_email_outbox(integer,text)'
+  )?.oid_unchanged,
+  false,
+  'drop/recreate with the same source must still break the pre/post identity chain',
+);
+assert.ok(recreatedFunctionEvidence021.rows.every((row) =>
+  row.overall_result === 'FAIL'
+));
 
 const preMigrationShape = await db.query(`
   select
@@ -558,7 +943,7 @@ await db.exec(`
 `);
 
 console.log(JSON.stringify({
-  result: 'OK_PRODUCTION_ACCEPTANCE_HARNESS',
+  result: 'OK_ISOLATED_PRODUCTION_ACCEPTANCE_HARNESS',
   engine_preflight: engineGate.rows[0],
   email_rpc_021: evidence021Results.rows.map((row) => ({
     signature: row.expected_signature,
