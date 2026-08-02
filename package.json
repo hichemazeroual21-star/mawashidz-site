@@ -22,7 +22,7 @@
     "test:dashboard": "node tests/dashboard-review-pagination.test.mjs",
     "test:marketplace-policy": "node tests/founder-marketplace-policy.test.mjs",
     "test:storage-browser": "node tests/registration-storage-browser.test.mjs",
-    "test:migration-review": "node tests/migration-review-registration.test.mjs && node tests/migration-admin-audit.test.mjs && node tests/migration-baseline-hardening.test.mjs && node tests/migration-014-registration-id.test.mjs && node tests/migration-015-manager-role-bridge.test.mjs && node tests/migration-018-function-default-privileges.test.mjs && node tests/migration-019-login-rate-limit.test.mjs && node tests/migration-020-admin-audit-repair.test.mjs && node tests/migration-021-email-rpc-privileges.test.mjs && node scripts/check-function-privileges.mjs && node tests/phase1-member-ops.test.mjs && node tests/email-outbox.test.mjs && node tests/ui-remediation.test.mjs && node tests/supabase-url.test.mjs",
+    "test:migration-review": "node tests/migration-review-registration.test.mjs && node tests/migration-admin-audit.test.mjs && node tests/migration-baseline-hardening.test.mjs && node tests/migration-014-registration-id.test.mjs && node tests/migration-015-manager-role-bridge.test.mjs && node tests/migration-018-function-default-privileges.test.mjs && node tests/migration-019-login-rate-limit.test.mjs && node tests/migration-020-admin-audit-repair.test.mjs && node tests/migration-021-email-rpc-privileges.test.mjs && node tests/migration-022-fail-closed-admin-audit.test.mjs && node tests/migration-022-atomic-rollback.test.mjs && node tests/migration-022-production-acceptance.test.mjs && node scripts/check-function-privileges.mjs && node tests/phase1-member-ops.test.mjs && node tests/email-outbox.test.mjs && node tests/ui-remediation.test.mjs && node tests/supabase-url.test.mjs",
     "test:unit": "node tests/registration-flow.test.mjs && node tests/static-asset-validation.test.mjs && node tests/registration-ui-guard.test.mjs && npm run test:homepage-ia && npm run test:news-governance && node tests/api-routes.test.mjs && node tests/auth-surface-guard.test.mjs && node tests/password-recovery.test.mjs && node tests/dashboard-review-pagination.test.mjs && npm run test:marketplace-policy && npm run test:migration-review && node tests/registration-storage-containment.test.mjs",
     "test:ci": "npm run test:unit && npm run test:security && node tests/security-review-registration.test.mjs",
     "test": "npm run test:ci && npm run test:e2e && npm run test:layout",
@@ -34,6 +34,7 @@
     "deploy:prod": "node scripts/deploy-prod.mjs"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.4",
     "puppeteer-core": "^24.0.0",
     "wrangler": "^4.112.0"
   }
