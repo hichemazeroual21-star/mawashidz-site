@@ -16,6 +16,11 @@ assert.match(sql, /create policy "admin_audit: admin read"/i);
 assert.match(sql, /create or replace function public\.mdz_assert_admin_caller\(\)/i);
 assert.match(sql, /create or replace function public\.mdz_audit_admin_action\(/i);
 assert.match(sql, /create or replace function public\.admin_list_audit_log\(/i);
+assert.equal(
+  (sql.match(/set search_path\s*=\s*''/gi) || []).length,
+  3,
+  "every migration 020 SECURITY DEFINER must use an empty search_path",
+);
 assert.match(sql, /audit actor mismatch/i);
 assert.match(sql, /mdz_is_platform_admin\(\)/i);
 assert.match(sql, /mdz_is_wilaya_manager\(\)/i);
