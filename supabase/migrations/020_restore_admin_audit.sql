@@ -89,7 +89,7 @@ returns uuid
 language plpgsql
 stable
 security definer
-set search_path = pg_catalog, public
+set search_path = ''
 as $$
 declare
   caller_id uuid := auth.uid();
@@ -115,7 +115,7 @@ create or replace function public.mdz_audit_admin_action(
 returns void
 language plpgsql
 security definer
-set search_path = pg_catalog, public
+set search_path = ''
 as $$
 declare
   caller_id uuid := auth.uid();
@@ -152,7 +152,7 @@ returns setof public.admin_audit_log
 language plpgsql
 stable
 security definer
-set search_path = pg_catalog, public
+set search_path = ''
 as $$
 begin
   perform public.mdz_assert_admin_caller();
