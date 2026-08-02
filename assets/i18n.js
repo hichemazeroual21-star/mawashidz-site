@@ -1,5 +1,5 @@
 /* MawashiDZ — multilingual UI (ar, en, fr, de) */
-const MDZ_APP_VERSION = '1.10.1';
+const MDZ_APP_VERSION = '1.11.0';
 const MDZ_LANGS = ['ar', 'en', 'fr', 'de'];
 
 const MDZ_I18N = {
@@ -7,16 +7,18 @@ const MDZ_I18N = {
     brandTagline: 'المنصة الرقمية الموثوقة لقطاع المواشي في الجزائر',
     navFounders: 'المؤسسون', navPassport: 'هوية MDZ', navMarket: 'السوق', navExchange: 'مرصد الأسعار', navHow: 'كيف تعمل؟',
     navTrust: 'الثقة', navServices: 'الخدمات', navNews: 'الأخبار', navManagers: 'مدراء الولايات',
-    btnLogin: 'دخول', btnProfile: 'حسابي', btnRegister: 'سجّل الآن', menuLabel: 'القائمة',
+    btnLogin: 'دخول', btnProfile: 'حسابي', btnRegister: 'سجّل الآن', menuLabel: 'القائمة', closeMenuLabel: 'إغلاق القائمة',
     siteVersion: 'MawashiDZ — الإصدار v{version}',
+    drawerTitle: 'دليلك إلى مواشي ديزاد', drawerIntro: 'اختر المسار الذي تحتاجه؛ أبقينا الصفحة الرئيسية مختصرة ووضعنا التفاصيل هنا.',
+    drawerGroupMarket: 'السوق والخدمات', drawerGroupTrust: 'الثقة وطريقة العمل', drawerGroupCommunity: 'المجتمع والدعم', drawerGroupAccount: 'الحساب',
     drawerHome: 'الرئيسية', drawerFounding: 'التسجيل المؤسس', drawerMarket: 'سوق المواشي',
-    drawerServices: 'البياطرة والأعلاف', drawerNews: 'الأخبار والأسعار', drawerExchange: 'مرصد الأسعار', drawerManagers: 'مدراء الولايات',
+    drawerServices: 'البياطرة والأعلاف', drawerNews: 'الأخبار الرسمية', drawerExchange: 'مرصد الأسعار', drawerManagers: 'مدراء الولايات',
     drawerHow: 'كيف تعمل المنصة؟', drawerTrust: 'الثقة والشفافية', drawerAnimal: 'هوية الحيوان وQR',
     drawerEid: 'قسم الأضاحي', drawerIdentity: 'بطاقات الأعضاء', drawerLogin: 'تسجيل الدخول إلى حسابي', drawerContact: 'اتصل بنا',
     heroEyebrow: 'المنصة الرقمية لقطاع المواشي في الجزائر',
     heroTitleMain: 'نظام ذكي للمواشي', heroTitleSub: 'مبني على الثقة',
     heroDescription: 'منصة موحّدة تربط الموالين والأطباء البيطريين وتجار الأعلاف والمشترين، بهوية موثقة وتجربة بسيطة من الهاتف.',
-    heroJoin: 'سجّل كعضو مؤسس', heroExplore: 'اكتشف المنصة', heroNote: 'تسجيل مجاني وآمن — أقل من دقيقتين',
+    heroJoin: 'سجّل كعضو مؤسس', heroExplore: 'ادخل إلى السوق', heroNote: 'تسجيل مجاني وآمن — أقل من دقيقتين',
     statNational: 'منصة وطنية', statDirect: 'تواصل مباشر', statVet: 'توثيق بيطري', statTrust: 'شفافية وثقة',
     foundingPill: '🎉 التسجيل مجاني للأعضاء المؤسسين',
     foundingTitle: 'شارك في بناء النواة الأولى لـ MawashiDZ',
@@ -207,16 +209,18 @@ const MDZ_I18N = {
     brandTagline: 'The trusted digital platform for Algeria\'s livestock sector',
     navFounders: 'Founders', navPassport: 'MDZ ID', navMarket: 'Market', navExchange: 'Price observatory', navHow: 'How it works',
     navTrust: 'Trust', navServices: 'Services', navNews: 'News', navManagers: 'Wilaya managers',
-    btnLogin: 'Sign in', btnProfile: 'My profile', btnRegister: 'Register now', menuLabel: 'Menu',
+    btnLogin: 'Sign in', btnProfile: 'My profile', btnRegister: 'Register now', menuLabel: 'Menu', closeMenuLabel: 'Close menu',
     siteVersion: 'MawashiDZ — version v{version}',
+    drawerTitle: 'Your MawashiDZ guide', drawerIntro: 'Choose what you need; the homepage stays focused while the full paths live here.',
+    drawerGroupMarket: 'Market & services', drawerGroupTrust: 'Trust & process', drawerGroupCommunity: 'Community & support', drawerGroupAccount: 'Account',
     drawerHome: 'Home', drawerFounding: 'Founding registration', drawerMarket: 'Livestock market',
-    drawerServices: 'Vets & feed', drawerNews: 'News & prices', drawerExchange: 'Price observatory', drawerManagers: 'Wilaya managers',
+    drawerServices: 'Vets & feed', drawerNews: 'Official news', drawerExchange: 'Price observatory', drawerManagers: 'Wilaya managers',
     drawerHow: 'How the platform works', drawerTrust: 'Trust & transparency', drawerAnimal: 'Animal ID & QR',
     drawerEid: 'Eid section', drawerIdentity: 'Member cards', drawerLogin: 'Sign in to my account', drawerContact: 'Contact us',
     heroEyebrow: 'Algeria\'s digital livestock platform',
     heroTitleMain: 'Smart livestock system', heroTitleSub: 'built on trust',
     heroDescription: 'One platform connecting breeders, veterinarians, feed traders and buyers — with verified identity and a simple mobile experience.',
-    heroJoin: 'Join as a founding member', heroExplore: 'Explore the platform', heroNote: 'Free, secure registration — under two minutes',
+    heroJoin: 'Join as a founding member', heroExplore: 'Enter the market', heroNote: 'Free, secure registration — under two minutes',
     statNational: 'National platform', statDirect: 'Direct contact', statVet: 'Vet verification', statTrust: 'Transparency & trust',
     foundingPill: '🎉 Free registration for founding members',
     foundingTitle: 'Help build the first core of MawashiDZ',
@@ -407,16 +411,18 @@ const MDZ_I18N = {
     brandTagline: 'La plateforme numérique de confiance pour l\'élevage en Algérie',
     navFounders: 'Fondateurs', navPassport: 'ID MDZ', navMarket: 'Marché', navExchange: 'Observatoire des prix', navHow: 'Comment ça marche',
     navTrust: 'Confiance', navServices: 'Services', navNews: 'Actualités', navManagers: 'Gestionnaires wilaya',
-    btnLogin: 'Connexion', btnProfile: 'Mon profil', btnRegister: 'S\'inscrire', menuLabel: 'Menu',
+    btnLogin: 'Connexion', btnProfile: 'Mon profil', btnRegister: 'S\'inscrire', menuLabel: 'Menu', closeMenuLabel: 'Fermer le menu',
     siteVersion: 'MawashiDZ — version v{version}',
+    drawerTitle: 'Votre guide MawashiDZ', drawerIntro: 'Choisissez votre parcours ; la page d’accueil reste concise et tous les accès sont regroupés ici.',
+    drawerGroupMarket: 'Marché & services', drawerGroupTrust: 'Confiance & fonctionnement', drawerGroupCommunity: 'Communauté & assistance', drawerGroupAccount: 'Compte',
     drawerHome: 'Accueil', drawerFounding: 'Inscription fondatrice', drawerMarket: 'Marché du bétail',
-    drawerServices: 'Vétérinaires & aliments', drawerNews: 'Actus & prix', drawerExchange: 'Observatoire des prix', drawerManagers: 'Gestionnaires wilaya',
+    drawerServices: 'Vétérinaires & aliments', drawerNews: 'Actualités officielles', drawerExchange: 'Observatoire des prix', drawerManagers: 'Gestionnaires wilaya',
     drawerHow: 'Fonctionnement', drawerTrust: 'Confiance & transparence', drawerAnimal: 'Identité animale & QR',
     drawerEid: 'Section Aïd', drawerIdentity: 'Cartes membres', drawerLogin: 'Connexion à mon compte', drawerContact: 'Nous contacter',
     heroEyebrow: 'La plateforme numérique de l\'élevage en Algérie',
     heroTitleMain: 'Système intelligent pour le bétail', heroTitleSub: 'fondé sur la confiance',
     heroDescription: 'Une plateforme unique reliant éleveurs, vétérinaires, négociants en aliments et acheteurs — avec identité vérifiée et expérience mobile simple.',
-    heroJoin: 'Rejoindre comme membre fondateur', heroExplore: 'Découvrir la plateforme', heroNote: 'Inscription gratuite et sécurisée — moins de deux minutes',
+    heroJoin: 'Rejoindre comme membre fondateur', heroExplore: 'Accéder au marché', heroNote: 'Inscription gratuite et sécurisée — moins de deux minutes',
     statNational: 'Plateforme nationale', statDirect: 'Contact direct', statVet: 'Vérification vétérinaire', statTrust: 'Transparence & confiance',
     foundingPill: '🎉 Inscription gratuite pour les membres fondateurs',
     foundingTitle: 'Participez à la première base de MawashiDZ',
@@ -601,16 +607,18 @@ const MDZ_I18N = {
     brandTagline: 'Die vertrauenswürdige Digitalplattform für Algeriens Viehzucht',
     navFounders: 'Gründer', navPassport: 'MDZ-ID', navMarket: 'Markt', navExchange: 'Preisbeobachtung', navHow: 'So funktioniert\'s',
     navTrust: 'Vertrauen', navServices: 'Services', navNews: 'Nachrichten', navManagers: 'Wilaya-Leiter',
-    btnLogin: 'Anmelden', btnProfile: 'Mein Profil', btnRegister: 'Registrieren', menuLabel: 'Menü',
+    btnLogin: 'Anmelden', btnProfile: 'Mein Profil', btnRegister: 'Registrieren', menuLabel: 'Menü', closeMenuLabel: 'Menü schließen',
     siteVersion: 'MawashiDZ — Version v{version}',
+    drawerTitle: 'Ihr MawashiDZ-Wegweiser', drawerIntro: 'Wählen Sie Ihren Bereich; die Startseite bleibt klar und alle Wege sind hier gebündelt.',
+    drawerGroupMarket: 'Markt & Dienste', drawerGroupTrust: 'Vertrauen & Ablauf', drawerGroupCommunity: 'Gemeinschaft & Hilfe', drawerGroupAccount: 'Konto',
     drawerHome: 'Start', drawerFounding: 'Gründer-Anmeldung', drawerMarket: 'Viehmarkt',
-    drawerServices: 'Tierärzte & Futter', drawerNews: 'News & Preise', drawerExchange: 'Preisbeobachtung', drawerManagers: 'Wilaya-Leiter',
+    drawerServices: 'Tierärzte & Futter', drawerNews: 'Offizielle Meldungen', drawerExchange: 'Preisbeobachtung', drawerManagers: 'Wilaya-Leiter',
     drawerHow: 'Plattform-Funktion', drawerTrust: 'Vertrauen & Transparenz', drawerAnimal: 'Tier-ID & QR',
     drawerEid: 'Opferfest-Bereich', drawerIdentity: 'Mitgliedskarten', drawerLogin: 'In mein Konto', drawerContact: 'Kontakt',
     heroEyebrow: 'Die digitale Viehzuchtplattform Algeriens',
     heroTitleMain: 'Intelligentes Viehsystem', heroTitleSub: 'auf Vertrauen gebaut',
     heroDescription: 'Eine Plattform verbindet Züchter, Tierärzte, Futterhändler und Käufer — mit verifizierter Identität und einfacher mobiler Nutzung.',
-    heroJoin: 'Als Gründungsmitglied registrieren', heroExplore: 'Plattform entdecken', heroNote: 'Kostenlose, sichere Anmeldung — unter zwei Minuten',
+    heroJoin: 'Als Gründungsmitglied registrieren', heroExplore: 'Zum Markt', heroNote: 'Kostenlose, sichere Anmeldung — unter zwei Minuten',
     statNational: 'Nationale Plattform', statDirect: 'Direkter Kontakt', statVet: 'Tierärztliche Prüfung', statTrust: 'Transparenz & Vertrauen',
     foundingPill: '🎉 Kostenlose Anmeldung für Gründungsmitglieder',
     foundingTitle: 'Helfen Sie beim Aufbau des ersten Kerns von MawashiDZ',
@@ -859,6 +867,8 @@ function applyI18n(lang) {
   if (typeof refreshDynamicI18n === 'function') refreshDynamicI18n();
   if (typeof updateAuthChrome === 'function') updateAuthChrome();
   else if (typeof syncAuthHeader === 'function') syncAuthHeader();
+  const drawerClose = document.querySelector('#drawer .close');
+  if (drawerClose && pack.closeMenuLabel) drawerClose.setAttribute('aria-label', pack.closeMenuLabel);
   const versionEl = document.getElementById('siteVersionLabel');
   if (versionEl && pack.siteVersion) versionEl.textContent = t('siteVersion', { version: MDZ_APP_VERSION });
 }

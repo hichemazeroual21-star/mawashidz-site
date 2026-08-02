@@ -184,9 +184,10 @@ assert.match(indexSrc, /mdz-btn mdz-btn-primary/);
 assert.match(indexSrc, /mountAccountSupport[\s\S]*renderSupportSkeleton/);
 assert.match(indexSrc, /mountOperatorSupport[\s\S]*renderSupportSkeleton/);
 
-// MDZ-UI-011
+// MDZ-UI-011 — demos stay documented but are not advertised as live UI
 assert.match(read('assets/i18n-content.js'), /passDemoChip:[\s\S]{0,40}Demo/);
-assert.match(indexSrc, /passDemoChip">عرض توضيحي/);
+assert.doesNotMatch(indexSrc, /id="mdz-passport"/);
+assert.doesNotMatch(indexSrc, /passDemoChip">عرض توضيحي/);
 
 // MDZ-UI-012
 assert.match(read('js/mdz-dashboards.mjs'), /five primary tabs/);
@@ -195,7 +196,7 @@ assert.doesNotMatch(read('js/mdz-dashboards.mjs'), /four primary surfaces/);
 console.log('  ✓ MDZ-UI remediation 001–012 gates');
 
 // MDZ-CE-001 — drawer auth chrome on DS
-assert.match(indexSrc, /class="mdz-drawer-auth"/);
+assert.match(indexSrc, /class="[^"]*mdz-drawer-auth/);
 assert.match(indexSrc, /id="drawerLoginLink"[\s\S]*?mdz-drawer-link/);
 assert.match(indexSrc, /mdz-drawer-link-primary/);
 assert.match(indexSrc, /mdz-drawer-link-danger/);
