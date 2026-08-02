@@ -169,8 +169,31 @@ if (shouldCheckApi) {
   } else {
     try {
       const body = JSON.parse(news.text || '{}');
-      if (news.status === 200 && !Array.isArray(body.items)) fail('production news 200 without items[]');
-      else console.log(`OK /api/livestock-news (status=${news.status})`);
+      if (news.status === 200) {
+        const now = new Date();
+        const month = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}`;
+        const officialDomains = ['madr.gov.dz', 'aps.dz', 'joradp.dz', 'meteo.dz', 'woah.org', 'fao.org'];
+        const officialHost = (value) => {
+          try {
+            const parsed = new URL(value);
+            const host = parsed.hostname.toLowerCase().replace(/^www\./, '');
+            return parsed.protocol === 'https:' && officialDomains.some((domain) => host === domain || host.endsWith(`.${domain}`));
+          } catch {
+            return false;
+          }
+        };
+        const validItems = Array.isArray(body.items) && body.items.length > 0 && body.items.every((item) =>
+          item?.official === true && officialHost(item.sourceUrl) && String(item.publishedAt || '').startsWith(month),
+        );
+        if (body?.policy?.officialOnly !== true || body?.policy?.period !== 'current-month' || body?.policy?.month !== month || !validItems) {
+          fail('production news violates official current-month policy');
+        } else {
+          console.log(`OK /api/livestock-news (official current-month rows=${body.items.length})`);
+        }
+      } else {
+        if (!Array.isArray(body.items) || body.items.length) fail('production news 503 must fail closed with items=[]');
+        else console.log('OK /api/livestock-news (no qualifying official news this month)');
+      }
     } catch {
       fail('production /api/livestock-news is not valid JSON');
     }

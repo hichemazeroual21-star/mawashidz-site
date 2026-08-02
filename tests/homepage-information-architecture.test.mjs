@@ -9,11 +9,11 @@ const i18n = readFileSync(join(root, 'assets/i18n.js'), 'utf8');
 
 const activeSections = [
   'home', 'founding-launch', 'market', 'services', 'exchange', 'news',
-  'news-specialized', 'how', 'trust-public', 'managers', 'security-rewards', 'contact',
+  'how', 'trust-public', 'managers', 'security-rewards', 'contact',
 ];
 const deferredSections = [
   'founding-benefits', 'referrals', 'advisory-public', 'site-qr', 'mdz-passport',
-  'animal-life', 'eid', 'security', 'identity', 'diaspora', 'ratings', 'tracking', 'advertising',
+  'animal-life', 'eid', 'security', 'identity', 'diaspora', 'ratings', 'tracking', 'advertising', 'news-specialized',
 ];
 
 for (const id of activeSections) {

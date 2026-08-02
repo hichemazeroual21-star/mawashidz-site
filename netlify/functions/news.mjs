@@ -1,39 +1,34 @@
 /*
- * MawashiDZ — أخبار قطاع المواشي والزراعة (مصادر موثوقة + فلترة صارمة)
- * /api/livestock-news
+ * MawashiDZ — official, current-month livestock news only.
+ * Google News is used for discovery; an item is published only when its
+ * original <source url> belongs to the explicit official-source registry.
  */
 
 const CATEGORY_QUERIES = {
   weather: 'الطقس الجزائر تحذير أرصاد مربي',
-  feed: 'الأعلاف الجزائر أسعار الشعير الذرة',
-  livestock: 'المواشي الأغنام الأبقار الجزائر سوق',
-  health: 'الصحة الحيوانية بيطري الجزائر تلقيح وباء',
-  official: 'وزارة الفلاحة والتنمية الريفية الجزائر مواشي قرار',
+  feed: 'الأعلاف الجزائر شعير ذرة نخالة مربي',
+  livestock: 'المواشي الأغنام الأبقار الماعز الجزائر',
+  health: 'الصحة الحيوانية بيطري تلقيح وباء الجزائر',
+  official: 'وزارة الفلاحة الجزائر مواشي قرار بلاغ',
   prices: 'أسعار اللحوم الأغنام الجزائر سوق الجملة',
 };
 
-const OFFICIAL_DOMAINS = [
-  'madr.gov.dz', 'aps.dz', 'interieur.gov.dz', 'joradp.dz', 'ons.dz',
-  'el-mouradia.dz', 'premier-ministre.gov.dz', 'finance.gov.dz', 'douane.gov.dz',
-];
+export const OFFICIAL_NEWS_SOURCES = Object.freeze([
+  { domain: 'madr.gov.dz', label: 'وزارة الفلاحة والتنمية الريفية والصيد البحري', scope: 'dz', priority: 100 },
+  { domain: 'aps.dz', label: 'وكالة الأنباء الجزائرية', scope: 'dz', priority: 95 },
+  { domain: 'joradp.dz', label: 'الجريدة الرسمية للجمهورية الجزائرية', scope: 'dz', priority: 100 },
+  { domain: 'meteo.dz', label: 'الديوان الوطني للأرصاد الجوية', scope: 'dz', priority: 100 },
+  { domain: 'woah.org', label: 'المنظمة العالمية لصحة الحيوان', scope: 'international', priority: 95 },
+  { domain: 'fao.org', label: 'منظمة الأغذية والزراعة للأمم المتحدة', scope: 'international', priority: 95 },
+]);
 
-const HEALTH_TRUSTED = [
-  'woah.org', 'fao.org', 'madr.gov.dz', 'aps.dz', 'ons.dz', 'who.int',
-];
-
-const TRUSTED_SOURCES = [
-  ...OFFICIAL_DOMAINS, 'woah', 'fao', 'meteo.dz', 'onab',
-];
-
-const LIVESTOCK_KEYWORDS = /مواشي|ماشية|أغنام|ضأن|أبقار|بقر|ماعز|إبل|لحوم|لحم|أعلاف|شعير|ذرة|نخالة|فلاحة|زراع|بيطر|حيوان|تلقيح|مربي|سلالة|ذبح|جزارة|سوق الجملة|ONAB|الفلاحة|الريف|مرعى|أرصاد|طقس|أمطار|حرارة|جفاف|وباء|مرض|لقاح/i;
-
-const HEALTH_KEYWORDS = /بيطر|صحة حيوان|تلقيح|لقاح|وباء|مرض|حيوان|ماشية|مواشي|WOAH|FAO|إنفلونزا|جمرة|طاعون/i;
-
-const OFFICIAL_KEYWORDS = /وزارة|قرار|مرسوم|بلاغ|رسمي|فلاحة|تنمية ريفية|حكومة|مجلس|ولاية|تعميم/i;
-
-const EXCLUDE_KEYWORDS = /كرة|مباراة|فيديو|مسلسل|فنان|انتخاب|جريمة|حادث مرور|فضيحة/i;
+const LIVESTOCK_KEYWORDS = /مواشي|ماشية|أغنام|ضأن|أبقار|بقر|ماعز|إبل|لحوم|لحم|أعلاف|شعير|ذرة|نخالة|فلاحة|زراع|بيطر|حيوان|تلقيح|مربي|سلالة|ذبح|جزارة|سوق الجملة|ONAB|الفلاحة|الريف|مرعى|أرصاد|طقس|أمطار|حرارة|جفاف|وباء|مرض|لقاح|livestock|animal health|veterinary|cattle|sheep|goat|feed|fodder|weather|drought/i;
+const HEALTH_KEYWORDS = /بيطر|صحة حيوان|تلقيح|لقاح|وباء|مرض|حيوان|ماشية|مواشي|WOAH|FAO|إنفلونزا|جمرة|طاعون|animal health|veterinary|disease|outbreak|vaccin/i;
+const OFFICIAL_KEYWORDS = /وزارة|قرار|مرسوم|بلاغ|رسمي|فلاحة|تنمية ريفية|حكومة|مجلس|ولاية|تعميم|decree|official|ministry|communiqu/i;
+const EXCLUDE_KEYWORDS = /كرة|مباراة|فيديو|مسلسل|فنان|انتخاب|جريمة|حادث مرور|فضيحة|football|match|celebrity/i;
 
 const MAX_PER_CATEGORY = 6;
+const MAX_TOTAL_ITEMS = 18;
 const FETCH_TIMEOUT_MS = 9000;
 
 function decodeEntities(value) {
@@ -49,9 +44,40 @@ function decodeEntities(value) {
     .trim();
 }
 
-function domainIn(url, source, domains) {
-  const blob = `${url} ${source}`.toLowerCase();
-  return domains.some((d) => blob.includes(d));
+function safeHttpsUrl(value) {
+  try {
+    const parsed = new URL(String(value || '').trim());
+    return parsed.protocol === 'https:' ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function normalizedHostname(value) {
+  const parsed = safeHttpsUrl(value);
+  return parsed ? parsed.hostname.toLowerCase().replace(/^www\./, '') : '';
+}
+
+export function officialSourceFor(value) {
+  const hostname = normalizedHostname(value);
+  if (!hostname) return null;
+  return OFFICIAL_NEWS_SOURCES.find(({ domain }) => hostname === domain || hostname.endsWith(`.${domain}`)) || null;
+}
+
+export function currentMonthWindow(now = new Date()) {
+  const value = now instanceof Date ? now : new Date(now);
+  if (!Number.isFinite(value.getTime())) throw new TypeError('invalid current date');
+  const start = new Date(Date.UTC(value.getUTCFullYear(), value.getUTCMonth(), 1));
+  const end = new Date(Date.UTC(value.getUTCFullYear(), value.getUTCMonth() + 1, 1));
+  return { start, end, key: start.toISOString().slice(0, 7) };
+}
+
+export function isPublishedThisMonth(value, now = new Date()) {
+  const published = new Date(value);
+  if (!Number.isFinite(published.getTime())) return false;
+  const { start, end } = currentMonthWindow(now);
+  const futureTolerance = new Date(now).getTime() + 5 * 60 * 1000;
+  return published >= start && published < end && published.getTime() <= futureTolerance;
 }
 
 function isLivestockRelevant(title, description) {
@@ -60,53 +86,66 @@ function isLivestockRelevant(title, description) {
   return LIVESTOCK_KEYWORDS.test(text);
 }
 
-function trustScore(source, url) {
-  const blob = `${source} ${url}`.toLowerCase();
-  if (OFFICIAL_DOMAINS.some((d) => blob.includes(d))) return 4;
-  if (HEALTH_TRUSTED.some((d) => blob.includes(d))) return 3;
-  if (TRUSTED_SOURCES.some((s) => blob.includes(s))) return 2;
-  return 1;
+function sourceNode(block) {
+  const match = block.match(/<source\b([^>]*)>([\s\S]*?)<\/source>/i);
+  if (!match) return { name: '', url: '' };
+  const urlMatch = match[1].match(/\burl=["']([^"']+)["']/i);
+  return { name: decodeEntities(match[2]), url: decodeEntities(urlMatch?.[1] || '') };
 }
 
-function parseRssItems(xml, category) {
+export function parseRssItems(xml, category, now = new Date()) {
   const items = [];
-  const blocks = xml.match(/<item>[\s\S]*?<\/item>/g) || [];
+  const blocks = String(xml || '').match(/<item>[\s\S]*?<\/item>/gi) || [];
   for (const block of blocks) {
     const pick = (tag) => {
-      const m = block.match(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)</${tag}>`));
-      return m ? decodeEntities(m[1]) : '';
+      const match = block.match(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)</${tag}>`, 'i'));
+      return match ? decodeEntities(match[1]) : '';
     };
     const title = pick('title');
-    const url = pick('link');
+    const url = safeHttpsUrl(pick('link'));
     const description = pick('description') || pick('content:encoded') || '';
-    if (!title || !url) continue;
+    const publishedAt = pick('pubDate');
+    const sourceNodeValue = sourceNode(block);
+    const officialSource = officialSourceFor(sourceNodeValue.url);
+
+    if (!title || !url || !officialSource) continue;
+    if (!isPublishedThisMonth(publishedAt, now)) continue;
     if (!isLivestockRelevant(title, description)) continue;
-    const source = pick('source') || 'Google News';
+
     items.push({
       category,
       title,
       description: description.slice(0, 280),
-      url,
-      source,
-      publishedAt: new Date(pick('pubDate') || Date.now()).toISOString(),
-      trust: trustScore(source, url),
-      official: domainIn(url, source, OFFICIAL_DOMAINS),
+      url: url.href,
+      sourceUrl: safeHttpsUrl(sourceNodeValue.url)?.href || '',
+      source: officialSource.label,
+      sourceDomain: officialSource.domain,
+      scope: officialSource.scope,
+      publishedAt: new Date(publishedAt).toISOString(),
+      trust: officialSource.priority,
+      official: true,
     });
   }
   return items.slice(0, MAX_PER_CATEGORY);
 }
 
-async function fetchCategory(category, query) {
+function monthQuery(query, now) {
+  const { start } = currentMonthWindow(now);
+  return `${query} after:${start.toISOString().slice(0, 10)}`;
+}
+
+async function fetchCategory(category, query, { fetchImpl, now }) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
   try {
-    const url = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=ar&gl=DZ&ceid=DZ:ar`;
-    const response = await fetch(url, {
+    const search = monthQuery(query, now);
+    const url = `https://news.google.com/rss/search?q=${encodeURIComponent(search)}&hl=ar&gl=DZ&ceid=DZ:ar`;
+    const response = await fetchImpl(url, {
       signal: controller.signal,
-      headers: { 'User-Agent': 'MawashiDZ-NewsBot/1.10 (+https://mawashidz.com)' },
+      headers: { 'User-Agent': 'MawashiDZ-NewsBot/1.11 (+https://mawashidz.com)' },
     });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    return parseRssItems(await response.text(), category);
+    return parseRssItems(await response.text(), category, now);
   } finally {
     clearTimeout(timer);
   }
@@ -122,11 +161,10 @@ function dedupeItems(items) {
   });
 }
 
-function sortNews(items) {
+export function sortNews(items) {
   return [...items].sort((a, b) => {
-    const trustDiff = (b.trust || 0) - (a.trust || 0);
-    if (trustDiff) return trustDiff;
-    return new Date(b.publishedAt) - new Date(a.publishedAt);
+    const dateDiff = new Date(b.publishedAt) - new Date(a.publishedAt);
+    return dateDiff || (b.trust || 0) - (a.trust || 0);
   });
 }
 
@@ -135,10 +173,7 @@ function buildStreams(items) {
     const text = `${item.title} ${item.description}`;
     return item.category === 'health' || HEALTH_KEYWORDS.test(text);
   }));
-  const official = sortNews(items.filter((item) => {
-    const text = `${item.title} ${item.description}`;
-    return item.official && OFFICIAL_KEYWORDS.test(text);
-  }));
+  const official = sortNews(items.filter((item) => OFFICIAL_KEYWORDS.test(`${item.title} ${item.description}`)));
   return {
     health: health.slice(0, 5),
     official: official.slice(0, 5),
@@ -147,34 +182,42 @@ function buildStreams(items) {
   };
 }
 
-export default async function handler() {
-  const results = await Promise.allSettled(
-    Object.entries(CATEGORY_QUERIES).map(([category, query]) => fetchCategory(category, query)),
-  );
-  const items = dedupeItems(sortNews(
-    results
-      .filter((r) => r.status === 'fulfilled')
-      .flatMap((r) => r.value),
-  ));
+export function createNewsHandler({ fetchImpl = fetch, now = () => new Date() } = {}) {
+  return async function handler() {
+    const checkedAt = now();
+    const results = await Promise.allSettled(
+      Object.entries(CATEGORY_QUERIES).map(([category, query]) => fetchCategory(category, query, { fetchImpl, now: checkedAt })),
+    );
+    const items = dedupeItems(sortNews(
+      results.filter((result) => result.status === 'fulfilled').flatMap((result) => result.value),
+    )).slice(0, MAX_TOTAL_ITEMS);
+    const month = currentMonthWindow(checkedAt).key;
 
-  if (!items.length) {
-    return new Response(JSON.stringify({ error: 'news-sources-unavailable' }), {
-      status: 503,
-      headers: { 'Content-Type': 'application/json; charset=utf-8' },
+    if (!items.length) {
+      return new Response(JSON.stringify({
+        error: 'no-official-current-month-news',
+        updatedAt: checkedAt.toISOString(),
+        items: [],
+        policy: { officialOnly: true, period: 'current-month', month },
+      }), {
+        status: 503,
+        headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'public, max-age=60' },
+      });
+    }
+
+    return new Response(JSON.stringify({
+      updatedAt: checkedAt.toISOString(),
+      items,
+      streams: buildStreams(items),
+      policy: { officialOnly: true, period: 'current-month', month },
+    }), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json; charset=utf-8',
+        'Cache-Control': 'public, max-age=300, stale-while-revalidate=300',
+      },
     });
-  }
-
-  const streams = buildStreams(items);
-
-  return new Response(JSON.stringify({
-    updatedAt: new Date().toISOString(),
-    items,
-    streams,
-  }), {
-    status: 200,
-    headers: {
-      'Content-Type': 'application/json; charset=utf-8',
-      'Cache-Control': 'public, max-age=60, stale-while-revalidate=120',
-    },
-  });
+  };
 }
+
+export default createNewsHandler();
