@@ -432,40 +432,32 @@ for (const lang of I18N_LANGS) {
   }
 }
 
-// ================= TEST 7: exchange feed pagination (10 + Show more) =================
+// ================= TEST 7: honest market-data unavailable state =================
 {
   const page = await newPage();
   await page.setViewport({ width: 390, height: 900, isMobile: true, hasTouch: true });
   await page.goto(`http://localhost:${PORT}/`, { waitUntil: 'networkidle2', timeout: 30000 });
   await page.evaluate(() => { location.hash = '#exchange'; });
   await new Promise(r => setTimeout(r, 800));
-  await page.evaluate(() => {
-    document.querySelector('[data-exchange-tab="feed"]')?.click();
-  });
-  await new Promise(r => setTimeout(r, 500));
-  const before = await page.evaluate(() => {
-    const rows = [...document.querySelectorAll('#exchangeTableBody tr')].filter(tr => tr.querySelectorAll('td').length >= 3);
-    const btn = document.getElementById('exchangeShowMoreBtn');
-    const label = document.getElementById('exchangeShowingLabel');
+  const marketState = await page.evaluate(() => {
+    const unavailable = document.getElementById('exchangeUnavailable');
+    const status = document.getElementById('exchangeStatus');
+    const refresh = document.getElementById('refreshExchangeBtn');
     return {
-      rowCount: rows.length,
-      btnHidden: !btn || btn.hidden,
-      labelText: label?.textContent || '',
+      unavailableVisible: !!unavailable && !unavailable.hidden,
+      unavailableText: unavailable?.textContent || '',
+      statusText: status?.textContent || '',
+      refreshVisible: !!refresh && !refresh.hidden,
+      syntheticRows: document.querySelectorAll('#exchangeTableBody tr').length,
       overflow: document.documentElement.scrollWidth > window.innerWidth + 1,
     };
   });
-  check('exchange feed: initial page shows exactly 10 rows', before.rowCount === 10, `rows=${before.rowCount}`);
-  check('exchange feed: Show more visible when more exist', before.btnHidden === false);
-  check('exchange feed: showing label present', /10/.test(before.labelText), before.labelText);
-  check('exchange feed@w390: no horizontal overflow', before.overflow === false);
-
-  await page.click('#exchangeShowMoreBtn');
-  await new Promise(r => setTimeout(r, 200));
-  const after = await page.evaluate(() => {
-    const rows = [...document.querySelectorAll('#exchangeTableBody tr')].filter(tr => tr.querySelectorAll('td').length >= 3);
-    return { rowCount: rows.length };
-  });
-  check('exchange feed: Show more loads next batch (20)', after.rowCount === 20, `rows=${after.rowCount}`);
+  check('market gate: unavailable state visible', marketState.unavailableVisible === true);
+  check('market gate: unavailable state explains verification', /موثق|verified/i.test(marketState.unavailableText), marketState.unavailableText);
+  check('market gate: status is not live', !/مباشر|live/i.test(marketState.statusText), marketState.statusText);
+  check('market gate: refresh remains available', marketState.refreshVisible === true);
+  check('market gate: no synthetic price rows', marketState.syntheticRows === 0, `rows=${marketState.syntheticRows}`);
+  check('market gate@w390: no horizontal overflow', marketState.overflow === false);
 
   // Dashboard modal mobile smoke (structure present, no overflow when opened with stub)
   await page.evaluate(() => {

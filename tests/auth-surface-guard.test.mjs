@@ -3,10 +3,14 @@
  * Static guards for auth/profile/recover surface changes in index.html.
  */
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 const html = readFileSync(join(process.cwd(), 'index.html'), 'utf8');
+assert.equal(existsSync(join(process.cwd(), 'assets/market-engine.js')), false,
+  'synthetic browser market engine must be deleted');
+assert.equal(existsSync(join(process.cwd(), 'netlify/functions/market-core.mjs')), false,
+  'synthetic server market engine must be deleted');
 
 assert.match(html, /function userIdFromAccessToken\(token\)/, 'JWT sub helper required');
 assert.match(
@@ -72,7 +76,10 @@ assert.ok(mgr, 'openManagerDashboard must exist');
 assert.match(mgr[0], /try\{\s*const profile=/, 'manager profile fetch must be inside try');
 
 assert.match(html, /wireDashboardReviewActions/, 'dashboards must wire approve/reject actions');
-assert.match(html, /exchangeShowMoreBtn/, 'exchange show-more control required');
-assert.match(html, /mdzExchangeLimit/, 'exchange pagination state required');
+assert.match(html, /exchangeUnavailable/, 'market observatory must expose an honest unavailable state');
+assert.doesNotMatch(html, /buildMdzMarketSnapshot|tickLivestockPrices|mdz_live_prices_cache/,
+  'browser must not generate or reuse synthetic market prices');
+assert.doesNotMatch(html, /assets\/market-engine\.js/,
+  'synthetic market engine must not ship to browsers');
 
 console.log('  ✓ Auth/profile/recover surface guards passed');

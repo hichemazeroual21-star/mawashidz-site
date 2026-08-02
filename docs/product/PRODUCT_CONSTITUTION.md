@@ -772,7 +772,7 @@ Each phase: **one branch, one PR**, green `npm test`.
 
 - Account UI today: `js/mdz-dashboards.mjs` → `renderAccountDashboard`
 - Admin audit: `supabase/migrations/008_admin_audit_and_roles.sql`
-- News/prices: `netlify/functions/news.mjs`, `assets/market-engine.js`
+- News/market-data gate: `netlify/functions/news.mjs`, `netlify/functions/prices.mjs` (fails closed until verified provenance exists)
 
 ---
 
