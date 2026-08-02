@@ -1,13 +1,66 @@
-name: PKG-E2 staging gate
+name: PKG-E2 finalizer
 
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - chatgpt/pkg-e2-credential-storage-containment
 
 permissions:
-  contents: read
+  contents: write
+
+concurrency:
+  group: pkg-e2-finalizer
+  cancel-in-progress: false
 
 jobs:
-  staged:
+  finalize:
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     steps:
-      - run: echo "PKG-E2 staging only; finalizer is disabled"
+      - uses: actions/checkout@v4
+        with:
+          ref: chatgpt/pkg-e2-credential-storage-containment
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install exact dependencies
+        run: npm ci
+      - name: Materialize positive-schema package
+        run: |
+          git apply --check scripts/pkg-e2-positive-schema.patch
+          git apply scripts/pkg-e2-positive-schema.patch
+          npm run build
+          rm scripts/finalize-pkg-e2-review.py
+          rm scripts/pkg-e2-positive-schema.patch
+      - name: Commit prepared tree
+        id: prepared
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --check
+          git commit -m "fix(security): finalize positive-schema registration storage"
+          prepared_sha="$(git rev-parse HEAD)"
+          echo "sha=$prepared_sha" >> "$GITHUB_OUTPUT"
+      - name: Full gates on prepared SHA
+        env:
+          EVIDENCE_SHA: ${{ steps.prepared.outputs.sha }}
+        run: |
+          npm run test:unit
+          npm run verify:public
+          npm run test:storage-browser
+          npm run test:security
+          node tests/security-review-registration.test.mjs
+          npm run test:migration-review
+          git diff --exit-code
+      - name: Upload browser evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: pkg-e2-browser-evidence-${{ steps.prepared.outputs.sha }}
+          path: tests/.artifacts/pkg-e2
+          if-no-files-found: error
+      - name: Publish prepared tree
+        run: git push origin HEAD:chatgpt/pkg-e2-credential-storage-containment
