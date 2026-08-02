@@ -27,6 +27,7 @@
     "verify:public": "node scripts/verify-public-sync.mjs",
     "check:outbox-env": "node scripts/check-outbox-env.mjs",
     "smoke:email-outbox": "node scripts/smoke-email-outbox.mjs",
+    "probe:rls": "node scripts/probe-live-rls.mjs",
     "deploy:prod": "node scripts/deploy-prod.mjs"
   },
   "devDependencies": {
