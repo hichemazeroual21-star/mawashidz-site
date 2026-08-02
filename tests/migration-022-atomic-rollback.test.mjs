@@ -152,11 +152,71 @@ await db.exec(migration);
 
 const verification = await db.query(verify);
 assert.equal(verification.rows.length, 2);
+if (verification.rows.some((row) => row.check_result !== 'OK_ATTESTED')) {
+  console.error(JSON.stringify(verification.rows, null, 2));
+}
 assert.deepEqual(
   verification.rows.map((row) => row.check_result),
-  ['OK', 'OK'],
+  ['OK_ATTESTED', 'OK_ATTESTED'],
   'the read-only production verifier must accept both rewritten functions',
 );
+
+const functionAttestation = await db.query(`
+  select
+    p.oid::regprocedure::text as signature,
+    encode(sha256(convert_to(p.prosrc, 'UTF8')), 'hex') as source_sha256,
+    pg_get_function_identity_arguments(p.oid) as identity_arguments,
+    pg_get_function_result(p.oid) as function_result,
+    pg_get_expr(p.proargdefaults, 0) as argument_defaults,
+    p.proargnames as argument_names,
+    p.pronargdefaults as default_count,
+    pg_get_userbyid(p.proowner) as owner_name,
+    l.lanname as language_name,
+    p.prosecdef as security_definer,
+    p.proconfig::text as runtime_config
+  from pg_proc p
+  join pg_language l on l.oid = p.prolang
+  where p.oid in (
+    to_regprocedure('public.review_registration_status(text,text,text)'),
+    to_regprocedure('public.set_support_ticket_status(bigint,text)')
+  )
+  order by p.oid::regprocedure::text
+`);
+assert.deepEqual(
+  functionAttestation.rows.map((row) => ({
+    signature: row.signature,
+    source_sha256: row.source_sha256,
+    owner_name: row.owner_name,
+    language_name: row.language_name,
+    security_definer: row.security_definer,
+    runtime_config: row.runtime_config,
+  })),
+  [
+    {
+      signature: 'review_registration_status(text,text,text)',
+      source_sha256: '315a74e268c4e0f7f593c27e69182bd1f08dc4ba039877cc5f9aceeac81f93d7',
+      owner_name: 'postgres',
+      language_name: 'plpgsql',
+      security_definer: true,
+      runtime_config: '{"search_path=\\"\\""}',
+    },
+    {
+      signature: 'set_support_ticket_status(bigint,text)',
+      source_sha256: '80002a92f653641b0f751ad76a63dfdafc2ed3026dea1fdcd5981164557c837d',
+      owner_name: 'postgres',
+      language_name: 'plpgsql',
+      security_definer: true,
+      runtime_config: '{"search_path=\\"\\""}',
+    },
+  ],
+  'the isolated behavior test must exercise the exact attested function bodies',
+);
+
+const engineContext = await db.query(`
+  select
+    current_setting('server_version_num')::integer as server_version_num,
+    current_setting('server_encoding') as server_encoding
+`);
 
 const actor = '11111111-1111-4111-8111-111111111111';
 const profile = '22222222-2222-4222-8222-222222222222';
@@ -232,7 +292,9 @@ assert.deepEqual(ticketState.rows[0], {
 
 console.log(JSON.stringify({
   engine: 'PGlite/PostgreSQL',
+  engine_context: engineContext.rows[0],
   migration: '022_fail_closed_admin_audit.sql',
+  function_attestation: functionAttestation.rows,
   verifier_rows: verification.rows.map((row) => ({ signature: row.signature, result: row.check_result })),
   forced_error: 'MDZ_TEST_FORCED_AUDIT_FAILURE',
   registration: registrationState.rows[0],

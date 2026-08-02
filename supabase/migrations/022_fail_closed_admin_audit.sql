@@ -5,7 +5,14 @@
 begin;
 
 do $$
+declare
+  v_live_server_major integer := current_setting('server_version_num')::integer / 10000;
 begin
+  if v_live_server_major <> 18 then
+    raise exception
+      '022 abort: PostgreSQL major % does not match isolated-tested major 18; rerun the rollback suite on the live major and update the reviewed gate first',
+      v_live_server_major;
+  end if;
   if to_regprocedure('public.mdz_audit_admin_action(uuid,text,text,uuid,text,jsonb)') is null then
     raise exception '022 abort: public.mdz_audit_admin_action is missing';
   end if;
@@ -193,7 +200,6 @@ $$;
 
 revoke all on function public.review_registration_status(text, text, text) from public;
 revoke execute on function public.review_registration_status(text, text, text) from anon;
-grant execute on function public.review_registration_status(text, text, text) to authenticated, service_role;
 
 create or replace function public.set_support_ticket_status(
   p_ticket_id bigint,
@@ -264,22 +270,244 @@ $$;
 
 revoke all on function public.set_support_ticket_status(bigint, text) from public;
 revoke execute on function public.set_support_ticket_status(bigint, text) from anon;
-grant execute on function public.set_support_ticket_status(bigint, text) to authenticated;
 
-do $$
+-- CREATE OR REPLACE preserves ACLs. Remove every non-owner direct EXECUTE
+-- grant first, including grants to roles unknown to this migration, then build
+-- the exact allowlist from zero. CASCADE also removes delegated grants.
+do $acl_normalize$
 declare
   v_signature text;
-  v_definition text;
+  v_grantee_name text;
 begin
   foreach v_signature in array array[
     'public.review_registration_status(text,text,text)',
     'public.set_support_ticket_status(bigint,text)'
   ]
   loop
-    select pg_get_functiondef(to_regprocedure(v_signature)) into v_definition;
+    for v_grantee_name in
+      select distinct pg_get_userbyid(a.grantee)::text
+      from pg_proc p
+      cross join lateral aclexplode(
+        coalesce(p.proacl, acldefault('f', p.proowner))
+      ) a
+      where p.oid = to_regprocedure(v_signature)
+        and a.privilege_type = 'EXECUTE'
+        and a.grantee <> 0
+        and a.grantee <> p.proowner
+    loop
+      execute format(
+        'revoke execute on function %s from %I cascade',
+        v_signature,
+        v_grantee_name
+      );
+    end loop;
+  end loop;
+end;
+$acl_normalize$;
+
+grant execute on function public.review_registration_status(text, text, text)
+  to authenticated, service_role;
+grant execute on function public.set_support_ticket_status(bigint, text) to authenticated;
+
+do $$
+declare
+  v_signature text;
+  v_expected_source_sha256 text;
+  v_expected_source_utf8_bytes integer;
+  v_expected_direct_grantees text[];
+  v_expected_arg_names text[];
+  v_expected_default_count integer;
+  v_expected_return_type text;
+  v_definition text;
+  v_actual_source_sha256 text;
+  v_actual_source_utf8_bytes integer;
+  v_owner_name text;
+  v_language_name text;
+  v_binary_reference_is_null boolean;
+  v_sql_body_is_null boolean;
+  v_kind "char";
+  v_security_definer boolean;
+  v_leakproof boolean;
+  v_strict boolean;
+  v_returns_set boolean;
+  v_volatility "char";
+  v_parallel "char";
+  v_arg_names text[];
+  v_default_count integer;
+  v_return_type oid;
+  v_runtime_config text[];
+  v_actual_direct_grantees text[];
+  v_unexpected_acl_grantors text[];
+  v_unexpected_grantable_grantees text[];
+  v_unexpected_overload_count integer;
+begin
+  for
+    v_signature,
+    v_expected_source_sha256,
+    v_expected_source_utf8_bytes,
+    v_expected_direct_grantees,
+    v_expected_arg_names,
+    v_expected_default_count,
+    v_expected_return_type
+  in
+    select * from (values
+      (
+        'public.review_registration_status(text,text,text)',
+        '315a74e268c4e0f7f593c27e69182bd1f08dc4ba039877cc5f9aceeac81f93d7',
+        5626,
+        array['authenticated','postgres','service_role']::text[],
+        array['p_registration_id','p_new_status','p_reason']::text[],
+        1,
+        'jsonb'
+      ),
+      (
+        'public.set_support_ticket_status(bigint,text)',
+        '80002a92f653641b0f751ad76a63dfdafc2ed3026dea1fdcd5981164557c837d',
+        1602,
+        array['authenticated','postgres']::text[],
+        array['p_ticket_id','p_status']::text[],
+        0,
+        'public.support_tickets'
+      )
+    ) as expected(
+      signature,
+      source_sha256,
+      source_utf8_bytes,
+      direct_grantees,
+      arg_names,
+      default_count,
+      return_type
+    )
+  loop
+    select
+      pg_get_functiondef(p.oid),
+      encode(sha256(convert_to(p.prosrc, 'UTF8')), 'hex'),
+      octet_length(convert_to(p.prosrc, 'UTF8')),
+      pg_get_userbyid(p.proowner),
+      l.lanname,
+      p.probin is null,
+      p.prosqlbody is null,
+      p.prokind,
+      p.prosecdef,
+      p.proleakproof,
+      p.proisstrict,
+      p.proretset,
+      p.provolatile,
+      p.proparallel,
+      p.proargnames,
+      p.pronargdefaults,
+      p.prorettype,
+      p.proconfig,
+      coalesce(
+        (
+          select array_agg(grantee_name order by grantee_name)
+          from (
+            select distinct
+              case when a.grantee = 0 then 'PUBLIC'
+                   else pg_get_userbyid(a.grantee)::text end as grantee_name
+            from aclexplode(
+              coalesce(p.proacl, acldefault('f', p.proowner))
+            ) a
+            where a.privilege_type = 'EXECUTE'
+          ) direct_acl
+        ),
+        array[]::text[]
+      ),
+      coalesce(
+        (
+          select array_agg(grantor_name order by grantor_name)
+          from (
+            select distinct pg_get_userbyid(a.grantor)::text as grantor_name
+            from aclexplode(
+              coalesce(p.proacl, acldefault('f', p.proowner))
+            ) a
+            where a.privilege_type = 'EXECUTE'
+              and pg_get_userbyid(a.grantor) <> 'postgres'
+          ) unexpected_grantors
+        ),
+        array[]::text[]
+      ),
+      coalesce(
+        (
+          select array_agg(grantee_name order by grantee_name)
+          from (
+            select distinct pg_get_userbyid(a.grantee)::text as grantee_name
+            from aclexplode(
+              coalesce(p.proacl, acldefault('f', p.proowner))
+            ) a
+            where a.privilege_type = 'EXECUTE'
+              and a.is_grantable
+              and a.grantee <> p.proowner
+          ) unexpected_grantable
+        ),
+        array[]::text[]
+      ),
+      (
+        select count(*)::integer
+        from pg_proc extra
+        join pg_namespace ns on ns.oid = extra.pronamespace
+        where ns.nspname = 'public'
+          and extra.proname = p.proname
+          and extra.oid <> p.oid
+      )
+    into
+      v_definition,
+      v_actual_source_sha256,
+      v_actual_source_utf8_bytes,
+      v_owner_name,
+      v_language_name,
+      v_binary_reference_is_null,
+      v_sql_body_is_null,
+      v_kind,
+      v_security_definer,
+      v_leakproof,
+      v_strict,
+      v_returns_set,
+      v_volatility,
+      v_parallel,
+      v_arg_names,
+      v_default_count,
+      v_return_type,
+      v_runtime_config,
+      v_actual_direct_grantees,
+      v_unexpected_acl_grantors,
+      v_unexpected_grantable_grantees,
+      v_unexpected_overload_count
+    from pg_proc p
+    join pg_language l on l.oid = p.prolang
+    where p.oid = to_regprocedure(v_signature);
+
     if position('mdz_audit_admin_action' in v_definition) = 0
-       or v_definition ~* 'exception[[:space:]]+when' then
-      raise exception '022 abort: fail-closed audit post-condition failed: %', v_signature;
+       or v_definition ~* 'exception[[:space:]]+when'
+       or v_actual_source_sha256 is distinct from v_expected_source_sha256
+       or v_actual_source_utf8_bytes is distinct from v_expected_source_utf8_bytes
+       or v_owner_name is distinct from 'postgres'
+       or v_language_name is distinct from 'plpgsql'
+       or v_binary_reference_is_null is distinct from true
+       or v_sql_body_is_null is distinct from true
+       or v_kind is distinct from 'f'
+       or v_security_definer is distinct from true
+       or v_leakproof is distinct from false
+       or v_strict is distinct from false
+       or v_returns_set is distinct from false
+       or v_volatility is distinct from 'v'
+       or v_parallel is distinct from 'u'
+       or v_arg_names is distinct from v_expected_arg_names
+       or v_default_count is distinct from v_expected_default_count
+       or v_return_type is distinct from to_regtype(v_expected_return_type)
+       or v_runtime_config is distinct from array['search_path=""']::text[]
+       or v_actual_direct_grantees is distinct from v_expected_direct_grantees
+       or v_unexpected_acl_grantors <> array[]::text[]
+       or v_unexpected_grantable_grantees <> array[]::text[]
+       or has_function_privilege('public', v_signature, 'EXECUTE')
+       or has_function_privilege('anon', v_signature, 'EXECUTE')
+       or not has_function_privilege('authenticated', v_signature, 'EXECUTE')
+       or (
+         v_signature = 'public.review_registration_status(text,text,text)'
+         and not has_function_privilege('service_role', v_signature, 'EXECUTE')
+       )
+       or v_unexpected_overload_count <> 0 then
+      raise exception '022 abort: function attestation failed: %', v_signature;
     end if;
   end loop;
 
