@@ -1046,7 +1046,9 @@ footer{background:#0b100d}
 .dash-row-actions{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 @media(max-width:860px){
   .dash-table-wrap.desktop-only{display:none}
-  .mdz-ops-mount.is-thread-open .mdz-ops-list{display:none}
+  .mdz-ops-mount .mdz-ops-thread{display:none}
+  .mdz-ops-mount.is-thread-open .mdz-ops-list,
+  .mdz-ops-mount.is-thread-open .mdz-ops-mobile-list{display:none}
   .mdz-ops-mount.is-thread-open .mdz-ops-thread{display:block}
   .dash-row-actions .mdz-btn{flex:1 1 auto;min-width:7rem}
 }
@@ -3083,6 +3085,7 @@ async function mountOperatorSupport(session,{isAdmin=false}={}){
  if(!mount) return;
  const ops=await import('./js/mdz-member-ops.mjs');
  const load=async(filters={})=>{
+  mount.classList.remove('is-thread-open');
   mount.innerHTML=ops.renderSupportSkeleton();
   let tickets=[];
   let fetchError=false;
