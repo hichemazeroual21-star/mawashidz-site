@@ -64,19 +64,22 @@ function assertSecurityHeaders(response) {
   assert.equal(assetCalls, 0, 'HTTP request must not reach static assets');
 }
 
-// --- prices (real handler) ---
+// --- prices truth gate (real handler) ---
 {
   const res = await call('/api/livestock-prices');
-  assert.equal(res.status, 200, 'prices endpoint must return 200');
+  assert.equal(res.status, 503, 'prices endpoint must fail closed without verified data');
   assertSecurityHeaders(res);
   const prices = await res.json();
-  assert.ok(Array.isArray(prices.rows) && prices.rows.length > 0, 'prices must include rows');
-  assert.ok(prices.products?.length, 'prices must include products');
+  assert.equal(prices.error, 'verified-market-data-unavailable');
+  assert.equal(prices.verified, false);
+  assert.equal(prices.updatedAt, null);
+  assert.deepEqual(prices.rows, [], 'unverified price rows must never be returned');
+  assert.deepEqual(prices.products, [], 'unverified products must never be returned');
 }
 
 // trailing slash
 {
-  assert.equal((await call('/api/livestock-prices/')).status, 200);
+  assert.equal((await call('/api/livestock-prices/')).status, 503);
   assert.equal((await call('/api/livestock-news/')).status, 200);
 }
 

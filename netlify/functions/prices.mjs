@@ -1,35 +1,23 @@
 /*
- * MawashiDZ — بورصة المواشي الحية
- * /api/livestock-prices — تحديث كل ثانية
+ * MawashiDZ market data truth gate.
+ *
+ * The platform must fail closed until a reviewed source pipeline can provide
+ * observations with provenance, observation time, methodology and sample size.
  */
-import { buildMarketSnapshot } from './market-core.mjs';
-
-export default async function handler(request) {
-  const url = new URL(request.url);
-  const product = url.searchParams.get('product') || '';
-  const wilaya = url.searchParams.get('wilaya') || '';
-
-  const snapshot = buildMarketSnapshot();
-  let rows = snapshot.rows;
-  if (product) rows = rows.filter((r) => r.productId === product);
-  if (wilaya) rows = rows.filter((r) => r.wilaya === wilaya || r.wilayaCode === wilaya);
-
+export default async function handler() {
   return new Response(
     JSON.stringify({
-      updatedAt: snapshot.updatedAt,
-      tickBucket: snapshot.tickBucket,
-      secondBucket: snapshot.secondBucket,
-      minuteBucket: snapshot.minuteBucket,
-      products: snapshot.products,
-      cheapestByProduct: snapshot.cheapestByProduct,
-      rows,
-      disclaimer: 'reference-index',
+      error: 'verified-market-data-unavailable',
+      verified: false,
+      updatedAt: null,
+      products: [],
+      rows: [],
     }),
     {
-      status: 200,
+      status: 503,
       headers: {
         'Content-Type': 'application/json; charset=utf-8',
-        'Cache-Control': 'public, max-age=0, must-revalidate',
+        'Cache-Control': 'no-store',
       },
     },
   );

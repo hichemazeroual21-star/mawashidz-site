@@ -8,8 +8,8 @@ Official website package with multilingual interface, automatic dark mode, and t
 - `worker.mjs` + `wrangler.jsonc` — Cloudflare Worker الإنتاجي `mawashidz-live` (أصول ثابتة + `/api/*`)
 - `public/` — حزمة النشر المولَّدة (لا تعدّلها يدويًا)
 - `assets/algeria_cities.json` — التقسيم الإداري الكامل: 58 ولاية، 548 دائرة، 1541 بلدية
-- `netlify/functions/news.mjs` / `prices.mjs` — معالجات الأخبار والأسعار (مشتركة: Worker يستوردها؛ Netlify يوجّهها عبر `netlify.toml`)
-- `assets/market-engine.js` — محرك الأسعار (fallback محلي إن تعذّر `/api/livestock-prices`)
+- `netlify/functions/news.mjs` / `prices.mjs` — معالجات الأخبار وبوابة صدق بيانات السوق (مشتركة: Worker يستوردها؛ Netlify يوجّهها عبر `netlify.toml`)
+- `/api/livestock-prices` يفشل مغلقًا بحالة `503` حتى تتوفر تغذية أسعار موثقة بمصدر ومنهجية؛ لا يوجد مولّد أسعار أو fallback محلي
 - `supabase/` — قاعدة البيانات: أرقام العضوية التسلسلية، الملفات الشخصية، الدخول بالبريد/الهاتف/رقم MDZ
 - `docs/` — قرارات معمارية (ADR) ومخطط قاعدة البيانات + `DEPLOYMENT.md` لمسار Cloudflare
 
