@@ -81,7 +81,7 @@ Requires `MAWASHIDZ_CF_SAFE_MODE=confirmed`. Document why break-glass was used.
 | **Version label** | `assets/i18n.js` → `MDZ_APP_VERSION` | Single version string |
 | **Worker bundle** | `public/` | **Generated** — never hand-edit |
 | **Build** | `npm run build` | `sync-worker-public.mjs` + `build-info.json` + `_headers` |
-| **Runtime** | Cloudflare Worker `mawashidz-live` | Serves `./public` via assets + `worker.mjs` for `/api/*` |
+| **Runtime** | Cloudflare Worker `mawashidz-live` | All requests pass `worker.mjs` for HTTPS/HSTS; static content comes from `./public` |
 
 `public/` must match root after every build (`npm run verify:public`).
 

@@ -419,7 +419,7 @@ body[data-lang="fr"] .btn{letter-spacing:0}
 }
 @media(max-width:760px){
   body[data-lang]:not([data-lang="ar"]) .top .brand-tagline{display:none!important}
-  body[data-lang]:not([data-lang="ar"]) .top .actions .btn.primary{
+  body[data-lang]:not([data-lang="ar"]) .top .actions .mdz-btn-primary{
     padding:0 9px;font-size:.74rem;max-width:42vw;
     overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
   }
@@ -447,7 +447,7 @@ body[data-lang="fr"] .btn{letter-spacing:0}
   body[data-lang]:not([data-lang="ar"]) .hero-card h1{
     font-size:clamp(1.65rem,7.8vw,2.2rem)!important;
   }
-  body[data-lang]:not([data-lang="ar"]) .top .actions .btn.primary{
+  body[data-lang]:not([data-lang="ar"]) .top .actions .mdz-btn-primary{
     max-width:32vw;font-size:.62rem;padding:0 6px;min-height:40px;
   }
 }
@@ -1554,16 +1554,16 @@ footer .foot{align-items:start}
   }
   /* actions تُرفع عناصرها لتصبح عناصر شبكة مباشرة (menu inside actions). */
   .top .actions{display:contents}
-  .top .actions .btn.ghost{display:none}
+  .top .actions .mdz-btn-ghost{display:none}
   /* صف 1: القائمة يسارًا + العلامة يمينًا. صف 2: دخول + تسجيل مجمّعان يسارًا. */
-  .top .actions .btn.ghost#headerLoginBtn{
+  .top .actions .mdz-btn-ghost#headerLoginBtn{
     display:inline-flex!important;
     grid-column:1;grid-row:2;justify-self:start;align-items:center;
     min-height:44px;padding:0 15px;margin:0;
     border-radius:14px;font-size:.82rem;white-space:nowrap;
     background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.28);
   }
-  .top .actions .btn.primary#headerRegisterBtn{
+  .top .actions .mdz-btn-primary#headerRegisterBtn{
     grid-column:2;grid-row:2;justify-self:start;
     min-height:44px;padding:0 17px;margin:0;
     border-radius:14px;font-size:.82rem;white-space:nowrap;
@@ -1602,7 +1602,7 @@ footer .foot{align-items:start}
 @media(max-width:390px){
   .top .nav{column-gap:6px}
   .top .menu-btn{width:44px;height:44px;font-size:1.3rem}
-  .top .actions .btn.primary{padding:0 10px;font-size:.8rem;min-height:44px}
+  .top .actions .mdz-btn-primary{padding:0 10px;font-size:.8rem;min-height:44px}
   .top .brand{gap:6px}
   .top .brand-logo{width:42px!important;height:42px!important;flex-basis:42px!important}
   .top .brand-copy>span{font-size:.86rem!important}
@@ -1612,7 +1612,7 @@ footer .foot{align-items:start}
 
 @media(max-width:350px){
   .top .menu-btn{width:42px;height:42px}
-  .top .actions .btn.primary{padding:0 8px;font-size:.74rem;min-height:42px}
+  .top .actions .mdz-btn-primary{padding:0 8px;font-size:.74rem;min-height:42px}
   .top .brand-logo{width:38px!important;height:38px!important;flex-basis:38px!important}
   .top .brand-copy>span{font-size:.78rem!important}
   .top .brand-tagline{font-size:.42rem!important;max-width:118px}
@@ -2433,13 +2433,18 @@ async function signUpAccount(email,password,metadata){
  const redirect=encodeURIComponent(MDZ_SITE_URL()+'#auth-callback');
  return authRequest(`/signup?redirect_to=${redirect}`,{method:'POST',body:JSON.stringify({email,password,data:metadata})});
 }
-async function signInAccount(email,password){return authRequest('/token?grant_type=password',{method:'POST',body:JSON.stringify({email,password})})}
-async function resolveLoginEmail(identifier){
- const clean=String(identifier||'').trim(); if(clean.includes('@')) return clean.toLowerCase();
- const r=await fetch(`${SUPABASE_REST}/rpc/resolve_login_identifier`,{method:'POST',headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:`Bearer ${SUPABASE_PUBLISHABLE_KEY}`,'Content-Type':'application/json'},body:JSON.stringify({lookup_value:clean})});
- if(!r.ok) throw new Error('تعذر العثور على الحساب. استعمل البريد الإلكتروني أو تأكد من الرقم.');
- const email=await r.json(); if(!email) throw new Error('لم نعثر على حساب مطابق لهذه البيانات.'); return String(email);
+async function siteAuthRequest(path,payload){
+ const response=await fetch(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+ let data={};try{data=await response.json()}catch{}
+ if(!response.ok){
+  const code=String(data.error||'');
+  const message=code==='rate_limited'?t('authErrRate'):code==='invalid_credentials'?t('authErrInvalid'):t('authErrGeneric');
+  const error=new Error(message);error.status=response.status;throw error;
+ }
+ return data;
 }
+async function signInAccount(identifier,password){return siteAuthRequest('/api/auth/login',{identifier:String(identifier||'').trim(),password})}
+async function requestPasswordRecovery(identifier){return siteAuthRequest('/api/auth/recover',{identifier:String(identifier||'').trim()})}
 function userIdFromAccessToken(token){
  try{
   const part=String(token||'').split('.')[1]; if(!part) return null;
@@ -2890,7 +2895,7 @@ passwordInput?.addEventListener('input',()=>{const v=passwordInput.value;let sco
 document.getElementById('loginForm')?.addEventListener('submit',async e=>{
  e.preventDefault();const form=e.target,btn=document.getElementById('loginSubmit'),state=document.getElementById('loginState');const raw=Object.fromEntries(new FormData(form).entries());
  btn.disabled=true;btn.textContent=t('loginChecking');state.className='full login-state';state.textContent='';
- try{const email=await resolveLoginEmail(raw.identifier);const result=await signInAccount(email,String(raw.password||''));saveSession(result);state.className='full login-state is-ok';state.textContent=t('toastLoginSuccess');closeModal('loginModal');form.reset();await openAccount();showToast(t('toastLoginOk'));}
+ try{const result=await signInAccount(raw.identifier,String(raw.password||''));saveSession(result);state.className='full login-state is-ok';state.textContent=t('toastLoginSuccess');closeModal('loginModal');form.reset();await openAccount();showToast(t('toastLoginOk'));}
  catch(err){state.className='full login-state is-error';state.textContent=authErrorArabic(err)}finally{btn.disabled=false;btn.textContent=t('loginSubmit')}
 });
 
@@ -2902,9 +2907,7 @@ document.getElementById('forgotPasswordBtn')?.addEventListener('click',()=>{
   try{
    const recovery=await import('./js/password-recovery.mjs');
    recovery.markRecoveryExpected();
-   /* Email path skips resolve RPC (reduces existence probing). Phone/member_id still needs resolve. */
-   const email=id.includes('@')?id.toLowerCase():await resolveLoginEmail(id);
-   await authRequest('/recover',{method:'POST',body:JSON.stringify({email,redirect_to:MDZ_SITE_URL()+'#auth-callback'})});
+   await requestPasswordRecovery(id);
   }catch(e){console.warn('password recover request failed',e)}
  })();
 });
@@ -3474,12 +3477,19 @@ function dashRoleFlag(kind){
  if(kind==='admin') return false;
  return roles.some(r=>MDZ_MANAGER_ROLES.includes(r));
 }
+async function revokeRemoteSession(accessToken){
+ if(!accessToken)return;
+ try{await authRequest('/logout?scope=local',{method:'POST',keepalive:true,headers:{Authorization:`Bearer ${accessToken}`}})}
+ catch{console.warn('remote session revocation unavailable; local session cleared')}
+}
 function logoutAccount(){
+ const accessToken=getSession()?.access_token||'';
  clearAccessContext();
  saveSession(null);
  try{sessionStorage.removeItem('mdz_password_recovery');localStorage.removeItem('mdz_password_recovery');sessionStorage.removeItem('mdz_expect_recovery');localStorage.removeItem('mdz_expect_recovery')}catch{}
  closeAll();showToast(t('toastLogout'));
  if(location.hash==='#account'||location.hash==='#auth-callback'||location.hash==='#reset-password') history.replaceState(null,'',location.pathname+location.search);
+ void revokeRemoteSession(accessToken);
 }
 window.logoutAccount=logoutAccount;
 window.addEventListener('storage',(event)=>{

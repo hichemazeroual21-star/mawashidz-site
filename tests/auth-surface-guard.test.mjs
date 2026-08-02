@@ -19,9 +19,12 @@ assert.ok(!/profiles\?select=\*&limit=1`/.test(html), 'unfiltered profiles?limit
 assert.match(html, /showToast\(t\('toastRecoverSent'\)\)/, 'forgot-password must show neutral success toast');
 assert.match(
   html,
-  /const email=id\.includes\('@'\)\?id\.toLowerCase\(\):await resolveLoginEmail\(id\)/,
-  'forgot-password must skip resolve RPC for email identifiers',
+  /requestPasswordRecovery\(id\)/,
+  'forgot-password must use the rate-limited Worker endpoint',
 );
+assert.ok(!html.includes('/rpc/resolve_login_identifier'), 'browser must not call login resolver RPC');
+assert.match(html, /siteAuthRequest\('\/api\/auth\/login'/, 'login must use Worker endpoint');
+assert.match(html, /siteAuthRequest\('\/api\/auth\/recover'/, 'recovery must use Worker endpoint');
 assert.ok(
   html.indexOf("showToast(t('toastRecoverSent'))")
     < html.indexOf('void (async()=>{'),
@@ -54,6 +57,15 @@ assert.match(
 assert.ok(!/function describeRegistrationError/.test(html), 'dead describeRegistrationError must be removed');
 assert.ok(!/function duplicateRegistrationMessage/.test(html), 'dead duplicateRegistrationMessage must be removed');
 assert.match(html, /function showRegistrationError/, 'showRegistrationError remains for pipeline failures');
+
+assert.match(html, /\/logout\?scope=local/, 'logout must revoke the current remote Supabase session');
+assert.match(html, /Authorization:`Bearer \$\{accessToken\}`/, 'logout revocation must authenticate with the access token');
+const logout = html.match(/function logoutAccount\(\)\{[\s\S]*?\n\}/);
+assert.ok(logout, 'logoutAccount must exist');
+assert.ok(
+  logout[0].indexOf('saveSession(null)') < logout[0].indexOf('void revokeRemoteSession(accessToken)'),
+  'local logout must complete immediately before best-effort remote revocation',
+);
 
 const mgr = html.match(/async function openManagerDashboard\(\)\{[\s\S]*?\n\}/);
 assert.ok(mgr, 'openManagerDashboard must exist');

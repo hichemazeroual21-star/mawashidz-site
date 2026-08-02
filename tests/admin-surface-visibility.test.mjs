@@ -102,7 +102,20 @@ async function openApp(cfg) {
   await page.setRequestInterception(true);
   page.on('request', async (req) => {
     const url = req.url();
-    if (url.startsWith(`http://localhost:${PORT}`)) return req.continue();
+    if (url.startsWith(`http://localhost:${PORT}`)) {
+      if (url.includes('/api/auth/login')) {
+        return req.respond({
+          status: 200,
+          headers: CORS,
+          contentType: 'application/json',
+          body: JSON.stringify({ ...sessionFor(cfg.userId || 'u'), token_type: 'bearer' }),
+        });
+      }
+      if (url.includes('/api/auth/recover')) {
+        return req.respond({ status: 202, headers: CORS, contentType: 'application/json', body: '{"ok":true}' });
+      }
+      return req.continue();
+    }
     if (url.includes('fpjvjfgwbfehhcvdirpy.supabase.co')) {
       if (req.method() === 'OPTIONS') return req.respond({ status: 200, headers: CORS, body: '' });
       const json = (body, status = 200) => req.respond({
