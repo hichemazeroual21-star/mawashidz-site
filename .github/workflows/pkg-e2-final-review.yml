@@ -1,54 +1,13 @@
-name: PKG-E2 final review
+name: PKG-E2 staging gate
 
 on:
-  push:
-    branches:
-      - chatgpt/pkg-e2-credential-storage-containment
+  workflow_dispatch:
 
 permissions:
-  contents: write
-
-concurrency:
-  group: pkg-e2-final-review
-  cancel-in-progress: false
+  contents: read
 
 jobs:
-  finalize-review:
-    if: github.actor != 'github-actions[bot]'
+  staged:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
     steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: chatgpt/pkg-e2-credential-storage-containment
-          fetch-depth: 0
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: npm
-      - name: Install dependencies
-        run: npm install
-      - name: Apply final PKG-E2 review patch
-        run: python3 scripts/finalize-pkg-e2-review.py
-      - name: Synchronize deployment artifact
-        run: npm run build
-      - name: Run full CI-equivalent gates
-        run: |
-          npm run test:unit
-          npm run verify:public
-          npm run test:storage-browser
-          npm run test:security
-          node tests/security-review-registration.test.mjs
-          npm run test:migration-review
-      - name: Remove one-shot review files
-        run: |
-          rm scripts/finalize-pkg-e2-review.py
-          rm .github/workflows/pkg-e2-final-review.yml
-      - name: Commit final reviewed package
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          git diff --cached --check
-          git commit -m "test(security): prove registration storage containment in browser"
-          git push origin HEAD:chatgpt/pkg-e2-credential-storage-containment
+      - run: echo "PKG-E2 staging only; finalizer is disabled"
