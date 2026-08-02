@@ -1,6 +1,11 @@
 # Cloudflare Workers static assets — cache policy (see DEPLOYMENT.md)
 # HTML and build manifest: always revalidate (avoids stale v1.9.x shell)
 
+/*
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+
 /index.html
   Cache-Control: no-cache, must-revalidate
 

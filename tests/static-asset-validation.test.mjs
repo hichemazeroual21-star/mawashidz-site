@@ -18,7 +18,7 @@ assert.ok(existsSync(syncScript), 'scripts/sync-worker-public.mjs must exist');
 const wrangler = JSON.parse(readFileSync(wranglerPath, 'utf8').replace(/^\s*\/\/.*$/gm, '').replace(/,\s*}/g, '}'));
 assert.equal(wrangler.assets?.directory, './public', 'wrangler.jsonc must serve ./public');
 assert.equal(wrangler.assets?.binding, 'ASSETS', 'wrangler.jsonc must bind ASSETS for Worker script');
-assert.deepEqual(wrangler.assets?.run_worker_first, ['/api/*'], 'wrangler.jsonc must run worker first for /api/*');
+assert.equal(wrangler.assets?.run_worker_first, true, 'all requests must pass Worker HTTPS/HSTS boundary');
 assert.equal(wrangler.main, 'worker.mjs', 'wrangler.jsonc must set main to worker.mjs');
 assert.equal(wrangler.name, 'mawashidz-live', 'wrangler.jsonc name must be production worker mawashidz-live');
 
@@ -50,6 +50,8 @@ assert.equal(buildInfo.worker, wrangler.name, 'build-info.worker must match wran
 assert.ok(existsSync(join(root, 'worker.mjs')), 'worker.mjs must exist for API routes');
 assert.ok(buildInfo.version !== '1.9.0', 'build-info version must not be legacy 1.9.0');
 assert.ok(existsSync(headersPath), 'public/_headers must exist after build (cache policy)');
+const staticHeaders = readFileSync(headersPath, 'utf8');
+assert.match(staticHeaders, /Strict-Transport-Security:\s*max-age=31536000; includeSubDomains/i);
 
 assert.ok(existsSync(indexPath), 'public/index.html must exist after sync');
 assert.ok(existsSync(regModule), 'public/js/registration-flow.mjs must exist after sync');

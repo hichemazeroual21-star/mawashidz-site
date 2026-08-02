@@ -10,6 +10,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execSync } from 'node:child_process';
 import puppeteer from 'puppeteer-core';
+import { chromeExecutablePath } from './helpers/puppeteer-env.mjs';
 
 const ROOT = process.cwd();
 const PORT = 8792;
@@ -44,7 +45,7 @@ function fail(name, detail) { results.failed.push({ name, detail }); console.err
 async function runScenario(name, { registrationsStatus = 201, emailThrows = false } = {}) {
   const supabaseCalls = [];
   const browser = await puppeteer.launch({
-    executablePath: '/usr/local/bin/google-chrome',
+    executablePath: chromeExecutablePath(),
     args: ['--no-sandbox', '--disable-dev-shm-usage', '--lang=ar'],
   });
   const page = await browser.newPage();

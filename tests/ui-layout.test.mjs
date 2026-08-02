@@ -97,7 +97,7 @@ for (const w of widths) {
   const layout = await page.evaluate(() => {
     const q = s => document.querySelector(s);
     const r = el => { const b = el.getBoundingClientRect(); return { l: b.left, r: b.right, t: b.top, b: b.bottom, w: b.width, h: b.height }; };
-    const menu = q('.top .menu-btn'), reg = q('.top .actions .btn.primary'), brand = q('.top .brand');
+    const menu = q('.top .menu-btn'), reg = q('#headerRegisterBtn'), brand = q('.top .brand');
     const login = q('#headerLoginBtn');
     const name = q('.top .brand-copy>span'), langs = q('.header-languages');
     const overlap = (a, b) => !(a.r <= b.l + 1 || b.r <= a.l + 1 || a.b <= b.t + 1 || b.b <= a.t + 1);
@@ -401,7 +401,7 @@ for (const lang of I18N_LANGS) {
       const q = s => document.querySelector(s);
       const r = el => { const b = el.getBoundingClientRect(); return { l: b.left, r: b.right, t: b.top, b: b.bottom, w: b.width }; };
       const vis = el => el && getComputedStyle(el).display !== 'none' && el.getBoundingClientRect().width > 0;
-      const menu = q('.top .menu-btn'), reg = q('.top .actions .btn.primary'), brand = q('.top .brand');
+      const menu = q('.top .menu-btn'), reg = q('#headerRegisterBtn'), brand = q('.top .brand');
       const login = q('#headerLoginBtn');
       const name = q('.top .brand-copy>span');
       return {

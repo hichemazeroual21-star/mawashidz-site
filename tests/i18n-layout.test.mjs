@@ -76,7 +76,7 @@ for (const lang of LANGS) {
       const clipped = (el) => el && (el.scrollWidth > el.clientWidth + 1 || el.scrollHeight > el.clientHeight + 1);
 
       const menu = q('.top .menu-btn');
-      const reg = q('.top .actions .btn.primary');
+      const reg = q('#headerRegisterBtn');
       const login = q('#headerLoginBtn');
       const brand = q('.top .brand');
       const name = q('.top .brand-copy>span');
