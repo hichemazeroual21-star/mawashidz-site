@@ -549,12 +549,14 @@ export function renderOperatorSupportQueue(t, tickets, { safeText, error = false
     .join('');
 
   let rows;
+  let mobileCards = '';
   if (error) {
-    rows = `<tr><td colspan="5">${renderFetchError(t, {
+    rows = '';
+    mobileCards = renderFetchError(t, {
       titleKey: 'opsQueueErrorTitle',
       bodyKey: 'ticketLoadError',
       retryId: 'opsSupportRetryBtn',
-    })}</td></tr>`;
+    });
   } else if (list.length) {
     rows = list
       .map(
@@ -570,9 +572,46 @@ export function renderOperatorSupportQueue(t, tickets, { safeText, error = false
     </tr>`,
       )
       .join('');
+    mobileCards = list
+      .map(
+        (tk) => `<article class="dash-card mdz-ops-ticket-card">
+      <header>
+        <strong>${escapeHtml(safeText ? safeText(tk.subject, 80) : tk.subject)}</strong>
+        ${statusChip(t, tk.status)}
+      </header>
+      <p class="mdz-meta" dir="ltr">${escapeHtml(tk.ticket_code || '')}</p>
+      <dl>
+        <div><dt>${escapeHtml(t('wilaya'))}</dt><dd>${escapeHtml(tk.wilaya || '—')}</dd></div>
+        <div><dt>${escapeHtml(t('ticketPriority'))}</dt><dd>${priorityChip(t, tk.priority)}</dd></div>
+        <div><dt>${escapeHtml(t('opsUpdated'))}</dt><dd><time>${escapeHtml(formatWhen(tk.updated_at))}</time></dd></div>
+      </dl>
+      <button type="button" class="mdz-btn mdz-btn-ghost mdz-btn-sm ops-ticket-open" data-ticket-id="${escapeHtml(String(tk.id))}">${escapeHtml(t('ticketOpen'))}</button>
+    </article>`,
+      )
+      .join('');
   } else {
     rows = `<tr><td colspan="5"><div class="mdz-empty"><p>${escapeHtml(t('opsQueueEmpty'))}</p></div></td></tr>`;
+    mobileCards = `<div class="mdz-empty"><p>${escapeHtml(t('opsQueueEmpty'))}</p></div>`;
   }
+
+  const queue = error
+    ? `<div class="mdz-ops-queue-error">${mobileCards}</div>`
+    : `<div class="mdz-split mdz-ops-split">
+      <div class="dash-table-wrap mdz-ops-list">
+        <table class="dash-table mdz-ops-table" id="opsSupportTable">
+          <thead><tr>
+            <th>${escapeHtml(t('ticketSubject'))}</th>
+            <th>${escapeHtml(t('ticketStatus'))}</th>
+            <th>${escapeHtml(t('ticketPriority'))}</th>
+            <th>${escapeHtml(t('opsUpdated'))}</th>
+            <th></th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+      <div class="dash-card-list mdz-ops-mobile-list" aria-label="${escapeHtml(t('opsSupportTitle'))}">${mobileCards}</div>
+      <div id="opsTicketThreadMount" class="mdz-ops-thread"><div class="mdz-empty"><p>${escapeHtml(t('opsSelectTicket'))}</p></div></div>
+    </div>`;
 
   return `<section class="mdz-panel mdz-ops-support" id="mdzOpsSupport">
     <div class="mdz-toolbar mdz-ops-toolbar" style="justify-content:space-between;align-items:flex-start">
@@ -591,21 +630,7 @@ export function renderOperatorSupportQueue(t, tickets, { safeText, error = false
         <input type="search" id="opsSupportQ" class="mdz-input" placeholder="${escapeHtml(t('opsSupportSearchPh'))}" />
       </label>
     </div>
-    <div class="mdz-split mdz-ops-split">
-      <div class="dash-table-wrap mdz-ops-list">
-        <table class="dash-table mdz-ops-table" id="opsSupportTable">
-          <thead><tr>
-            <th>${escapeHtml(t('ticketSubject'))}</th>
-            <th>${escapeHtml(t('ticketStatus'))}</th>
-            <th>${escapeHtml(t('ticketPriority'))}</th>
-            <th>${escapeHtml(t('opsUpdated'))}</th>
-            <th></th>
-          </tr></thead>
-          <tbody>${rows}</tbody>
-        </table>
-      </div>
-      <div id="opsTicketThreadMount" class="mdz-ops-thread"><div class="mdz-empty"><p>${escapeHtml(t('opsSelectTicket'))}</p></div></div>
-    </div>
+    ${queue}
   </section>`;
 }
 

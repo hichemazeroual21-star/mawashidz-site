@@ -370,11 +370,15 @@
 }
 @media (max-width: 860px) {
   .mdz-split { grid-template-columns: 1fr; }
-  .mdz-ops-mount.is-thread-open .mdz-ops-list { display: none; }
+  .mdz-ops-mount .mdz-ops-thread { display: none; }
+  .mdz-ops-mount.is-thread-open .mdz-ops-list,
+  .mdz-ops-mount.is-thread-open .mdz-ops-mobile-list { display: none; }
   .mdz-ops-thread .mdz-btn,
-  .mdz-ops-list .ops-ticket-open {
+  .mdz-ops-list .ops-ticket-open,
+  .mdz-ops-mobile-list .ops-ticket-open {
     min-height: 40px;
   }
+  .mdz-ops-mobile-list .ops-ticket-open { width: 100%; }
 }
 
 .mdz-filter-chip {

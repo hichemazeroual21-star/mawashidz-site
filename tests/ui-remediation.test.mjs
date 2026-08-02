@@ -129,6 +129,14 @@ assert.equal(ticketPriorityLabel(tAr, 'high'), 'مرتفعة');
   }], { safeText: (s) => s });
   assert.match(q, /عاجلة/);
   assert.doesNotMatch(q, />urgent<|>normal</);
+  assert.match(q, /dash-card-list mdz-ops-mobile-list/);
+  assert.equal((q.match(/ops-ticket-open/g) || []).length, 2, 'desktop and mobile queues must both expose the ticket');
+
+  const emptyQ = renderOperatorSupportQueue(tAr, [], { safeText: (s) => s });
+  assert.match(emptyQ, /mdz-ops-mobile-list[\s\S]*لا تذاكر/);
+
+  const errorQ = renderOperatorSupportQueue(tAr, [], { safeText: (s) => s, error: true });
+  assert.equal((errorQ.match(/id="opsSupportRetryBtn"/g) || []).length, 1, 'the retry action must keep a unique id');
 }
 
 // MDZ-UI-006
@@ -162,6 +170,9 @@ assert.match(read('assets/i18n.js'), /notifBellAriaUnread/);
 assert.match(indexSrc, /min\(960px,98vw\)/);
 assert.match(read('js/mdz-dashboards.mjs'), /mdz-ops-command/);
 assert.match(read('assets/mdz-design-system.css'), /mdz-ops-mount\.is-thread-open/);
+assert.match(indexSrc, /const load=async\(filters=\{\}\)=>\{\s*mount\.classList\.remove\('is-thread-open'\)/);
+assert.match(read('assets/mdz-design-system.css'), /mdz-ops-mount \.mdz-ops-thread\s*\{\s*display:\s*none/);
+assert.match(read('assets/mdz-design-system.css'), /is-thread-open \.mdz-ops-mobile-list/);
 
 // MDZ-UI-009
 assert.match(indexSrc, /id="headerLoginBtn"/);
