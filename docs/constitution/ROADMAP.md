@@ -1,7 +1,7 @@
 # MawashiDZ Strategic Roadmap
 
-**Version:** 1.0 (Canonical)  
-**Status:** FROZEN with Constitution v3.0  
+**Version:** 1.1 (Canonical)
+**Status:** FROZEN with Constitution v3.1
 **Authority:** Execution order for strategy — subordinate to [MAWASHIDZ_CONSTITUTION.md](./MAWASHIDZ_CONSTITUTION.md)  
 **Supersedes:** `IMPLEMENTATION_ROADMAP.md`, conflicting notes that placed Hub before Livestock Identity  
 
@@ -96,7 +96,7 @@ Phase 7  Intelligence (only with data + AI policy)
 - [ ] QR opens verification page with correct ACL fields  
 - [ ] Media limits enforced  
 
-**Founder wait:** FD-02 (listing↔animal), FD-06 (retention) before public promises; schema work may start with reversible defaults.
+**Founder wait:** FD-06 (retention) before public ownership-history promises. FD-02 is Decided: schema must support basic listings and optional professional evidence without duplicate records.
 
 ---
 
@@ -104,11 +104,12 @@ Phase 7  Intelligence (only with data + AI policy)
 
 **Goal:** Trusted listings and requests — not a payment platform.
 
-**Gates:** Phase 2 exit + FD-01/02/03/08 decided + minimum field research notes on buyer trust / seller listing habits.
+**Gates:** Phase 2 identity foundation + FD-01/03/08 decided + minimum field research notes on buyer trust / seller listing habits. Basic listings must not depend on completing animal registration.
 
 | ID | Work | Type |
 |----|------|------|
-| 3.1 | Listing state machine + animal link for verified | Must |
+| 3.1 | Quick listing state machine: photos, livestock/count, price, location, description | Must |
+| 3.1b | Optional professional evidence on the same listing; in-place upgrade | Must |
 | 3.2 | Wilaya/admin moderation | Must |
 | 3.3 | Purchase requests + listing threads | Must |
 | 3.4 | Reports / hide | Must |
@@ -117,10 +118,11 @@ Phase 7  Intelligence (only with data + AI policy)
 
 ### Exit criteria
 
-- [ ] Verified listing requires animal  
+- [ ] Phone-confirmed member can publish a basic listing without professional or animal registration
+- [ ] Same listing can add animal/lot and professional evidence without duplication
 - [ ] Buyer can request; seller can respond  
 - [ ] Manager can hide/flag  
-- [ ] Sale can write ownership transfer event  
+- [ ] Seller can reserve and mark sold; animal-linked sale can write an ownership transfer event
 
 ---
 

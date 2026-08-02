@@ -1,7 +1,7 @@
 # MawashiDZ Constitution Library
 
-**Last updated:** 2026-07-24  
-**Strategic phase:** COMPLETE — Constitution v3.0 FROZEN
+**Last updated:** 2026-08-02
+**Strategic phase:** COMPLETE — Constitution v3.1 FROZEN
 
 ## Authoritative documents
 
@@ -35,7 +35,7 @@
 
 ## Conflict resolution
 
-1. Constitution v3.0 wins on vision, trust, roles, NON-GOALS, sequencing principles.  
+1. Constitution v3.1 wins on vision, trust, roles, NON-GOALS, sequencing principles.
 2. Constitution ROADMAP wins on phase order (Animals before Hub).  
 3. Product Constitution wins **only** on Hub card / Smart Workspace mechanics when Hub is in Phase 4 — never on Years 1–2 scope or phase order.  
 4. Public claims follow [PUBLIC_CLAIMS_POLICY.md](./PUBLIC_CLAIMS_POLICY.md).  

@@ -3,7 +3,7 @@
 **Type:** Implementation & delivery plan — **not** product requirements.  
 **Requirements:** [MEMBER_OPERATIONS_AND_COMMUNICATION.md](./MEMBER_OPERATIONS_AND_COMMUNICATION.md) and section PRDs.  
 **Vision (Hub mechanics):** [PRODUCT_CONSTITUTION.md](./PRODUCT_CONSTITUTION.md)  
-**Strategic SSOT:** [../constitution/MAWASHIDZ_CONSTITUTION.md](../constitution/MAWASHIDZ_CONSTITUTION.md) v3.0 FROZEN  
+**Strategic SSOT:** [../constitution/MAWASHIDZ_CONSTITUTION.md](../constitution/MAWASHIDZ_CONSTITUTION.md) v3.1 FROZEN
 **Canonical phase order:** [../constitution/ROADMAP.md](../constitution/ROADMAP.md) — **Animals before Hub**; this file keeps Phase 1 track detail.
 
 **Last updated:** 2026-07-24
@@ -82,7 +82,8 @@ AI assistant remains Phase 7 / NON-GOAL for Years 1–2 unless amended.
 - [ ] PRD acceptance criteria **§1–2** (track A) in production  
 - [ ] Tracks **B–D** acceptance met  
 - [ ] Support & Messages **E.1–E.3** minimum viable  
-- [ ] Relevant Founder Decisions for public trust claims (FD-02, FD-06 as applicable)  
+- [x] FD-02 quick + professional marketplace path Decided (2026-08-02)
+- [ ] FD-06 for public ownership-history claims
 
 ---
 

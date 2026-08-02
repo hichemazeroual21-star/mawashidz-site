@@ -4,6 +4,8 @@
 **Constitution:** v3.0 FROZEN  
 **Author role:** Technical Co-Founder / CTO (advisory)
 
+> Historical snapshot: FD-02 was subsequently Decided by the Founder on 2026-08-02 via D-018. Current authority is Constitution v3.1.
+
 ---
 
 ## Completion declaration

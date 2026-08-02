@@ -4,6 +4,8 @@
 **Branch:** `cursor/constitution-authority-amendments-4b6e`  
 **Scope:** Documentation / ADR / governance only — no RLS behavior change in this PR  
 
+> Historical snapshot: its pending FD-02 statements were superseded by Founder Decision D-018 on 2026-08-02.
+
 ## Proposals disposition
 
 | ID | Proposal | Disposition | Artifact |

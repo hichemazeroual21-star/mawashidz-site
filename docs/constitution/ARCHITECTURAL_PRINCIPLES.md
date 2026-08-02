@@ -1,6 +1,6 @@
 # Architectural Principles
 
-**Status:** Binding for engineering under Constitution v3.0  
+**Status:** Binding for engineering under Constitution v3.1
 **Audience:** Every implementer  
 
 These are invariants. If a PR violates them, reject or amend Constitution first.

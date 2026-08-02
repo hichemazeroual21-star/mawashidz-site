@@ -2,7 +2,7 @@
 
 **Version:** 1.0  
 **Status:** Canonical for review-only sessions and review agents  
-**Authority:** Subordinate to Constitution v3.0; does not override ROADMAP sequencing  
+**Authority:** Subordinate to Constitution v3.1; does not override ROADMAP sequencing
 **Related:** [STRICT_EVIDENCE_REVIEW_STANDARD.md](./STRICT_EVIDENCE_REVIEW_STANDARD.md) when present; [ARCHITECTURE_REVIEW_CHECKLIST.md](./ARCHITECTURE_REVIEW_CHECKLIST.md)
 
 This document fixes governance contradictions that appear when a review board is instructed both to “never review PRs” and to “review every PR,” or both to “emit one prompt only” and to “auto-emit a next-phase prompt.”

@@ -1,8 +1,9 @@
 # MawashiDZ Master Constitution
 
-**Version:** 3.0  
+**Version:** 3.1
 **Status:** FROZEN — strategic architecture phase complete  
 **Effective:** 2026-07-24  
+**Founder amendment:** 2026-08-02 — quick + professional marketplace paths
 **Owner:** Founder  
 **Supersedes:** Constitution v2.0 drafts, fragmented chat drafts, conflicting roadmap notes  
 
@@ -34,7 +35,7 @@ Build the most trusted, secure, scalable, and usable digital livestock identity 
 - Member identity, verification, and operator governance  
 - Livestock identity (animals, ownership events)  
 - QR verification for members and animals  
-- Marketplace listings and purchase requests with moderation  
+- Marketplace listings and purchase requests with moderation: quick selling by default, optional professional evidence from day one
 - Support tickets and essential notifications  
 - Breeder / broker / buyer / thin vet workspaces as needed for the above  
 
@@ -75,7 +76,7 @@ If unanswered → do not build.
 2. Trust before growth and before monetization.  
 3. Security before convenience — **server-side RLS + RPC are the source of truth**.  
 4. Research before assumptions about Algerian users.  
-5. Identity before marketplace transactions.  
+5. Identity-capable architecture before marketplace launch; basic listings remain easy, while stronger evidence requires explicit animal/role verification.
 6. Animals (and ownership truth) before Hub chrome.  
 7. Tickets before open member chat.  
 8. Quality and maintainability before feature count.  
@@ -166,7 +167,26 @@ Trust is the product. Without it, MawashiDZ is classifieds with livestock photos
 
 ### 4.4 Listing ↔ animal rule (Founder Decision FD-02)
 
-**Settled engineering recommendation pending Founder confirm:** Verified listings **require** a registered animal. Unverified/draft listings without animal — only if Founder explicitly allows a labeled untrusted path; default preference is strict verified path for brand.
+**Founder decision (2026-08-02): one marketplace, two creation depths.**
+
+**Quick listing — default in Year 1**
+
+- One primary action: **Add livestock**.
+- Minimum fields: photos, species, head count, asking price (fixed or negotiable), wilaya/commune and short description.
+- Phone-confirmed members may publish after the applicable safety/moderation checks.
+- No professional profile, animal QR or prior animal registration is required for this basic path.
+
+**Professional evidence — optional from day one**
+
+- The same form exposes an optional professional step for animal/lot linkage, ownership evidence, veterinary evidence, weight and traceability.
+- The same listing upgrades in place; no duplicate listing and no repeated data entry.
+- Labels are evidence-specific: e.g. “identity checked,” “professional role checked,” “animal-linked,” or “veterinary evidence attached.” Never use a generic guarantee.
+
+**Sale completion**
+
+- The flow supports request/contact, negotiation, reservation and **Mark as sold**.
+- When a listing is animal-linked, a confirmed sale may create the ownership-transfer event.
+- Money movement, escrow and platform guarantees remain NON-GOALS for Years 1–2.
 
 ---
 
@@ -436,6 +456,7 @@ Until researched, prefer reversible product choices and labeled assumptions in F
 
 | Version | Date | Summary |
 |---------|------|---------|
+| **3.1** | 2026-08-02 | Founder amendment D-018 / FD-02: quick Year-1 livestock selling plus optional upgradeable professional evidence from day one |
 | **3.0** | 2026-07-24 | Frozen strategic constitution — identity+commerce thesis, NON-GOALS, trust/QR/data class, animals-before-Hub, distinct brokers |
 | 2.0 | 2026-07-24 | Reconstructed draft from chat fragments |
 | 1.x | 2026-07-23 | Product Constitution (Hub) remains subordinate detail |

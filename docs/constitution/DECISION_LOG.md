@@ -22,7 +22,8 @@ Amendments require Founder approval when they change Constitution meaning.
 | 2026-07-24 | D-015 | Product Constitution subordinate to strategic Constitution + ROADMAP | Product doc as highest vision authority | Prevent Hub/feed scope bypass of NON-GOALS | — |
 | 2026-07-24 | D-016 | Canonical migration path = numbered `supabase/migrations` + setup watermark (ADR-002) | Ignore dual path; immediate squash | TD-001 mitigation | After blank-install drill |
 | 2026-07-24 | D-017 | Public trust claims must not imply shipped Phase 2+ capabilities | Market QR/passports as live services | Protect trust thesis | Continuous |
+| 2026-08-02 | D-018 | FD-02 hybrid marketplace: quick livestock listing by default, optional upgradeable professional evidence from day one | Require animal registration for every listing; separate basic/pro listings | Preserve Year-1 liquidity and ease while letting professionals prove more without burdening everyone | After first 100 published listings |
 
 Pending Founder checkmarks: see [FOUNDER_DECISIONS.md](./FOUNDER_DECISIONS.md) FD-01…FD-08, FD-10.
 
-**Note on D-005:** Engineering may design toward distinct brokers; **do not ship irreversible broker schema or public promises** until FD-01 = Decided. Same pattern for FD-02 vs listing↔animal language in Constitution §4.
+**Note on D-005:** Engineering may design toward distinct brokers; **do not ship irreversible broker schema or public promises** until FD-01 = Decided. FD-02 is now settled by D-018.

@@ -2,14 +2,14 @@
 
 **Founder Vision – Smart Role Workspaces (Mandatory Product Direction for Hub mechanics)**
 
-> **Authority (amended):** This document is the **product mechanics authority for Smart Workspaces / Hub card architecture only**. It is **subordinate** to [`docs/constitution/MAWASHIDZ_CONSTITUTION.md`](../constitution/MAWASHIDZ_CONSTITUTION.md) v3.0 (frozen) and [`docs/constitution/ROADMAP.md`](../constitution/ROADMAP.md) for vision, NON-GOALS, Years 1–2 scope, and **phase sequencing**. If this document conflicts with the strategic Constitution or canonical ROADMAP, **those win**. Hub/workspace PDR records may refine card mechanics only after sequencing gates pass.
+> **Authority (amended):** This document is the **product mechanics authority for Smart Workspaces / Hub card architecture only**. It is **subordinate** to [`docs/constitution/MAWASHIDZ_CONSTITUTION.md`](../constitution/MAWASHIDZ_CONSTITUTION.md) v3.1 (frozen) and [`docs/constitution/ROADMAP.md`](../constitution/ROADMAP.md) for vision, NON-GOALS, Years 1–2 scope, and **phase sequencing**. If this document conflicts with the strategic Constitution or canonical ROADMAP, **those win**. Hub/workspace PDR records may refine card mechanics only after sequencing gates pass.
 
 > **Design gate:** Every new feature added to MawashiDZ must first answer one question: *“Which workspace benefits from it?”* If the answer is **“none”**, the feature should be **reconsidered**. Features that violate Constitution NON-GOALS (e.g. Years 1–2 feed catalog, open member chat, medical AI) must not ship regardless of workspace fit.
 
 | | |
 |--|--|
-| **Status** | **Approved product constitution for Hub mechanics** — subordinate to strategic Constitution v3.0 |
-| **Constitution version** | **1.5** (see [version history](#version-history)) — **1.5 authority amendment 2026-07-24** |
+| **Status** | **Approved product constitution for Hub mechanics** — subordinate to strategic Constitution v3.1 |
+| **Constitution version** | **1.6** (see [version history](#version-history)) — **1.6 marketplace-path amendment 2026-08-02** |
 | **Owner** | Product / Founder / MawashiDZ |
 | **Audience** | Engineering (Cursor), design, ops |
 | **Constraint** | Ship in **dedicated branches and PRs**. Do **not** mix with registration, Auth, or existing RLS changes unless an approved migration explicitly covers them. |
@@ -185,6 +185,8 @@ Growing activity (repeat listings, faster response, higher trust)
 ### Livestock listings
 
 Create livestock listings; draft before publishing; edit or archive; set price (negotiable or fixed); quantity; breed; species; gender; age; approximate weight; wilaya & commune; delivery / pickup; photos; QR / animal profile integration when available.
+
+**Two-depth creation rule (FD-02 / D-018):** “Add livestock” opens the quick path by default. Only photos, livestock type/count, asking price, location and a short description are initially required. An optional **Add professional evidence** step reveals animal/lot linkage, ownership, veterinary, weight and traceability fields. It enriches the same listing; it must never create a duplicate or force the seller to restart. The interface must explain the benefit of professional evidence without blocking or shaming the basic seller.
 
 ### Listing management
 
@@ -723,7 +725,7 @@ openAccount / workspace entry
 | **P0** | This vision + **minimal** `hub_cards` + `hub_engagement_events` migration | No runtime |
 | **P1** | `mdz-hub-core`, providers, top-4, offline, **Today in your wilaya**, analytics; **Breeder Smart Workspace first** | Workspace/Hub only |
 | **P2** | Preferences jsonb; optional `hub_feed_items`; notification center MVP; search MVP (scoped) | New tables/RPC as needed |
-| **P3** | Breeder listing/request workspace sections (MVP); CMS RPC | Hub + marketplace modules |
+| **P3** | Quick + optional professional listing/request workspace sections (MVP); CMS RPC | Hub + marketplace modules |
 | **P4** | Vet / buyer / feed Smart Workspaces; manager workspace alignment | Wilaya RLS unchanged unless approved |
 | **P5** | External ingest; ranking v1 |
 | **P6** | Founder analytics + engagement cards |
@@ -793,7 +795,7 @@ Order is fixed to protect production stability and **must follow** [`docs/consti
 
 ## Decision recorded
 
-**Founder:** this document is the **product constitution for Smart Role Workspaces / Hub mechanics**, subordinate to strategic Constitution v3.0. **Hub P0 + P1 (breeder-first)** proceed only after constitution Phases **2–3** gates (and Phase 1 ops), under the constraints above.
+**Founder:** this document is the **product constitution for Smart Role Workspaces / Hub mechanics**, subordinate to strategic Constitution v3.1. **Hub P0 + P1 (breeder-first)** proceed only after constitution Phases **2–3** gates (and Phase 1 ops), under the constraints above.
 
 ---
 
@@ -817,6 +819,7 @@ When you change a decision, add a new PDR or mark the old one **Superseded** and
 
 | Version | Date | Summary |
 |---------|------|---------|
+| **1.6** | 2026-08-02 | FD-02/D-018: quick Year-1 livestock listing plus optional in-place professional evidence from day one |
 | **1.0** | 2026-07-23 | Initial Product Constitution (Smart Role Workspaces founder vision) |
 | **1.1** | 2026-07-23 | Smart Workspace framework, Hub, Card Provider, PDR index, execution order |
 | **1.2** | 2026-07-23 | Alignment with member ops / messaging phases; SSOT clause; product library |
