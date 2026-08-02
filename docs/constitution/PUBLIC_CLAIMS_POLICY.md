@@ -1,7 +1,7 @@
 # Public Claims Policy
 
 **Status:** Binding engineering + marketing governance  
-**Authority:** Constitution v3.0 trust thesis; Decision Log D-017  
+**Authority:** Constitution v3.1 trust thesis; Decision Log D-017 + D-018
 **Goal:** Prevent public trust claims from outrunning shipped phases  
 
 ## Rule
@@ -23,7 +23,8 @@ Any **public** surface (marketing site, store screenshots, press, App Store text
 | Support tickets | Available after Phase 1 ticket path Verified |
 | Animal passport / ownership ledger | Coming until Phase 2 Verified |
 | QR verification API | Coming until Phase 2 Verified |
-| Marketplace listing tied to animal | Coming until Phase 3 + FD-02 Decided |
+| Basic livestock listing / asking price / mark sold | Coming until Phase 3 flow is Verified in production |
+| Animal-linked or professional evidence label | Coming until the exact evidence path is Verified; never imply all basic listings carry it |
 | Feed product catalog / delivery storefront | **NON-GOAL** Years 1–2 — registration-only; do not claim Available |
 | Open member↔member chat | **NON-GOAL** Years 1–2 |
 | Medical AI | **NON-GOAL** until governance (FD-12) |

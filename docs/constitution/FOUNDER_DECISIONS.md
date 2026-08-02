@@ -13,7 +13,7 @@ Legend: `Proposed` · `Decided` · `Deferred`
 | ID | Decision | Options | CTO recommendation | Status | Blocks |
 |----|----------|---------|-------------------|--------|--------|
 | **FD-01** | Broker membership | A) Extend breeder B) Distinct type thin C) Ignore brokers | **B** | Proposed | Broker registration UX, schema enum |
-| **FD-02** | Listing ↔ animal | A) Verified requires animal B) Optional link C) Hybrid labeled untrusted | **A** (strict verified) | Proposed | Marketplace schema |
+| **FD-02** | Listing ↔ animal | A) Animal required for every listing B) Optional link without levels C) Hybrid: quick listing + upgradeable professional evidence | **C** | **Decided — Founder, 2026-08-02** | — |
 | **FD-03** | Year-1 payments | A) Cash/offline only B) Escrow C) Mobile money | **A** | Proposed | Any money movement |
 | **FD-04** | Business model Y1–2 | A) Free core B) Freemium tools C) Ads D) Take rate | **A then B later; no ads Y1–2** | Proposed | Monetization code |
 | **FD-05** | Geography focus | A) Algeria-only 5y B) MENA prep now | **A** | Proposed | i18n/legal sprawl |
@@ -45,7 +45,16 @@ Legend: `Proposed` · `Decided` · `Deferred`
 - NON-GOALS list for Years 1–2  
 - Distinct broker *direction* recommended; **FD-01 still needs Founder checkmark**
 
-**Still need Founder checkmark before marketplace public launch:** FD-01, FD-02, FD-03, FD-04, FD-05, FD-06, FD-07, FD-08, FD-10.
+**Still need Founder checkmark before marketplace public launch:** FD-01, FD-03, FD-04, FD-05, FD-06, FD-07, FD-08, FD-10.
+
+### FD-02 binding interpretation
+
+- Year 1 includes an easy livestock selling path: add photos, livestock type/count, asking price (fixed or negotiable), location and a short description.
+- Publishing the basic listing does **not** require a professional profile or a pre-registered animal.
+- A professional path exists from day one as optional enrichment: animal/lot linkage, ownership evidence, veterinary evidence, weight and traceability fields.
+- One listing upgrades in place from basic to professional; sellers never re-enter the same listing.
+- Evidence labels describe exactly what was checked. A basic listing is not labeled “untrusted,” and professional evidence is never implied when absent.
+- “Sold” records the commercial outcome; MawashiDZ does not move money or provide escrow in Years 1–2.
 
 **Do not treat Proposed items as Decided.** Decision Log entries (e.g. D-005 broker direction) record *engineering recommendation / direction*, not Founder ratification. Schema and public trust claims wait for Status = **Decided**.
 

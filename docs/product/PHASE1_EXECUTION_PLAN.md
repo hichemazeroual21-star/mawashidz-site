@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-24  
 **Branch:** `cursor/phase1-member-ops-foundation-4b6e`  
-**Authority:** Constitution v3.0 §8 + Roadmap Phase 1 (1.C–1.F Must)  
+**Authority:** Constitution v3.1 §8 + Roadmap Phase 1 (1.C–1.F Must)
 **PRD:** MEMBER_OPERATIONS.md §4–5 · SUPPORT_AND_MESSAGES_CENTER.md
 
 ---

@@ -3,7 +3,7 @@
 **Version:** 1.0  
 **Status:** Canonical for independent architecture / product / security audits  
 **Commit at adoption:** use the audited branch tip (example: `0107e62`)  
-**Authority:** Subordinate to Constitution v3.0; used by review agents and humans  
+**Authority:** Subordinate to Constitution v3.1; used by review agents and humans
 
 This document is the **strict review prompt** plus **mandatory evidence rules**.  
 External references are unnecessary to judge this prompt; the text itself is the direct evidence.
