@@ -74,6 +74,7 @@ assert.deepEqual((await emptyResponse.json()).items, []);
 const index = readFileSync(join(process.cwd(), 'index.html'), 'utf8');
 assert.doesNotMatch(index, /NEWS_FALLBACK/, 'the browser must not fabricate fallback news');
 assert.doesNotMatch(index, /id="news-specialized"/, 'duplicate news section must stay removed');
+assert.doesNotMatch(index, /معيار النشر|Publishing standard|Norme de publication|Veröffentlichungsstandard/, 'internal news policy must not be explained in public UI');
 assert.match(index, /officialNewsDomain\(item\.sourceUrl\)/, 'browser must independently validate the official source URL');
 assert.match(index, /isCurrentMonthNews\(item\.publishedAt\)/, 'browser must independently enforce the month boundary');
 
