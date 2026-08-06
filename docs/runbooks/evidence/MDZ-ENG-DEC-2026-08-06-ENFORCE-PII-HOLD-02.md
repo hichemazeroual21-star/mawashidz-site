@@ -6,7 +6,7 @@
 
 **Authorized by:** Hichem, direct current-user Founder lock
 
-**Status:** `PARTIAL — CODE HOLD IN PROGRESS / PROVIDER CONTROLS BLOCKED`
+**Status:** `CONSUMED_PARTIAL_BLOCKED — CLOUDFLARE CANONICAL/WORKERS.DEV HELD; NETLIFY PRODUCTION/MAIN + HISTORICAL DEPLOYS EXPOSED; PROVIDER CLOSURE BLOCKED`
 
 ## Exact authorization consumed
 
@@ -31,9 +31,9 @@ Checked at `2026-08-06T15:46:07Z` without submitting personal data:
 
 No signup, form submission, EmailJS send, row write, deletion, data export or credential disclosure was performed while collecting this baseline.
 
-## Candidate code-level containment scope
+## Implemented code-level containment
 
-Once merged and observed live on the exact production commit, the candidate Worker change is intended to:
+PR [#41](https://github.com/hichemazeroual21-star/mawashidz-site/pull/41) merged the Worker hold. PR [#42](https://github.com/hichemazeroual21-star/mawashidz-site/pull/42) added a fail-closed Netlify deployment configuration. The deployed Worker now:
 
 - serves a self-contained `503` holding page with no forms or scripts;
 - uses `no-store`, `noindex`, CSP `connect-src 'none'`, `script-src 'none'` and `form-action 'none'`;
@@ -41,6 +41,8 @@ Once merged and observed live on the exact production commit, the candidate Work
 - blocks the scheduled email outbox;
 - blocks the old static application bundle through the production Worker;
 - allows only `build-info.json` so the exact deployed commit remains observable.
+
+The merged Netlify configuration is intended to publish only an inert allow-listed hold artifact, exclude application Functions, and configure an Edge Function to return `503` for all paths. It is verified only on the successful Preview 42 and its atomic deploy, where representative live `GET`, `POST` and `HEAD` probes passed. The production deployment for merged main commit `07fc306424be94692c57a286c9c76e813cf2d952` failed/skipped and did not replace the exposed production/main aliases.
 
 ## Explicit exclusions and unresolved provider blockers
 
@@ -56,17 +58,36 @@ This code deploy does **not** prove full containment. The following remain block
 
 Existing records must remain in place and access-restricted. Do not delete, export, copy or move personal data under this decision.
 
-## Deployment and closure evidence
+## Deployment and live verification evidence
 
-To be filled only from raw post-deploy observations:
+Cloudflare and Netlify live routes were verified independently at `2026-08-06T16:26:51Z`–`2026-08-06T16:28:13Z`, without submitting personal data:
 
-- Deployment commit: `PENDING`
-- Production `build-info.json`: `PENDING`
-- Hold regression tests: `PENDING`
-- Live no-form/no-script page probe: `PENDING`
-- Live API fail-closed probe: `PENDING`
-- Supabase provider setting: `BLOCKED — SIGN-IN REQUIRED`
-- EmailJS provider setting: `BLOCKED — NO AUTHENTICATED CHANNEL`
-- Database/data quarantine audit: `BLOCKED — NO AUTHENTICATED CHANNEL`
+- Merged main commit and Cloudflare live commit: `07fc306424be94692c57a286c9c76e813cf2d952`.
+- `https://mawashidz.com/build-info.json`: HTTP `200`, exact production commit above, Worker `mawashidz-live`, built at `2026-08-06T16:23:48.797Z`.
+- Exact live verifier: `VERIFY_GIT_COMMIT=07fc306424be94692c57a286c9c76e813cf2d952 npm run verify:pii-hold` — **PASS**.
+- Canonical root, old static/source paths, login, recovery and email-outbox routes: HTTP `503`, exact decision header, `no-store`, no forms, inputs, scripts, EmailJS or Supabase markers.
+- `mawashidz-live.hichemazeroual21.workers.dev` and `mawashidz-site.hichemazeroual21.workers.dev`: HTTP `503` with the exact hold header and no application markers.
+- `www.mawashidz.com`: Cloudflare `522` with no application body observed. This is not counted as a controlled hold.
+- Netlify Preview 42 and atomic deploy `6a74b427d8f1ab000875489e`: HTTP `503` across root, static/source, API and Function paths; no form, input, script, EmailJS or Supabase markers.
+
+## Confirmed residual exposure and provider blockers
+
+The following Netlify deployments remained publicly readable at the same checkpoint:
+
+- `mawashidz.netlify.app` and `main--mawashidz.netlify.app`: HTTP `200`, three forms and thirteen form fields, no hold header.
+- `deploy-preview-41--mawashidz.netlify.app`: HTTP `200`, five forms and sixty-two form fields, EmailJS and Supabase markers, no hold header.
+- Historical atomic production deploy `6a559f2c60cc6500080adc35--mawashidz.netlify.app`: HTTP `200`, three forms and thirteen form fields.
+- Historical atomic Preview-41 deploy `6a74ae613b3f390008ad85a8--mawashidz.netlify.app`: HTTP `200`, five forms and sixty-two form fields, EmailJS and Supabase markers.
+
+Netlify production metadata was rechecked at `2026-08-06T16:35:26Z`. Deploy `6a74b4b3b33d4800086eff47` targets the exact merged main commit and reports `state=error`, `skipped=true`, `summary.status=unavailable` and `published_at=null`. The production/main aliases still served the prior artifact; therefore no publication of this deploy was observed. The authenticated build log and project-wide access controls are unavailable in the current execution channel. A successful new production deploy would not by itself retire historical atomic or preview URLs.
+
+- Supabase signup state at `2026-08-06T16:35:35Z`: **VERIFIED OPEN** — read-only Auth settings returned HTTP `200`, `disable_signup=false`, email signup enabled. Cached or direct clients can bypass the Worker.
+- Supabase signup disablement/remediation: **BLOCKED — AUTHENTICATED PROVIDER ACCESS REQUIRED**.
+- Supabase RLS, grants, RPCs, Storage, sessions and existing-data access inventory: **BLOCKED — AUTHENTICATED PROVIDER ACCESS REQUIRED**.
+- EmailJS provider state: **UNKNOWN**. Suspension, activity verification, send history and recipient-mailbox audit are **BLOCKED — AUTHENTICATED PROVIDER ACCESS REQUIRED**.
+- Netlify production retry, project-wide access protection and historical deploy restriction: **BLOCKED — AUTHENTICATED PROVIDER ACCESS REQUIRED**.
+- Initial and 24-hour no-new-mutation observation: **PENDING**.
+
+No signup, form submission, provider email send, row write, deletion, export, copy or data relocation was performed during verification.
 
 Until every provider-side item passes, the parent decision remains `PARTIAL`, never `CLOSED`, `SECURE` or `COMPLIANT`.
