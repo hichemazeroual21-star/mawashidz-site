@@ -23,6 +23,7 @@ Amendments require Founder approval when they change Constitution meaning.
 | 2026-07-24 | D-016 | Canonical migration path = numbered `supabase/migrations` + setup watermark (ADR-002) | Ignore dual path; immediate squash | TD-001 mitigation | After blank-install drill |
 | 2026-07-24 | D-017 | Public trust claims must not imply shipped Phase 2+ capabilities | Market QR/passports as live services | Protect trust thesis | Continuous |
 | 2026-08-02 | D-018 | FD-02 hybrid marketplace: quick livestock listing by default, optional upgradeable professional evidence from day one | Require animal registration for every listing; separate basic/pro listings | Preserve Year-1 liquidity and ease while letting professionals prove more without burdening everyone | After first 100 published listings |
+| 2026-08-06 | D-019 | `MDZ-ENG-DEC-2026-08-06-ENFORCE-PII-HOLD-02`: freeze public registration, login, form submission and outbound application email; serve a fail-closed holding page; preserve existing data in place pending provider, privacy and security review | Continue collecting real PII; hide only the registration button; delete historical records without review | Founder authorization consumed 2026-08-06; live signup and client EmailJS contradicted the prior PII hold | Reopen only through a new Founder decision after Supabase, EmailJS, data-inventory and security closure evidence |
 
 Pending Founder checkmarks: see [FOUNDER_DECISIONS.md](./FOUNDER_DECISIONS.md) FD-01…FD-08, FD-10.
 
