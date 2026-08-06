@@ -1,32 +1,11 @@
 [build]
-  publish = "."
-  functions = "netlify/functions"
+  publish = "netlify-hold"
+  edge_functions = "netlify/edge-functions"
 
 [functions]
+  directory = "netlify-disabled-functions"
   node_bundler = "esbuild"
 
-[[redirects]]
-  from = "/api/livestock-news"
-  to = "/.netlify/functions/news"
-  status = 200
-
-[[redirects]]
-  from = "/api/livestock-prices"
-  to = "/.netlify/functions/prices"
-  status = 200
-
-[[headers]]
-  for = "/*.mjs"
-  [headers.values]
-    Content-Type = "text/javascript; charset=utf-8"
-
-[[headers]]
-  for = "/js/*"
-  [headers.values]
-    Content-Type = "text/javascript; charset=utf-8"
-
-[[headers]]
-  for = "/*"
-  [headers.values]
-    X-Content-Type-Options = "nosniff"
-    Referrer-Policy = "strict-origin-when-cross-origin"
+[[edge_functions]]
+  function = "pii-hold"
+  path = "/*"
