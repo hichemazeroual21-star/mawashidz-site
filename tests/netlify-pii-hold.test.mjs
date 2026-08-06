@@ -26,7 +26,16 @@ function assertSecurity(response) {
   assert.match(response.headers.get('content-security-policy') || '', /form-action 'none'/);
 }
 
-for (const path of ['/', '/index.html', '/register', '/js/registration-flow.mjs', '/assets/i18n.js']) {
+for (const path of [
+  '/',
+  '/index.html',
+  '/register',
+  '/build-info.json',
+  '/public/index.html',
+  '/worker.mjs',
+  '/js/registration-flow.mjs',
+  '/assets/i18n.js',
+]) {
   const response = piiHold(new Request(`https://mawashidz.netlify.app${path}`));
   assertSecurity(response);
   const body = await response.text();
