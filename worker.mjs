@@ -12,6 +12,39 @@ const JSON_HEADERS = {
 
 const HSTS_VALUE = 'max-age=31536000; includeSubDomains';
 
+export const PII_HOLD_ACTIVE = true;
+export const PII_HOLD_DECISION_ID = 'MDZ-ENG-DEC-2026-08-06-ENFORCE-PII-HOLD-02';
+
+const PII_HOLD_HTML = `<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <title>مواشي ديزاد — قيد التحضير</title>
+  <style>
+    :root{color-scheme:light dark;font-family:system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif}
+    *{box-sizing:border-box}
+    body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;background:#0c2e22;color:#f7fbf8}
+    main{width:min(620px,100%);padding:36px 28px;border:1px solid rgba(255,255,255,.18);border-radius:24px;background:rgba(255,255,255,.08);box-shadow:0 24px 70px rgba(0,0,0,.22);text-align:center}
+    .mark{display:inline-grid;place-items:center;width:58px;height:58px;margin-bottom:16px;border-radius:18px;background:#d9bd69;color:#173326;font-size:28px;font-weight:900}
+    h1{margin:0 0 12px;font-size:clamp(1.7rem,6vw,2.35rem)}
+    p{margin:8px 0;line-height:1.8;color:#e2eee7}
+    .notice{margin-top:22px;padding:14px;border-radius:14px;background:rgba(0,0,0,.17);font-weight:700}
+    footer{margin-top:22px;font-size:.82rem;color:#bfd1c6;direction:ltr}
+  </style>
+</head>
+<body>
+  <main>
+    <div class="mark" aria-hidden="true">م</div>
+    <h1>منصة مواشي ديزاد قيد التحضير</h1>
+    <p>التسجيل والدخول وإرسال الطلبات عبر موقع MawashiDZ غير متاح مؤقتاً بينما نراجع الجوانب القانونية والأمنية.</p>
+    <p class="notice">يرجى عدم إرسال أي معلومات شخصية حالياً.</p>
+    <footer>MawashiDZ · Temporary privacy hold</footer>
+  </main>
+</body>
+</html>`;
+
 function jsonError(status, code) {
   return new Response(JSON.stringify({ error: code }), { status, headers: JSON_HEADERS });
 }
@@ -26,6 +59,27 @@ function withSecurityHeaders(response) {
     statusText: response.statusText,
     headers,
   });
+}
+
+function piiHoldResponse(request, pathname) {
+  if (pathname.startsWith('/api/')) {
+    const blocked = jsonError(503, 'pii-hold-active');
+    blocked.headers.set('Retry-After', '3600');
+    blocked.headers.set('X-MawashiDZ-Hold', PII_HOLD_DECISION_ID);
+    return request.method === 'HEAD' ? asHead(blocked) : blocked;
+  }
+
+  const headers = new Headers({
+    'Content-Type': 'text/html; charset=utf-8',
+    'Cache-Control': 'no-store, max-age=0',
+    'Content-Security-Policy': "default-src 'none'; style-src 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; script-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+    'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), payment=()',
+    'X-Frame-Options': 'DENY',
+    'X-Robots-Tag': 'noindex, nofollow, noarchive',
+    'Retry-After': '3600',
+    'X-MawashiDZ-Hold': PII_HOLD_DECISION_ID,
+  });
+  return new Response(request.method === 'HEAD' ? null : PII_HOLD_HTML, { status: 503, headers });
 }
 
 function redirectToHttps(request) {
@@ -238,6 +292,7 @@ async function runEmailOutbox(env) {
 }
 
 export function createWorker(deps = {}) {
+  const piiHoldActive = deps.piiHoldActive ?? PII_HOLD_ACTIVE;
   const newsHandler = deps.newsHandler || defaultNewsHandler;
   const pricesHandler = deps.pricesHandler || defaultPricesHandler;
   const emailOutboxHandler = deps.emailOutboxHandler || ((req, env) => processEmailOutbox(req, env));
@@ -251,6 +306,13 @@ export function createWorker(deps = {}) {
       const url = new URL(request.url);
       if (url.protocol === 'http:') return redirectToHttps(request);
       const pathname = normalizeApiPath(url.pathname);
+
+      if (piiHoldActive) {
+        if (pathname === '/build-info.json' && (request.method === 'GET' || request.method === 'HEAD')) {
+          return withSecurityHeaders(await serveAssets(request, env));
+        }
+        return withSecurityHeaders(await piiHoldResponse(request, pathname));
+      }
 
       if (pathname === '/api/auth/login') {
         try {
@@ -301,6 +363,10 @@ export function createWorker(deps = {}) {
     },
 
     async scheduled(_controller, env, ctx) {
+      if (piiHoldActive) {
+        console.log('email outbox cron blocked by', PII_HOLD_DECISION_ID);
+        return;
+      }
       ctx.waitUntil(
         runEmailOutbox(env).then((res) => {
           console.log('email outbox cron', res.status);
