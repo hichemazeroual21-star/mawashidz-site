@@ -1,8 +1,11 @@
 # PII Hold 02 — execution evidence
 
-**Decision:** `MDZ-ENG-DEC-2026-08-06-ENFORCE-PII-HOLD-02`  
-**Execution record created:** `2026-08-06T15:46:07Z`  
-**Authorized by:** Hichem, direct current-user Founder lock  
+**Decision:** `MDZ-ENG-DEC-2026-08-06-ENFORCE-PII-HOLD-02`
+
+**Execution record created:** `2026-08-06T15:46:07Z`
+
+**Authorized by:** Hichem, direct current-user Founder lock
+
 **Status:** `PARTIAL — CODE HOLD IN PROGRESS / PROVIDER CONTROLS BLOCKED`
 
 ## Exact authorization consumed
