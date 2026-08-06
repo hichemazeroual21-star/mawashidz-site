@@ -140,6 +140,16 @@ export EMAIL_OUTBOX_SECRET='…'   # from Worker secrets vault — do not commit
 npm run smoke:email-outbox
 ```
 
+### Temporary PII hold (decision D-019)
+
+While `worker.mjs` exports `PII_HOLD_ACTIVE = true`, every application route is intentionally unavailable and the scheduled email outbox is stopped. Use the dedicated verifier after deployment:
+
+```bash
+VERIFY_GIT_COMMIT="$(git rev-parse HEAD)" npm run verify:pii-hold
+```
+
+`npm run verify:prod` describes the normal application and will fail intentionally during the hold. The break-glass deploy script selects the hold-aware verifier automatically. This front-door mitigation does not replace Supabase or EmailJS provider-side shutdown and must not be described as full containment.
+
 ### API module path (`netlify/functions/`)
 
 Production does **not** run Netlify Functions. `worker.mjs` **imports** handlers from `netlify/functions/*.mjs` as plain ES modules (folder name is historical). Renaming to e.g. `server/api/` is optional cleanup — until then treat `netlify/functions/` as Worker-owned code.
