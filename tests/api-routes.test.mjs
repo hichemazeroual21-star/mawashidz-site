@@ -28,6 +28,7 @@ assert.deepEqual(
 
 let newsCalls = 0;
 const worker = createWorker({
+  piiHoldActive: false,
   newsHandler: async () => {
     newsCalls++;
     return new Response(JSON.stringify({ updatedAt: new Date().toISOString(), items: [{ title: 't' }], streams: {} }), {
@@ -102,6 +103,7 @@ function assertSecurityHeaders(response) {
   assert.equal(newsCalls, 1, 'HEAD news must invoke handler for truthful status');
 
   const failing = createWorker({
+    piiHoldActive: false,
     newsHandler: async () => new Response(JSON.stringify({ error: 'news-sources-unavailable' }), { status: 503 }),
   });
   const headFail = await failing.fetch(new Request('https://mawashidz.com/api/livestock-news', { method: 'HEAD' }), env);
@@ -129,6 +131,7 @@ function assertSecurityHeaders(response) {
   const limiterKeys = [];
   const upstream = [];
   const authWorker = createWorker({
+    piiHoldActive: false,
     fetchImpl: async (url, init) => {
       upstream.push({ url: String(url), init });
       if (String(url).includes('/rest/v1/rpc/resolve_login_identifier')) {
@@ -171,7 +174,10 @@ function assertSecurityHeaders(response) {
 // Missing rate-limit bindings fail closed before Supabase configuration/upstream access.
 {
   let upstreamCalls = 0;
-  const authWorker = createWorker({ fetchImpl: async () => { upstreamCalls++; return new Response('{}'); } });
+  const authWorker = createWorker({
+    piiHoldActive: false,
+    fetchImpl: async () => { upstreamCalls++; return new Response('{}'); },
+  });
   const res = await authWorker.fetch(new Request('https://mawashidz.com/api/auth/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -185,7 +191,10 @@ function assertSecurityHeaders(response) {
 // An exhausted budget is 429 with Retry-After and never reaches Supabase.
 {
   let upstreamCalls = 0;
-  const authWorker = createWorker({ fetchImpl: async () => { upstreamCalls++; return new Response('{}'); } });
+  const authWorker = createWorker({
+    piiHoldActive: false,
+    fetchImpl: async () => { upstreamCalls++; return new Response('{}'); },
+  });
   const limitedEnv = {
     ...env,
     LOGIN_IDENTIFIER_RATE_LIMITER: { limit: async () => ({ success: false }) },
@@ -205,6 +214,7 @@ function assertSecurityHeaders(response) {
 {
   let recoveryCalls = 0;
   const authWorker = createWorker({
+    piiHoldActive: false,
     fetchImpl: async (url, init) => {
       recoveryCalls++;
       if (String(url).includes('resolve_login_identifier')) return new Response('null', { status: 200 });
@@ -240,6 +250,7 @@ function assertSecurityHeaders(response) {
 // email outbox route exists and rejects bad method/auth
 {
   const emailWorker = createWorker({
+    piiHoldActive: false,
     emailOutboxHandler: async () => new Response(JSON.stringify({ ok: true }), { status: 200 }),
   });
   const post = await emailWorker.fetch(
