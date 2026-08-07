@@ -21,7 +21,7 @@ const PII_HOLD_HTML = `<!doctype html>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="robots" content="noindex,nofollow,noarchive">
-  <title>مواشي ديزاد — قيد التحضير</title>
+  <title>مواشي ديزاد — قيد التطوير</title>
   <style>
     :root{color-scheme:light dark;font-family:system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif}
     *{box-sizing:border-box}
@@ -31,16 +31,14 @@ const PII_HOLD_HTML = `<!doctype html>
     h1{margin:0 0 12px;font-size:clamp(1.7rem,6vw,2.35rem)}
     p{margin:8px 0;line-height:1.8;color:#e2eee7}
     .notice{margin-top:22px;padding:14px;border-radius:14px;background:rgba(0,0,0,.17);font-weight:700}
-    footer{margin-top:22px;font-size:.82rem;color:#bfd1c6;direction:ltr}
   </style>
 </head>
 <body>
   <main>
     <div class="mark" aria-hidden="true">م</div>
-    <h1>منصة مواشي ديزاد قيد التحضير</h1>
-    <p>التسجيل والدخول وإرسال الطلبات عبر موقع MawashiDZ غير متاح مؤقتاً بينما نراجع الجوانب القانونية والأمنية.</p>
-    <p class="notice">يرجى عدم إرسال أي معلومات شخصية حالياً.</p>
-    <footer>MawashiDZ · Temporary privacy hold</footer>
+    <h1>مواشي ديزاد قيد التطوير</h1>
+    <p>نعمل على تجهيز منصة تخدم قطاع المواشي في الجزائر.</p>
+    <p class="notice">ترقبوا الإطلاق قريبًا.</p>
   </main>
 </body>
 </html>`;
