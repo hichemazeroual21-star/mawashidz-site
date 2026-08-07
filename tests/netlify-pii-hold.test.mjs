@@ -39,7 +39,8 @@ for (const path of [
   const response = piiHold(new Request(`https://mawashidz.netlify.app${path}`));
   assertSecurity(response);
   const body = await response.text();
-  assert.match(body, /منصة مواشي ديزاد قيد التحضير/);
+  assert.match(body, /مواشي ديزاد قيد التطوير/);
+  assert.doesNotMatch(body, /الجوانب القانونية|الأمنية|معلومات شخصية|Temporary privacy hold/i);
   assert.doesNotMatch(body, /<form\b|<script\b|<input\b|emailjs|supabase/i);
 }
 
@@ -79,6 +80,8 @@ assert.deepEqual(filesBelow(join(root, 'netlify-hold')).sort(), [
 assert.deepEqual(readdirSync(join(root, 'netlify-disabled-functions')), ['.gitkeep']);
 
 const fallbackHtml = readFileSync(join(root, 'netlify-hold/index.html'), 'utf8');
+assert.match(fallbackHtml, /مواشي ديزاد قيد التطوير/);
+assert.doesNotMatch(fallbackHtml, /الجوانب القانونية|الأمنية|معلومات شخصية|Temporary privacy hold/i);
 assert.doesNotMatch(fallbackHtml, /<form\b|<script\b|<input\b|emailjs|supabase/i);
 assert.match(readFileSync(join(root, 'netlify-hold/_headers'), 'utf8'), /form-action 'none'/);
 assert.equal(readFileSync(join(root, 'netlify-hold/_redirects'), 'utf8').trim(), '/* /index.html 404!');
