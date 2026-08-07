@@ -39,7 +39,8 @@ for (const path of ['/', '/index.html', '/register', '/js/registration-flow.mjs'
   assert.match(response.headers.get('content-security-policy') || '', /script-src 'none'/);
   assert.match(response.headers.get('content-security-policy') || '', /form-action 'none'/);
   const html = await response.text();
-  assert.match(html, /منصة مواشي ديزاد قيد التحضير/);
+  assert.match(html, /مواشي ديزاد قيد التطوير/);
+  assert.doesNotMatch(html, /الجوانب القانونية|الأمنية|معلومات شخصية|Temporary privacy hold/i);
   assert.doesNotMatch(html, /<form\b|<script\b|<input\b|emailjs|supabase/i);
 }
 
