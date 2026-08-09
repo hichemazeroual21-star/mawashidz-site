@@ -11,6 +11,7 @@ const JSON_HEADERS = {
 };
 
 const HSTS_VALUE = 'max-age=31536000; includeSubDomains';
+const BRAND_LOGO_PATH = '/brand-logo.png';
 
 export const PII_HOLD_ACTIVE = true;
 export const PII_HOLD_DECISION_ID = 'MDZ-ENG-DEC-2026-08-06-ENFORCE-PII-HOLD-02';
@@ -27,7 +28,7 @@ const PII_HOLD_HTML = `<!doctype html>
     *{box-sizing:border-box}
     body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;background:#0c2e22;color:#f7fbf8}
     main{width:min(620px,100%);padding:36px 28px;border:1px solid rgba(255,255,255,.18);border-radius:24px;background:rgba(255,255,255,.08);box-shadow:0 24px 70px rgba(0,0,0,.22);text-align:center}
-    .mark{display:inline-grid;place-items:center;width:58px;height:58px;margin-bottom:16px;border-radius:18px;background:#d9bd69;color:#173326;font-size:28px;font-weight:900}
+    .mark{display:block;width:88px;height:90px;margin:0 auto 16px;object-fit:contain;filter:drop-shadow(0 9px 18px rgba(0,0,0,.18))}
     h1{margin:0 0 12px;font-size:clamp(1.7rem,6vw,2.35rem)}
     p{margin:8px 0;line-height:1.8;color:#e2eee7}
     .notice{margin-top:22px;padding:14px;border-radius:14px;background:rgba(0,0,0,.17);font-weight:700}
@@ -35,7 +36,7 @@ const PII_HOLD_HTML = `<!doctype html>
 </head>
 <body>
   <main>
-    <div class="mark" aria-hidden="true">م</div>
+    <img class="mark" src="${BRAND_LOGO_PATH}" width="88" height="90" alt="">
     <h1>مواشي ديزاد قيد التطوير</h1>
     <p>نعمل على تجهيز منصة تخدم قطاع المواشي في الجزائر.</p>
     <p class="notice">ترقبوا الإطلاق قريبًا.</p>
@@ -70,10 +71,10 @@ function piiHoldResponse(request, pathname) {
   const headers = new Headers({
     'Content-Type': 'text/html; charset=utf-8',
     'Cache-Control': 'no-store, max-age=0',
-    'Content-Security-Policy': "default-src 'none'; style-src 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; script-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+    'Content-Security-Policy': "default-src 'none'; style-src 'unsafe-inline'; img-src 'self'; connect-src 'none'; script-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
     'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), payment=()',
     'X-Frame-Options': 'DENY',
-    'X-Robots-Tag': 'noindex, nofollow, noarchive',
+    'X-Robots-Tag': 'noindex, nofollow,noarchive',
     'Retry-After': '3600',
     'X-MawashiDZ-Hold': PII_HOLD_DECISION_ID,
   });
@@ -103,6 +104,54 @@ async function serveAssets(request, env) {
     return jsonError(500, 'assets-binding-missing');
   }
   return env.ASSETS.fetch(request);
+}
+
+function decodeBase64(value) {
+  const binary = atob(value.replace(/\s+/g, ''));
+  const bytes = new Uint8Array(binary.length);
+  for (let index = 0; index < binary.length; index++) bytes[index] = binary.charCodeAt(index);
+  return bytes;
+}
+
+async function brandLogoResponse(request, env) {
+  if (request.method !== 'GET' && request.method !== 'HEAD') {
+    return jsonError(405, 'method-not-allowed');
+  }
+  if (!env?.ASSETS?.fetch) {
+    console.error('brand logo unavailable: ASSETS binding missing');
+    return jsonError(503, 'brand-logo-unavailable');
+  }
+
+  const sourceUrl = new URL('/index.html', request.url);
+  const source = await env.ASSETS.fetch(new Request(sourceUrl, { method: 'GET' }));
+  if (!source.ok) {
+    console.error('brand logo unavailable: source index missing');
+    return jsonError(503, 'brand-logo-unavailable');
+  }
+
+  const html = await source.text();
+  const logoTag = html.match(/<img\b(?=[^>]*\bclass=(['"])[^'"]*\bbrand-logo\b[^'"]*\1)[^>]*>/i)?.[0] || '';
+  const encoded = logoTag.match(/\bsrc=(['"])data:image\/png;base64,([A-Za-z0-9+/=\s]+)\1/i)?.[2];
+  if (!encoded) {
+    console.error('brand logo unavailable: embedded logo not found');
+    return jsonError(503, 'brand-logo-unavailable');
+  }
+
+  let bytes;
+  try {
+    bytes = decodeBase64(encoded);
+  } catch {
+    console.error('brand logo unavailable: invalid embedded logo');
+    return jsonError(503, 'brand-logo-unavailable');
+  }
+
+  const headers = new Headers({
+    'Content-Type': 'image/png',
+    'Cache-Control': 'public, max-age=86400',
+    'Cross-Origin-Resource-Policy': 'same-origin',
+    'X-Robots-Tag': 'noindex, noarchive',
+  });
+  return new Response(request.method === 'HEAD' ? null : bytes, { status: 200, headers });
 }
 
 async function asHead(response) {
@@ -306,6 +355,9 @@ export function createWorker(deps = {}) {
       const pathname = normalizeApiPath(url.pathname);
 
       if (piiHoldActive) {
+        if (pathname === BRAND_LOGO_PATH && (request.method === 'GET' || request.method === 'HEAD')) {
+          return withSecurityHeaders(await brandLogoResponse(request, env));
+        }
         if (pathname === '/build-info.json' && (request.method === 'GET' || request.method === 'HEAD')) {
           return withSecurityHeaders(await serveAssets(request, env));
         }

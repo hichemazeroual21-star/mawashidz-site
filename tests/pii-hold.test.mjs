@@ -28,7 +28,10 @@ assert.match(
   'break-glass deployment must not run a positive outbox smoke during the hold',
 );
 
+const SAMPLE_LOGO_BASE64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
+const EXPECTED_LOGO = Buffer.from(SAMPLE_LOGO_BASE64, 'base64');
 let assetCalls = 0;
+const assetPaths = [];
 let blockedHandlerCalls = 0;
 const worker = createWorker({
   loginHandler: async () => { blockedHandlerCalls++; return new Response('unexpected'); },
@@ -43,7 +46,14 @@ const env = {
     fetch: async (request) => {
       assetCalls++;
       const pathname = new URL(request.url).pathname;
-      assert.equal(pathname, '/build-info.json', 'only build-info may reach static assets during hold');
+      assetPaths.push(pathname);
+      if (pathname === '/index.html') {
+        return new Response(
+          `<a class="brand"><img class="brand-logo" src="data:image/png;base64,${SAMPLE_LOGO_BASE64}"></a>`,
+          { status: 200, headers: { 'Content-Type': 'text/html; charset=utf-8' } },
+        );
+      }
+      assert.equal(pathname, '/build-info.json', 'only the brand source and build-info may reach static assets during hold');
       return new Response(JSON.stringify({
         version: 'hold-test',
         commit: 'synthetic-test-commit',
@@ -74,12 +84,15 @@ for (const path of ['/', '/index.html', '/register', '/js/registration-flow.mjs'
   assert.match(response.headers.get('cache-control') || '', /no-store/);
   assert.equal(response.headers.get('x-mawashidz-hold'), PII_HOLD_DECISION_ID);
   assert.match(response.headers.get('content-security-policy') || '', /default-src 'none'/);
+  assert.match(response.headers.get('content-security-policy') || '', /img-src 'self'/);
   assert.match(response.headers.get('content-security-policy') || '', /connect-src 'none'/);
   assert.match(response.headers.get('content-security-policy') || '', /script-src 'none'/);
   assert.match(response.headers.get('content-security-policy') || '', /form-action 'none'/);
 
   const html = await response.text();
   assert.match(html, /مواشي ديزاد قيد التطوير/);
+  assert.match(html, /<img class="mark" src="\/brand-logo\.png"/);
+  assert.doesNotMatch(html, />م<\/div>/);
   assert.doesNotMatch(html, /الجوانب القانونية|الأمنية|معلومات شخصية|Temporary privacy hold/i);
   assert.doesNotMatch(html, /<form\b/i);
   assert.doesNotMatch(html, /<script\b/i);
@@ -88,6 +101,26 @@ for (const path of ['/', '/index.html', '/register', '/js/registration-flow.mjs'
   assert.doesNotMatch(html, /supabase/i);
 }
 assert.equal(assetCalls, 0, 'blocked public paths must not reach the old asset bundle');
+
+// The one allowed visual asset is extracted from the existing site logo only.
+{
+  const response = await call('/brand-logo.png');
+  assert.equal(response.status, 200);
+  assertCommonSecurity(response);
+  assert.equal(response.headers.get('content-type'), 'image/png');
+  assert.equal(response.headers.get('cross-origin-resource-policy'), 'same-origin');
+  assert.match(response.headers.get('cache-control') || '', /max-age=86400/);
+  assert.deepEqual(Buffer.from(await response.arrayBuffer()), EXPECTED_LOGO);
+  assert.deepEqual(assetPaths, ['/index.html']);
+}
+{
+  const response = await call('/brand-logo.png', { method: 'HEAD' });
+  assert.equal(response.status, 200);
+  assertCommonSecurity(response);
+  assert.equal(response.headers.get('content-type'), 'image/png');
+  assert.equal(await response.text(), '');
+  assert.deepEqual(assetPaths, ['/index.html', '/index.html']);
+}
 
 // All application APIs fail before auth, database, email, news, or price handlers run.
 for (const [path, init] of [
@@ -106,6 +139,7 @@ for (const [path, init] of [
   assert.deepEqual(await response.json(), { error: 'pii-hold-active' });
 }
 assert.equal(blockedHandlerCalls, 0, 'hold must short-circuit every application handler');
+assert.deepEqual(assetPaths, ['/index.html', '/index.html']);
 
 // Exact deployment evidence stays observable without reopening any application route.
 {
@@ -117,7 +151,8 @@ assert.equal(blockedHandlerCalls, 0, 'hold must short-circuit every application 
     commit: 'synthetic-test-commit',
     worker: 'mawashidz-live',
   });
-  assert.equal(assetCalls, 1);
+  assert.equal(assetCalls, 3);
+  assert.deepEqual(assetPaths, ['/index.html', '/index.html', '/build-info.json']);
 }
 
 // HEAD carries the same closed status and headers without a body.
@@ -142,4 +177,4 @@ assert.equal(blockedHandlerCalls, 0, 'hold must short-circuit every application 
   assert.equal(response.headers.get('location'), 'https://mawashidz.com/register?source=old');
 }
 
-console.log('  ✓ PII hold: no forms/scripts, all app routes blocked, outbox stopped, build evidence preserved');
+console.log('  ✓ PII hold: existing logo only, no forms/scripts, all app routes blocked, outbox stopped');
